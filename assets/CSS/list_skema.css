@@ -1,0 +1,271 @@
+.jdm {
+    color: #14305c;
+    margin-bottom: 18px;
+    font-size: 1.4em;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-tambah {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #4186e0;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.btn-tambah:hover {
+    background: #2761ba;
+}
+
+.message {
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+th, td {
+    border: 1px solid #e7e7eb;
+    padding: 10px 14px;
+    text-align: left;
+}
+
+th {
+    background: #24365e;
+    color: #fff;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: #f4f7fd;
+}
+
+tr:nth-child(odd) {
+    background: #fff;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.aksi {
+    white-space: nowrap;
+}
+
+.aksi a {
+    display: inline-block;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    border: 1px solid;
+}
+
+.aksi a.btn-ubah {
+    background: #f4f8fd;
+    color: #1877cc;
+    border-color: #c9e1fb;
+}
+
+.aksi a.btn-ubah:hover {
+    background: #2081e5;
+    color: #fff;
+}
+
+.aksi a.btn-hapus {
+    color: #b50000;
+    border-color: #fad0d0;
+    background: #fcf3f3;
+}
+
+.aksi a.btn-hapus:hover {
+    background: #e43d3d;
+    color: #fff;
+}
+
+.btn-unit-empty {
+    background: #95a5a6;
+    color: white;
+    border-color: #7f8c8d;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-unit-empty:hover {
+    background: #7f8c8d;
+}
+
+.btn-unit-badge {
+    position: relative;
+    padding: 8px 16px;
+    color: white;
+    border: none;
+    font-weight: 600;
+    min-width: 50px;
+    text-align: center;
+}
+
+.btn-unit-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-unit-badge .badge-number {
+    position: absolute;
+    background: #fff;
+    color: #333;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.btn-lihat-unit {
+    background: #3498db;
+    color: white;
+    border-color: #2980b9;
+    padding: 8px 16px;
+}
+
+.btn-lihat-unit:hover {
+    background: #19405aff;
+}
+
+.btn-lihat-unit i {
+    margin-right: 5px;
+}
+.cari {
+        margin-bottom:20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+    .cari input[type="text"] {
+        padding:7px 14px;
+        width: 500px;
+        border:1px solid #b0b6bd;
+        border-radius:50px;
+        font-size:14px;
+        color:#252525;
+        background:#fafbfc;
+        transition: border-color .22s;
+    }
+    .cari input[type="text"]:focus {
+        border-color: #549edb;
+        outline: none;
+    }
+    .cari button {
+        padding:7px 18px;
+        font-size:14px;
+        background:#4186e0;
+        border:none;
+        border-radius:4px;
+        color:#fff;
+        cursor:pointer;
+        font-weight:500;
+    }
+    .cari button:hover {
+        background: #2761ba;
+    }
+
+@media screen and (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .btn-tambah {
+        width: 100%;
+        text-align: center;
+    }
+    
+    table {
+        border: 0;
+    }
+    
+    table thead {
+        display: none;
+    }
+    
+    table tbody {
+        display: block;
+    }
+    
+    table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff !important;
+    }
+    
+    table td {
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding: 10px;
+        position: relative;
+        padding-left: 50%;
+    }
+    
+    table td:last-child {
+        border-bottom: none;
+    }
+    
+    table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        text-align: left;
+        color: #24365e;
+    }
+    
+    .aksi {
+        text-align: center !important;
+        padding-left: 10px !important;
+    }
+    
+    .aksi:before {
+        display: none;
+    }
+    
+    .aksi a {
+        display: inline-block;
+        margin: 5px 3px;
+    }
+}

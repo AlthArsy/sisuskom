@@ -1,0 +1,194 @@
+    .ubah-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .ubah-header {
+        background: linear-gradient(135deg, #24365e 0%, #14305c 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 10px 10px 0 0;
+        text-align: center;
+    }
+    
+    .ubah-header h1 {
+        font-size: 1.8em;
+        margin-bottom: 8px;
+    }
+    
+    .ubah-header p {
+        opacity: 0.9;
+        font-size: 0.95em;
+    }
+    
+    .user-info {
+        background: #e8f0fe;
+        padding: 15px 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border-left: 4px solid #24365e;
+    }
+    
+    .user-info span {
+        font-weight: 600;
+        color: #14305c;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .message {
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .message.success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .form-group label.required::after {
+        content: " *";
+        color: #e74c3c;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid #dce1e6;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #4186e0;
+        box-shadow: 0 0 0 3px rgba(65, 134, 224, 0.1);
+        background-color: white;
+    }
+    
+    .form-control[readonly] {
+        background-color: #f5f7fa;
+        color: #7f8c8d;
+        cursor: not-allowed;
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    .form-hint {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #7f8c8d;
+    }
+    
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        padding-top: 25px;
+        border-top: 1px solid #eee;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 28px;
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    
+    .btn i {
+        margin-right: 8px;
+    }
+    
+    .btn-primary {
+        background-color: #4186e0;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #2761ba;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(65, 134, 224, 0.3);
+    }
+    
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #7f8c8d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+        body {
+            padding: 15px;
+        }
+        
+        .header {
+            padding: 20px 15px;
+        }
+        
+        .form-container {
+            padding: 20px;
+        }
+        
+        .button-group {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .form-container {
+        animation: fadeIn 0.5s ease-out;
+    }

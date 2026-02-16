@@ -1,5 +1,8 @@
 <?php
+
+if (session_status() === PHP_SESSION_NONE) {
 session_start();
+}
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
     header("Location: ../LOGIN/login.php");
     exit();
@@ -10,7 +13,6 @@ if (mysqli_connect_errno()) {
     die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
 
-// HAPUS SEMUA ASESOR
 if (isset($_GET['all']) && $_GET['all'] == '1') {
     if (!isset($_GET['confirm']) || $_GET['confirm'] != '1') {
         echo '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Konfirmasi Hapus Semua Asesor</title></head><body>';
@@ -21,33 +23,32 @@ if (isset($_GET['all']) && $_GET['all'] == '1') {
         exit;
     }
     
-    mysqli_begin_transaction($koneksi);
-    try {
-        // Set NULL di tabel users
-        $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi IS NOT NULL");
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+    // mysqli_begin_transaction($koneksi);
+    // try {
+      
+        // $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi IS NOT NULL");
+        // mysqli_stmt_execute($stmt);
+        // mysqli_stmt_close($stmt);
         
-        // Set NULL di tabel tb_skema (TAMBAHAN INI)
-        $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor IS NOT NULL");
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+     
+    //     $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor IS NOT NULL");
+    //     mysqli_stmt_execute($stmt);
+    //     mysqli_stmt_close($stmt);
         
-        // Hapus semua asesor
-        $stmt2 = mysqli_prepare($koneksi, "DELETE FROM tb_asesor");
-        mysqli_stmt_execute($stmt2);
-        mysqli_stmt_close($stmt2);
+       
+    //     $stmt2 = mysqli_prepare($koneksi, "DELETE FROM tb_asesor");
+    //     mysqli_stmt_execute($stmt2);
+    //     mysqli_stmt_close($stmt2);
         
-        mysqli_commit($koneksi);
-        header("Location: ../ASESOR/Table_asesor.php?deleted_all=1");
-        exit;
-    } catch (Exception $e) {
-        mysqli_rollback($koneksi);
-        die("Gagal menghapus semua data asesor: " . mysqli_error($koneksi));
-    }
+    //     mysqli_commit($koneksi);
+    //     header("Location:../BERANDA/UTAMA.php?page=../ASESOR/Table_asesor.php");
+    //     exit;
+    // } catch (Exception $e) {
+    //     mysqli_rollback($koneksi);
+    //     die("Gagal menghapus semua data asesor: " . mysqli_error($koneksi));
+    // }
 }
 
-// HAPUS SATU ASESOR
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0) {
     die("ID tidak valid.");
@@ -55,19 +56,19 @@ if ($id <= 0) {
 
 mysqli_begin_transaction($koneksi);
 try {
-    // Set NULL di tabel users
-    $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
+  
+    // $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi = ?");
+    // mysqli_stmt_bind_param($stmt, "i", $id);
+    // mysqli_stmt_execute($stmt);
+    // mysqli_stmt_close($stmt);
     
-    // Set NULL di tabel tb_skema (TAMBAHAN INI)
+    
     $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     
-    // Hapus asesor
+
     $stmt = mysqli_prepare($koneksi, "DELETE FROM tb_asesor WHERE id_asesor = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     if (!mysqli_stmt_execute($stmt)) {
@@ -76,7 +77,7 @@ try {
     mysqli_stmt_close($stmt);
     
     mysqli_commit($koneksi);
-    header("Location: ../ASESOR/Table_asesor.php?deleted=1");
+    header("Location: ../BERANDA/UTAMA.php?page=../ASESOR/Table_asesor.php");
     exit;
 } catch (Exception $e) {
     mysqli_rollback($koneksi);
@@ -85,4 +86,3 @@ try {
 
 mysqli_close($koneksi);
 ?>
-

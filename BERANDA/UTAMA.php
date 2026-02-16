@@ -22,7 +22,6 @@ function get_initials($name) {
     }
     return $res;
 }
-
 $roles_data = [
     'Admin' => [
         'icon' => 'fas fa-user-shield',
@@ -94,18 +93,18 @@ $roles_data = [
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
-                'label' => 'Skema',
+                'label' => 'Manajemen Skema',
                 'has_dropdown' => true,
                 'submenu' => [
                     [
                         'href' => '../SKEMA/list_skema.php',
                         'icon' => 'fas fa-book',
-                        'label' => 'Skema'
+                        'label' => 'Kelola Skema'
                     ],
                     [
-                        'href' => '../UNIT/unit_kompetensi.php',
+                        'href' => '../SKEMA/list_skema2.php',
                         'icon' => 'fas fa-tasks',
-                        'label' => 'Kompetensi'
+                        'label' => 'Data Skema'
                     ]
                     // [
                     //     'href' => '../ELEMEN/elemen.php',
@@ -182,276 +181,13 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Informasi Manajemen LSP</title>
-    <link rel="icon" type="image/png" href="../assets/Mudikal.png">
+    <link rel="stylesheet" href="../assets/CSS/utama.css">   
+    <link rel="icon" type="image/png" href="../assets/IMG/Mudikal.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
 
-        body {
-            background-color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .container {
-            display: flex;
-            flex: 1;
-            position: relative;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: #f5f5f5;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease;
-            z-index: 100;
-        }
-
-        .sidebar.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .profile-section {
-            background: linear-gradient(135deg, rgba(255, 0, 0, 5), rgba(114, 0, 99, 5), rgba(0, 21, 141, 5));
-            background-size: 400% 400%;
-            animation: gradientMove 15s ease infinite;
-            padding: 30px 20px;
-            color: white;
-            text-align: left;
-        }
-
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .profile-section h2 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .profile-section p {
-            font-size: 14px;
-            opacity: 0.95;
-        }
-
-        .nav-header {
-            padding: 15px 20px;
-            background: #e8e8e8;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #555;
-        }
-
-        .nav-menu {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .nav-menu a, .nav-menu .menu-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px;
-            color: #333;
-            text-decoration: none;
-            transition: background 0.2s;
-            border-left: 4px solid transparent;
-            cursor: pointer;
-        }
-
-        .nav-menu a:hover, .nav-menu .menu-item:hover {
-            background: #e8e8e8;
-        }
-
-        .nav-menu a.active, .nav-menu .menu-item.active {
-            background: #fff;
-            border-left-color: rgb(60, 220, 231);
-            color: rgb(60, 177, 231);
-            font-weight: 600;
-        }
-
-        .nav-item-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-        }
-
-        .nav-menu i {
-            width: 20px;
-            text-align: center;
-        }
-
-        .dropdown-arrow {
-            transition: transform 0.3s ease;
-            font-size: 12px;
-            margin-left: auto;
-        }
-
-        .dropdown-arrow.rotated {
-            transform: rotate(180deg);
-        }
-
-        .submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            background: #ececec;
-        }
-
-        .submenu.open {
-            max-height: 500px;
-        }
-
-        .submenu a {
-            padding: 12px 20px 12px 52px;
-            font-size: 14px;
-            border-left: 4px solid transparent;
-        }
-
-        .submenu a:hover {
-            background: #e0e0e0;
-        }
-
-        .submenu a.active {
-            background: #d8d8d8;
-            border-left-color: rgb(60, 220, 231);
-            color: rgb(60, 177, 231);
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .sidebar-footer a {
-            color: rgb(60, 77, 231);
-            text-decoration: none;
-        }
-
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 99;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 20px 30px;
-            overflow-y: auto;
-            transition: margin-left 0.3s ease;
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        .breadcrumb {
-            background: #f3f1f1ff;
-            background-size: 400% 400%;
-            animation: gradientMove 15s ease infinite;
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            font-size: 14px;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .toggle-sidebar-btn {
-            background: rgba(96, 125, 139, 0.15);
-            border: none;
-            color: #555;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-
-        .toggle-sidebar-btn:hover {
-            background: rgba(96, 125, 139, 0.25);
-        }
-
-        .content-card {
-            background: white;
-            border-radius: 4px;
-            padding: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .content-card h2 {
-            font-size: 22px;
-            margin-bottom: 20px;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .welcome-text {
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 25px;
-        }
-
-        .notice-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .warning-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: #555;
-            line-height: 1.5;
-        }
-        @media screen and (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                height: 100vh;
-                z-index: 1000;
-            }
-
-            .main-content {
-                margin-left: 0 !important;
-                padding: 15px !important;
-            }
-
-            .notice-text, .warning-text {
-                font-size: 16px !important;
-            }
-        }
-    </style>
 </head>
 <body>
+    <?php include '../INCLUDES/loading.php'; ?>
     <div class="container">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
         <aside class="sidebar" id="sidebar">
@@ -537,6 +273,13 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     </div>
                 </a>
             </nav>
+            <div class="developer">
+                <div class="copyright">
+                    © 2025 Dev : <a href="http://althaf.com">Althaf Dan Riyan</a></div>
+                <div class="version">
+                    <b>Version: </b> M1
+                </div>        
+            </div>
         </aside>
 
         <main class="main-content" id="mainContent">

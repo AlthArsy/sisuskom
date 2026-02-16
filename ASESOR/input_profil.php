@@ -15,7 +15,6 @@ include '../koneksi.php';
 if (mysqli_connect_errno()) {
     die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
-
 $id_user = isset($_SESSION['id_user']) ? (int)$_SESSION['id_user'] : 0;
 $role = $_SESSION['role'];
 $redirect_home = '../BERANDA/UTAMA.php';
@@ -24,7 +23,6 @@ if ($id_user <= 0) {
     echo "<script>alert('Sesi tidak valid. Silakan login ulang.'); window.location.href='../LOGIN/login.php';</script>";
     exit();
 }
-
 $id_asesor = null;
 $stmt_check = mysqli_prepare($koneksi, "SELECT id_asesor FROM users WHERE id_user = ? LIMIT 1");
 if ($stmt_check) {
@@ -36,12 +34,10 @@ if ($stmt_check) {
 } else {
     echo "<script>alert('Gagal menyiapkan query cek profil: " . addslashes(mysqli_error($koneksi)) . "');</script>";
 }
-
 if (!empty($id_asesor)) {
     header("Location: $redirect_home");
     exit();
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $no_reg = isset($_POST['no_reg']) ? trim($_POST['no_reg']) : '';
     $nama_asesor = isset($_POST['nama_asesor']) ? trim($_POST['nama_asesor']) : '';
@@ -56,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (mysqli_stmt_execute($stmt)) {
                 $id_asesor = mysqli_insert_id($koneksi);
                 mysqli_stmt_close($stmt);
-
                 if ($id_asesor > 0) {
                     $stmt_up = mysqli_prepare($koneksi, "UPDATE users SET id_asesor = ? WHERE id_user = ?");
                     if ($stmt_up) {
@@ -95,101 +90,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Input Profil Asesor</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f5f7fb;
-            margin: 0;
-            padding: 0;
-        }
-        .form-container {
-            max-width: 430px;
-            width: 97vw;
-            margin: 42px auto 0 auto;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 6px 25px #0002;
-            padding: 30px 32px 22px 32px;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 27px;
-            font-size: 23px;
-            color: #252B3A;
-            letter-spacing: 1px;
-        }
-        .form-group {
-            margin-bottom: 18px;
-        }
-        label {
-            font-weight: 600;
-            color: #27314D;
-            margin-bottom: 6px;
-            display: block;
-            font-size: 15px;
-        }
-        .required {
-            color: #e3304d;
-            font-weight: 400;
-            font-size: 13px;
-            margin-left: 3px;
-        }
-        input[type="text"], textarea, select {
-            width: 100%;
-            border: 1.5px solid #cdcdde;
-            background: #f7f9fd;
-            color: #242B30;
-            padding: 9px 11px;
-            border-radius: 4px;
-            font-size: 15px;
-            margin-top: 3px;
-            margin-bottom: 2px;
-            transition: border .2s;
-            box-sizing: border-box;
-            resize: none;
-        }
-        input[type="text"]:focus, textarea:focus, select:focus {
-            border: 1.5px solid #4A7AFF;
-            outline: none;
-            background: #fff;
-        }
-        textarea {
-            min-height: 60px;
-            max-height: 180px;
-        }
-        .btn-submit {
-            width: 100%;
-            background: #275dfa;
-            color: #fff;
-            border: none;
-            padding: 11px 0;
-            margin-top: 8px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .18s;
-            letter-spacing: 0.5px;
-        }
-        .btn-submit:hover {
-            background: #1f48bd;
-        }
-        .info-box {
-            background: #e8f4ff;
-            border-left: 4px solid #4A7AFF;
-            padding: 10px 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
+        body {font-family: 'Segoe UI', Arial, sans-serif;background: #f5f7fb;margin: 0;padding: 0;}
+        .form-container {max-width: 430px;width: 97vw;margin: 42px auto 0 auto;background: #fff;border-radius: 10px;box-shadow: 0 6px 25px #0002;padding: 30px 32px 22px 32px;}
+        h2 {text-align: center;margin-top: 0;margin-bottom: 27px;font-size: 23px;color: #252B3A;letter-spacing: 1px;}
+        .form-group {margin-bottom: 18px;}
+        label {font-weight: 600;color: #27314D;margin-bottom: 6px;display: block;font-size: 15px;}
+        .required {color: #e3304d;font-weight: 400;font-size: 13px;margin-left: 3px;}
+        input[type="text"], textarea, select {width: 100%;border: 1.5px solid #cdcdde;background: #f7f9fd;color: #242B30;padding: 9px 11px;border-radius: 4px;font-size: 15px;margin-top: 3px;margin-bottom: 2px;transition: border .2s;box-sizing: border-box;resize: none;}
+        input[type="text"]:focus, textarea:focus, select:focus {border: 1.5px solid #4A7AFF;outline: none;background: #fff;}
+        textarea {min-height: 60px;max-height: 180px;}
+        .btn-submit {width: 100%;background: #275dfa;color: #fff;border: none;padding: 11px 0;margin-top: 8px;border-radius: 6px;font-size: 16px;font-weight: 600;cursor: pointer;transition: background .18s;letter-spacing: 0.5px;}
+        .btn-submit:hover {background: #1f48bd;}
+        .info-box {background: #e8f4ff;border-left: 4px solid #4A7AFF;padding: 10px 15px;margin-bottom: 20px;border-radius: 4px;font-size: 14px;}
         @media (max-width: 530px) {
-            .form-container {
-                padding: 15px 7vw 13px 7vw;
-            }
-            h2 {
-                font-size: 19px;
-            }
-        }
+            .form-container {padding: 15px 7vw 13px 7vw;}
+            h2 {font-size: 19px;}}
     </style>
 </head>
 <body>

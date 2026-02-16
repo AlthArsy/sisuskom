@@ -19,8 +19,8 @@ if ($id_elemen > 0) {
         SELECT 
             tb_elemen.no_elemen, 
             tb_elemen.nama_elemen,
-            tb_asesor.nama_asesor,
-            tb_asesor.no_reg
+            tb_elemen.id_unit,
+            tb_asesor.nama_asesor
         FROM tb_elemen
         LEFT JOIN tb_unit_kompetensi ON tb_elemen.id_unit = tb_unit_kompetensi.id_unit
         LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
@@ -143,291 +143,8 @@ if (isset($result) && $result) {
     }
 }
 ?>
-<style>
-.jd {
-    color: #14305c;
-    margin-bottom: 18px;
-    font-size: 1.4em;
-    font-weight: 600;
-}
 
-.header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.btn-kembali {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #95a5a6;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.btn-kembali:hover {
-    background: #7f8c8d;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
-}
-
-.btn-tambah {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #4CAF50;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    margin-left: 10px;
-}
-
-.btn-tambah:hover {
-    background: #45a049;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
-.skema-info {
-    background: #e8f4f8;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #3498db;
-}
-
-.skema-info h3 {
-    margin: 0 0 10px 0;
-    color: #14305c;
-    font-size: 1.2em;
-}
-
-.skema-info p {
-    margin: 5px 0;
-    color: #555;
-}
-
-.skema-group {
-    margin-bottom: 30px;
-}
-
-.skema-header {
-    background: #14305c;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px 5px 0 0;
-    margin-top: 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.skema-count {
-    background: rgba(255, 255, 255, 0.3);
-    padding: 5px 15px;
-    border-radius: 20px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-th, td {
-    border: 1px solid #e7e7eb;
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 0.95em;
-}
-
-th {
-    background: #24365e;
-    color: #fff;
-    font-weight: 600;
-}
-
-tr:nth-child(even) {
-    background: #f4f7fd;
-}
-
-tr:nth-child(odd) {
-    background: #fff;
-}
-
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.aksi a {
-    display: inline-block;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: 5px;
-    margin-right: 5px;
-    text-decoration: none;
-    border: 1px solid;
-    transition: all 0.3s ease;
-}
-
-.aksi a.btn-ubah {
-    background: #f4f8fd;
-    color: #1877cc;
-    border-color: #c9e1fb;
-}
-
-.aksi a.btn-ubah:hover {
-    background: #2081e5;
-    color: #fff;
-}
-
-.aksi a.btn-hapus {
-    color: #b50000;
-    border-color: #fad0d0;
-    background: #fcf3f3;
-}
-
-.aksi a.btn-hapus:hover {
-    background: #e43d3d;
-    color: #fff;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #8692af;
-    background: #fcfdff;
-}
-
-.empty-state i {
-    font-size: 4em;
-    margin-bottom: 20px;
-    opacity: 0.3;
-}
-.btn-elemen-empty {
-    background: #95a5a6;
-    color: white;
-    border-color: #7f8c8d;
-    padding: 8px 16px;
-    font-weight: 600;
-    opacity: 0.7;
-}
-
-.btn-elemen-empty:hover {
-    background: #7f8c8d;
-}
-
-.btn-elemen-badge {
-    padding: 8px 16px;
-    color: white;
-    border: none;
-    font-weight: 600;
-    min-width: 50px;
-    text-align: center;
-}
-
-.btn-elemen-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.btn-lihat-elemen {
-    background: #3498db;
-    color: white;
-    border-color: #2980b9;
-    padding: 8px 16px;
-}
-
-.btn-lihat-elemen:hover {
-    background: #2980b9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
-}
-
-.btn-lihat-elemen i {
-    margin-right: 5px;
-}
-
-@media screen and (max-width: 768px) {
-    .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-    
-    .btn-kembali, .btn-tambah {
-        width: 100%;
-        text-align: center;
-        margin-left: 0;
-    }
-    
-    .skema-header {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
-    }
-    
-    table {
-        border: 0;
-    }
-    
-    table thead {
-        display: none;
-    }
-    
-    table tbody {
-        display: block;
-    }
-    
-    table tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fff !important;
-    }
-    
-    table td {
-        display: block;
-        text-align: right;
-        border: none;
-        border-bottom: 1px solid #eee;
-        padding: 10px;
-        position: relative;
-        padding-left: 50%;
-    }
-    
-    table td:last-child {
-        border-bottom: none;
-    }
-    
-    table td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-        color: #24365e;
-    }
-    
-    .aksi {
-        text-align: center !important;
-        padding-left: 10px !important;
-    }
-    
-    .aksi:before {
-        display: none;
-    }
-}
-</style>
-
+<link rel="stylesheet" href="../assets/CSS/list_UEK.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="elemen-container">
@@ -439,12 +156,21 @@ tbody tr:last-child td {
                 Daftar KUK
             <?php endif; ?>
         </h2>
+    <?php if (isset($_SESSION['pesan'])): ?>
+        <div class="message <?php echo $_SESSION['tipe']; ?>">
+            <?php 
+                echo htmlspecialchars($_SESSION['pesan']); 
+                unset($_SESSION['pesan']);
+                unset($_SESSION['tipe']);
+            ?>
+        </div>
+    <?php endif; ?>
         <div>
             <?php if ($id_elemen > 0): ?>
-                <a href="../BERANDA/UTAMA.php?page=../ELEMEN/elemen.php" class="btn-kembali">
+                <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?= $skema_data['id_unit'] ?>" class="btn-kembali">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>
-                <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_elemen=<?= $id_elemen ?>" class="btn-tambah">
+                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $id_elemen ?>" class="btn-tambah">
                     <i class="fas fa-plus"></i> Tambah KuK
                 </a>
             <?php endif; ?>
@@ -463,9 +189,9 @@ tbody tr:last-child td {
             <thead>
                 <tr>
                     <th style="width: 50px;">No</th>
-                    <th>No Elemen</th>
-                    <th>Nama Elemen</th>
-                    <th style="width: 172px;">Aksi</th>
+                    <th>No KUK</th>
+                    <th>KUK</th>
+                    <th style="width: 190px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -477,30 +203,30 @@ tbody tr:last-child td {
                         <td data-label="No KuK"><?= htmlspecialchars($row['no_kuk'] ?? '') ?></td>
                         <td data-label="KUK"><?= htmlspecialchars($row['kuk'] ?? '') ?></td>
                         <td data-label="Aksi" class="aksi">
-                            <a href="../KUK/ubah_kuk.php?id=<?= $row['id_kuk'] ?>" class="btn-ubah">
-                                Ubah
+                            <a href="UTAMA.php?page=../KUK/ubah_kuk.php&id=<?= $row['id_kuk'] ?>" class="btn-ubah">
+                              Ubah
                             </a>
-                            <a href="../KUK/hapus_kuk.php?id=<?= $row['id_kuk'] ?>" 
-                               class="btn-hapus"
-                               onclick="return confirm('Yakin ingin menghapus KUK ini?');">
-                                Hapus
+                            <a href="UTAMA.php?page=../KUK/hapus_kuk.php&id=<?= $row['id_kuk'] ?>" 
+                              class="btn-hapus"
+                              onclick="return confirm('Yakin ingin menghapus KUK ini?');">
+                              Hapus
                             </a>
                         </td>
                     </tr>
                 <?php endforeach;
             else: ?>
-                <!-- <tr>
+                <tr>
                     <td colspan="4" style="text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;">
                         Belum ada KUK untuk elemen ini. 
-                        <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<!= $id_elemen ?>" style="color:#4186e0;">Tambah KUK</a>
+                        <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $id_elemen ?>" style="color:#4186e0;">Tambah KUK</a>
                     </td>
-                </tr> -->
+                </tr>
             <?php endif; ?>
             </tbody>
         </table>
         
     <?php else: ?>
-        <?php if (count($units_by_unit) > 0): ?>
+        <!-- <?php  if (count($units_by_unit) > 0): ?>
             <?php foreach ($units_by_unit as $skema_id => $skema_group): ?>
                 <div class="skema-group">
                     <div class="skema-header">
@@ -548,7 +274,7 @@ tbody tr:last-child td {
                         </tbody>
                     </table>
                 </div>
-            <?php endforeach; ?>
+            <?php endforeach; ?> -->
                         
         <?php else: ?>
             <div class="empty-state">

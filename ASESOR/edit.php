@@ -45,8 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     
     if (empty($no_reg)) {
         $errors[] = "No Reg asesor harus diisi!";
-    } elseif (!is_numeric($no_reg)) {
-        $errors[] = "No Reg harus berupa angka!";
     } elseif (strlen($no_reg) > 30) {
         $errors[] = "No Reg maksimal 16 digit!";
     }
@@ -108,7 +106,6 @@ if (empty($asesor) && empty($error_message)) {
         margin: 0 auto;
     }
     
-    
     .edit-header {
         text-align: center;
         margin-bottom: 30px;
@@ -125,7 +122,6 @@ if (empty($asesor) && empty($error_message)) {
         color: #666;
     }
     
-   
     .user-info {
         background: #e9f7fe;
         padding: 15px;
@@ -141,7 +137,6 @@ if (empty($asesor) && empty($error_message)) {
     .user-info span {
         font-weight: 600;
     }
-    
     
     .alert {
         padding: 15px;
@@ -162,7 +157,6 @@ if (empty($asesor) && empty($error_message)) {
         border-color: #f5c6cb;
     }
     
-    
     .form-section {
         background: #f8fafc;
         padding: 25px;
@@ -170,7 +164,14 @@ if (empty($asesor) && empty($error_message)) {
         border-radius: 6px;
         border: 1px solid #e2e8f0;
     }
-  
+
+    .form-section h3{
+        color: #2c3e50;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
     .form-group {
         margin-bottom: 20px;
     }
@@ -201,7 +202,6 @@ if (empty($asesor) && empty($error_message)) {
         color: #718096;
     }
     
-   
     .row {
         display: flex;
         flex-wrap: wrap;
@@ -213,13 +213,6 @@ if (empty($asesor) && empty($error_message)) {
         max-width: 50%;
         padding: 0 10px;
     }
-    
-    .col-md-4 {
-        flex: 0 0 33.333%;
-        max-width: 33.333%;
-        padding: 0 10px;
-    }
-    
     
     .btn {
         display: inline-block;
@@ -256,7 +249,6 @@ if (empty($asesor) && empty($error_message)) {
         background: #545b62;
     }
     
-    
     .btn-container {
         display: flex;
         justify-content: space-between;
@@ -265,11 +257,9 @@ if (empty($asesor) && empty($error_message)) {
         border-top: 1px solid #e2e8f0;
     }
     
-    
     .fas {
         margin-right: 8px;
     }
-    
     
     @media (max-width: 768px) {
         .edit-container {
@@ -292,9 +282,8 @@ if (empty($asesor) && empty($error_message)) {
         }
     }
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <div class="edit-container">
-    <div class="editheader">
+    <div class="edit-header">
         <h1><i class="fas fa-user-edit"></i> Edit Data Asesor</h1>
         <p>Perbarui informasi data asesor sesuai dengan struktur database</p>
     </div>
@@ -312,7 +301,7 @@ if (empty($asesor) && empty($error_message)) {
             <i class="fas fa-exclamation-triangle"></i> 
             <?php echo $error_message; ?>
             <br><br>
-            <a href="../ASESI/Table_asesi.php" class="btn btn-secondary btn-sm">
+            <a href="../ASESOR/Table_asesor.php" class="btn btn-secondary btn-sm">
                 <i class="fas fa-search"></i> Kembali ke Pencarian
             </a>
         </div>
@@ -344,7 +333,7 @@ if (empty($asesor) && empty($error_message)) {
                             <label for="no_reg" class="required">No Reg</label>
                             <input type="text" id="no_reg" name="no_reg" 
                                    value="<?php echo htmlspecialchars($asesor['no_reg'] ?? ''); ?>" 
-                                   required maxlength="30" pattern="[0-30]*">
+                                   required maxlength="30">
                         </div>
                     </div>
                     

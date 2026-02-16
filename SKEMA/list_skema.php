@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -13,6 +16,7 @@ include '../koneksi.php';
 if (mysqli_connect_errno()) {
     die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 if ($_SESSION['role'] === 'Admin') {
     $query = "
@@ -26,12 +30,27 @@ if ($_SESSION['role'] === 'Admin') {
         FROM tb_skema
         LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
         LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
-        GROUP BY tb_skema.id_skema
-        ORDER BY tb_skema.id_skema DESC
     ";
-    $result = mysqli_query($koneksi, $query);
+    
+    if (!empty($search)) {
+        $query .= " WHERE tb_skema.nomor_skema LIKE ?";
+    }
+    
+    $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
+    
+    if (!empty($search)) {
+        $stmt = mysqli_prepare($koneksi, $query);
+        $search_param = '%' . $search . '%';
+        mysqli_stmt_bind_param($stmt, "s", $search_param);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        mysqli_stmt_close($stmt);
+    } else {
+        $result = mysqli_query($koneksi, $query);
+    }
+    
 } else if ($_SESSION['role'] === 'Asesor') {
-    if (!isset($_SESSION['id_referensi'])) {
+    if (!isset($_SESSION['id_asesor'])) {
         $username = $_SESSION['username'];
         $get_asesor = "SELECT id_asesor FROM tb_asesor WHERE nama_asesor = ?";
         $stmt_asesor = mysqli_prepare($koneksi, $get_asesor);
@@ -40,13 +59,15 @@ if ($_SESSION['role'] === 'Admin') {
         $result_asesor = mysqli_stmt_get_result($stmt_asesor);
 
         if ($row_asesor = mysqli_fetch_assoc($result_asesor)) {
-            $_SESSION['id_referensi'] = $row_asesor['id_asesor'];
+            $_SESSION['id_asesor'] = $row_asesor['id_asesor'];
         } else {
-            $_SESSION['id_referensi'] = 0;
+            $_SESSION['id_asesor'] = 0;
         }
         mysqli_stmt_close($stmt_asesor);
     }
-    $id_asesor_login = intval($_SESSION['id_referensi']);
+    
+    $id_asesor_login = intval($_SESSION['id_asesor']);
+    
     if ($id_asesor_login > 0) {
         $query = "
             SELECT 
@@ -60,11 +81,21 @@ if ($_SESSION['role'] === 'Admin') {
             LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
             LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
             WHERE tb_skema.id_asesor = ?
-            GROUP BY tb_skema.id_skema
-            ORDER BY tb_skema.id_skema DESC
         ";
+        
+        if (!empty($search)) {
+            $query .= " AND tb_skema.nomor_skema LIKE ?";
+        }
+        
+        $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
+        
         $stmt = mysqli_prepare($koneksi, $query);
-        mysqli_stmt_bind_param($stmt, "i", $id_asesor_login);
+        if (!empty($search)) {
+            $search_param = '%' . $search . '%';
+            mysqli_stmt_bind_param($stmt, "is", $id_asesor_login, $search_param);
+        } else {
+            mysqli_stmt_bind_param($stmt, "i", $id_asesor_login);
+        }
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         mysqli_stmt_close($stmt);
@@ -91,252 +122,14 @@ function getUnitButtonColor($jumlah) {
     if ($jumlah > 10) $jumlah = 10;
     return $colors[$jumlah];
 }
+
 ?>
-<style>
-.jdm {
-    color: #14305c;
-    margin-bottom: 18px;
-    font-size: 1.4em;
-}
-
-.header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.btn-tambah {
-    display: inline-block;
-    padding: 10px 20px;
-    background: #4186e0;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-}
-
-.btn-tambah:hover {
-    background: #2761ba;
-}
-
-.message {
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    font-weight: 500;
-}
-
-.message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 16px;
-}
-
-th, td {
-    border: 1px solid #e7e7eb;
-    padding: 10px 14px;
-    text-align: left;
-}
-
-th {
-    background: #24365e;
-    color: #fff;
-    font-weight: 600;
-}
-
-tr:nth-child(even) {
-    background: #f4f7fd;
-}
-
-tr:nth-child(odd) {
-    background: #fff;
-}
-
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.aksi {
-    white-space: nowrap;
-}
-
-.aksi a {
-    display: inline-block;
-    font-size: 13px;
-    padding: 6px 14px;
-    border-radius: 5px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    text-decoration: none;
-    border: 1px solid;
-}
-
-.aksi a.btn-ubah {
-    background: #f4f8fd;
-    color: #1877cc;
-    border-color: #c9e1fb;
-}
-
-.aksi a.btn-ubah:hover {
-    background: #2081e5;
-    color: #fff;
-}
-
-.aksi a.btn-hapus {
-    color: #b50000;
-    border-color: #fad0d0;
-    background: #fcf3f3;
-}
-
-.aksi a.btn-hapus:hover {
-    background: #e43d3d;
-    color: #fff;
-}
-
-.btn-unit-empty {
-    background: #95a5a6;
-    color: white;
-    border-color: #7f8c8d;
-    padding: 8px 16px;
-    font-weight: 600;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.btn-unit-empty:hover {
-    background: #7f8c8d;
-}
-
-.btn-unit-badge {
-    position: relative;
-    padding: 8px 16px;
-    color: white;
-    border: none;
-    font-weight: 600;
-    min-width: 50px;
-    text-align: center;
-}
-
-.btn-unit-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.btn-unit-badge .badge-number {
-    position: absolute;
-    background: #fff;
-    color: #333;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-}
-
-.btn-lihat-unit {
-    background: #3498db;
-    color: white;
-    border-color: #2980b9;
-    padding: 8px 16px;
-}
-
-.btn-lihat-unit:hover {
-    background: #19405aff;
-}
-
-.btn-lihat-unit i {
-    margin-right: 5px;
-}
-
-@media screen and (max-width: 768px) {
-    .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-    
-    .btn-tambah {
-        width: 100%;
-        text-align: center;
-    }
-    
-    table {
-        border: 0;
-    }
-    
-    table thead {
-        display: none;
-    }
-    
-    table tbody {
-        display: block;
-    }
-    
-    table tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fff !important;
-    }
-    
-    table td {
-        display: block;
-        text-align: right;
-        border: none;
-        border-bottom: 1px solid #eee;
-        padding: 10px;
-        position: relative;
-        padding-left: 50%;
-    }
-    
-    table td:last-child {
-        border-bottom: none;
-    }
-    
-    table td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-        color: #24365e;
-    }
-    
-    .aksi {
-        text-align: center !important;
-        padding-left: 10px !important;
-    }
-    
-    .aksi:before {
-        display: none;
-    }
-    
-    .aksi a {
-        display: inline-block;
-        margin: 5px 3px;
-    }
-}
-</style>
-
+<link rel="stylesheet" href="../assets/CSS/list_skema.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="s-container">
     <div class="header-container">
-        <h2 class="jdm">Daftar Skema Sertifikasi</h2>
+        <h2 class="jdm">Kelola Skema Sertifikasi</h2>
         <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor'): ?>
             <a href="UTAMA.php?page=../SKEMA/Form_Skema.php" class="btn-tambah">
                 <i class="fas fa-plus"></i> Tambah Skema
@@ -353,7 +146,35 @@ tbody tr:last-child td {
             ?>
         </div>
     <?php endif; ?>
-    
+    <form method="get" action="" class="cari">
+        <?php if (isset($_GET['page'])): ?>
+            <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
+        <?php endif; ?>
+        
+        <input 
+            type="text" 
+            name="search"
+            placeholder="Cari Nomor Skema" 
+            value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        
+        <button type="submit">Cari</button>
+        
+        <?php if (!empty($search) || !empty($role_filter)): ?>
+            <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>" 
+               class="btn-reset" 
+               style="padding:7px 18px;font-size:14px;background:#95a5a6;border:none;border-radius:4px;color:#fff;text-decoration:none;display:inline-block;">
+                Reset
+            </a>
+        <?php endif; ?>
+    </form>
+        <?php if (!empty($search)): ?>
+        <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+            <strong>Filter aktif:</strong>
+            <?php if (!empty($search)): ?>
+                nomor skema : "<?php echo htmlspecialchars($search); ?>"
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
     <table>
         <thead>
             <tr>
@@ -365,54 +186,56 @@ tbody tr:last-child td {
                 <th style="width: 280px;">Aksi</th>
             </tr>
         </thead>
-        <tbody>
-            <?php if (isset($result) && mysqli_num_rows($result) > 0):
+            <tbody>
+            <?php if (isset($result) && mysqli_num_rows($result) > 0): 
                 $no = 1;
                 while ($row = mysqli_fetch_assoc($result)): 
-                    $jumlah_unit = intval($row['jumlah_unit']);
+                    $jumlah_unit = intval($row['jumlah_unit'] ?? 0);
                     $color = getUnitButtonColor($jumlah_unit);
             ?>
-                    <tr>
-                        <td data-label="No"><?= $no++; ?></td>
-                        <td data-label="Nomor Skema"><?= htmlspecialchars($row['nomor_skema']) ?></td>
-                        <td data-label="Judul Skema"><?= htmlspecialchars($row['judul_skema']) ?></td>
-                        <td data-label="Standar Kompetensi Kerja"><?= htmlspecialchars($row['standar_kompetensi_kerja']) ?></td>
-                        <td data-label="Asesor"><?= htmlspecialchars($row['nama_asesor'] ?? '-') ?></td>
-                        <td data-label="Aksi" class="aksi">
-                            <a href="UTAMA.php?page=../SKEMA/Ubah_Skema.php&id=<?= $row['id_skema'] ?>" class="btn-ubah">
-                                 Ubah
-                            </a>
-                            <a href="../SKEMA/Hapus_Skema.php?id=<?= $row['id_skema'] ?>" 
-                               class="btn-hapus"
-                               onclick="return confirm('Yakin ingin menghapus skema ini?');">
-                                 Hapus
-                            </a>
+                <tr>
+                    <td data-label='NO'><?= $no++ ?></td>
+                    <td data-label='Nomor Skema'><?= htmlspecialchars($row['nomor_skema']) ?></td>
+                    <td data-label='Judul Skema'><?= htmlspecialchars($row['judul_skema']) ?></td>
+                    <td data-label='Standar Kompetensi Kerja'><?= htmlspecialchars($row['standar_kompetensi_kerja']) ?></td>
+                    <td data-label='Asesor'><?= htmlspecialchars($row['nama_asesor'] ?? '-') ?></td>
+                    <td data-label='Aksi' class='aksi'>
+                        <a href='UTAMA.php?page=../SKEMA/Ubah_Skema.php&id=<?= $row['id_skema'] ?>' class='btn-ubah'>
+                            Ubah
+                        </a>
+                        <a href='../SKEMA/Hapus_Skema.php?id=<?= $row['id_skema'] ?>' 
+                           class='btn-hapus'
+                           onclick="return confirm('Yakin ingin menghapus skema ini?');">
+                            Hapus
+                        </a>
 
-                            <?php if ($jumlah_unit == 0): ?>
-                                <a href="UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>" 
-                                   class="btn-unit-empty">
-                                   Tambah Unit
-                                </a>
-                            <?php else: ?>
-                                <a href="UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>" 
-                                   class="btn-unit-badge"
-                                   style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
-                                   title="Tambah Unit Kompetensi">
-                                    <i class="fas fa-plus"></i>
-                                </a>
-                                <a href="UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>" 
-                                   class="btn-lihat-unit"
-                                   title="Lihat Unit Kompetensi">
-                                   Lihat Unit
-                                </a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endwhile;
+                        <?php if ($jumlah_unit == 0): ?>
+                            <a href='UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' 
+                               class='btn-unit-empty'>
+                                <i class='fas fa-plus'></i> Tambah Unit
+                            </a>
+                        <?php else: ?>
+                            <a href='UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' 
+                               class='btn-unit-badge'
+                               style='background-color: <?= $color ?>; border-color: <?= $color ?>;'
+                               title='Tambah Unit Kompetensi'>
+                               <i class='fas fa-plus'></i>
+                            </a>
+                            <a href='UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>'
+                               class='btn-lihat-unit'
+                               title='Lihat Unit Kompetensi'>
+                                Lihat Unit
+                            </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endwhile;
             else: ?>
                 <tr>
                     <td colspan="6" style="text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;border-radius:7px;">
-                        <?php if ($_SESSION['role'] === 'Asesor'): ?>
+                        <?php if (!empty($search)): ?>
+                            Tidak ada data skema dengan nomor "<?= htmlspecialchars($search) ?>".
+                        <?php elseif ($_SESSION['role'] === 'Asesor'): ?>
                             Anda belum memiliki skema sertifikasi.
                         <?php else: ?>
                             Belum ada data skema.
@@ -420,7 +243,7 @@ tbody tr:last-child td {
                     </td>
                 </tr>
             <?php endif; ?>
-        </tbody>
+            </tbody>
     </table>
 </div>
 
@@ -433,6 +256,15 @@ setTimeout(function() {
         setTimeout(() => message.remove(), 500);
     });
 }, 5000);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.cari');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Form submitted');
+        });
+    }
+});
 </script>
 
 <?php

@@ -72,112 +72,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ubah Unit Kompetensi</title>
+<link rel="stylesheet" href="../assets/CSS/ubah_UEK.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 700px;
-            margin: auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h2 {
-            margin: 0;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: #66afe9;
-            outline: none;
-        }
-        .btn-group {
-            text-align: right;
-        }
-        .btn {
-            padding: 10px 15px;
-            border: none; 
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 16px;
-        }
-        .btn-simpan {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .btn-simpan:hover {
-            background-color: #218838;
-        }
-        .btn-batal {
-            background-color: #dc3545;
-            color: #fff;
-            text-decoration: none;
-            line-height: 32px;
-            display: inline-block;
-            text-align: center;
-        }
-        .btn-batal:hover {
-            background-color: #c82333;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .info-box {
-            background-color: #e2e3e5;
-            border-left: 5px solid #17a2b8;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        .info-box h4 {
-            margin-top: 0;
-        }
-        .required {
-            color: red;
-        }
-    </style>
-</head>
-<body>
     <div class="container">
         <div class="header">
             <h2><i class="fas fa-edit"></i> Ubah Unit Kompetensi</h2>
@@ -275,8 +171,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         });
     </script>
-</body>
-</html>
 
 <?php
 mysqli_close($koneksi);

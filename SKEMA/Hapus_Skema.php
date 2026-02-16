@@ -13,35 +13,83 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Asesor'
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($id > 0) {
-    // Periksa apakah skema memiliki unit terkait
-    $query_cek = "SELECT COUNT(*) as total FROM tb_unit_kompetensi WHERE id_skema = ?";
-    $stmt_cek = mysqli_prepare($koneksi, $query_cek);
-    mysqli_stmt_bind_param($stmt_cek, 'i', $id);
-    mysqli_stmt_execute($stmt_cek);
-    $result_cek = mysqli_stmt_get_result($stmt_cek);
-    $data_cek = mysqli_fetch_assoc($result_cek);
-    mysqli_stmt_close($stmt_cek);
+    mysqli_begin_transaction($koneksi);
     
-    if ($data_cek['total'] > 0) {
-        $_SESSION['error'] = "Skema tidak dapat dihapus karena masih memiliki " . $data_cek['total'] . " unit kompetensi terkait!";
-    } else {
-        // Hapus skema jika tidak ada unit terkait
-        $query_hapus = "DELETE FROM tb_skema WHERE id_skema = ?";
-        $stmt_hapus = mysqli_prepare($koneksi, $query_hapus);
-        mysqli_stmt_bind_param($stmt_hapus, 'i', $id);
+    try {
+        $query_units = "SELECT id_unit FROM tb_unit_kompetensi WHERE id_skema = ?";
+        $stmt_units = mysqli_prepare($koneksi, $query_units);
+        mysqli_stmt_bind_param($stmt_units, 'i', $id);
+        mysqli_stmt_execute($stmt_units);
+        $result_units = mysqli_stmt_get_result($stmt_units);
         
-        if (mysqli_stmt_execute($stmt_hapus)) {
-            $_SESSION['success'] = "Skema berhasil dihapus!";
-        } else {
-            $_SESSION['error'] = "Gagal menghapus skema: " . mysqli_error($koneksi);
+        $unit_ids = [];
+        while ($row = mysqli_fetch_assoc($result_units)) {
+            $unit_ids[] = $row['id_unit'];
         }
-        mysqli_stmt_close($stmt_hapus);
+        mysqli_stmt_close($stmt_units);
+        
+        $total_unit = count($unit_ids);
+        $total_elemen = 0;
+        $total_kuk = 0;
+        
+        if ($total_unit > 0) {
+            $unit_ids_str = implode(',', $unit_ids);
+            
+            $query_elemen = "SELECT id_elemen FROM tb_elemen WHERE id_unit IN ($unit_ids_str)";
+            $result_elemen = mysqli_query($koneksi, $query_elemen);
+            
+            $elemen_ids = [];
+            while ($row = mysqli_fetch_assoc($result_elemen)) {
+                $elemen_ids[] = $row['id_elemen'];
+            }
+            
+            $total_elemen = count($elemen_ids);
+            
+            if ($total_elemen > 0) {
+                $elemen_ids_str = implode(',', $elemen_ids);
+                
+                $query_count_kuk = "SELECT COUNT(*) as total FROM tb_kuk WHERE id_elemen IN ($elemen_ids_str)";
+                $result_count = mysqli_query($koneksi, $query_count_kuk);
+                $data_count = mysqli_fetch_assoc($result_count);
+                $total_kuk = $data_count['total'];
+                
+                $query_hapus_kuk = "DELETE FROM tb_kuk WHERE id_elemen IN ($elemen_ids_str)";
+                mysqli_query($koneksi, $query_hapus_kuk);
+            }
+            
+            $query_hapus_elemen = "DELETE FROM tb_elemen WHERE id_unit IN ($unit_ids_str)";
+            mysqli_query($koneksi, $query_hapus_elemen);
+            
+
+            $query_hapus_unit = "DELETE FROM tb_unit_kompetensi WHERE id_skema = ?";
+            $stmt_hapus_unit = mysqli_prepare($koneksi, $query_hapus_unit);
+            mysqli_stmt_bind_param($stmt_hapus_unit, 'i', $id);
+            mysqli_stmt_execute($stmt_hapus_unit);
+            mysqli_stmt_close($stmt_hapus_unit);
+        }
+        
+        $query_hapus_skema = "DELETE FROM tb_skema WHERE id_skema = ?";
+        $stmt_hapus_skema = mysqli_prepare($koneksi, $query_hapus_skema);
+        mysqli_stmt_bind_param($stmt_hapus_skema, 'i', $id);
+        mysqli_stmt_execute($stmt_hapus_skema);
+        mysqli_stmt_close($stmt_hapus_skema);
+        
+        mysqli_commit($koneksi);
+        
+        $_SESSION['pesan'] = "Skema berhasil dihapus beserta $total_unit unit, $total_elemen elemen, dan $total_kuk KUK!";
+        $_SESSION['tipe'] = "success";
+        
+    } catch (Exception $e) {
+        mysqli_rollback($koneksi);
+        $_SESSION['pesan'] = "Gagal menghapus skema: " . $e->getMessage();
+        $_SESSION['tipe'] = "error";
     }
+    
 } else {
-    $_SESSION['error'] = "ID skema tidak valid!";
+    $_SESSION['pesan'] = "ID skema tidak valid!";
+    $_SESSION['tipe'] = "error";
 }
 
-// Redirect kembali ke halaman skema
-header("Location: ../BERANDA/UTAMA.php?page=../SKEMA/skema.php");
+header("Location: ../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php");
 exit();
 ?>
