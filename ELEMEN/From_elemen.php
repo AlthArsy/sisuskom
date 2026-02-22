@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                 <div class="unit-container" id="unitContainer">
                     <div class="unit-item" data-unit="1">
                         <div class="unit-item-header">
-                            <span class="unit-number"><i class="fas fa-list-ol"></i> Elemen #1</span>
+                            <span class="unit-number">Elemen #1</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -187,8 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                                        id="no_elemen_1" 
                                        name="no_elemen[]" 
                                        class="form-control" 
-                                       placeholder="Contoh: 1"
-                                       maxlength="100">
+                                       placeholder="Contoh: 1">
                                 <span class="form-hint">No Elemen</span>
                             </div>
                             <div class="form-group">
@@ -242,15 +241,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         const elemenHtml = `
             <div class="unit-item" data-unit="${elemenCount}">
                 <div class="unit-item-header">
-                    <span class="unit-number"><i class="fas fa-list-ol"></i> Elemen #${elemenCount}</span>
+                    <span class="unit-number">Elemen #${elemenCount}</span>
                     <button type="button" class="btn-remove" onclick="removeUnit(this)">
-                        <i class="fas fa-trash"></i> Hapus
+                        Hapus
                     </button>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">
-                            <i class="fas fa-barcode"></i> No Elemen
+                            No Elemen
                         </label>
                         <input type="text" 
                                name="no_elemen[]" 
@@ -261,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                     </div>
                     <div class="form-group">
                         <label class="required">
-                            <i class="fas fa-heading"></i> Nama Elemen
+                            Nama Elemen
                         </label>
                         <input type="text" 
                                name="nama_elemen[]" 
@@ -283,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         const elemens = document.querySelectorAll('.unit-item');
         elemens.forEach((unit, index) => {
             const number = index + 1;
-            unit.querySelector('.unit-number').innerHTML = `<i class="fas fa-list-ol"></i> Unit #${number}`;
+            unit.querySelector('.unit-number').innerHTML = `Elemen #${number}`;
         });
         
         elemenCount = units.length;

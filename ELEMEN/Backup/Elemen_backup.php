@@ -270,6 +270,79 @@ if (isset($result) && $result) {
             <?php endif; ?>
             </tbody>
         </table>
+        
+    <?php else: ?>
+        <?php if (count($units_by_unit) > 0): ?>
+            <?php foreach ($units_by_unit as $skema_id => $skema_group): ?>
+                <div class="skema-group">
+                    <div class="skema-header">
+                        <h4>
+                            <?= htmlspecialchars($skema_group['info']['kode_unit'] ?? 'N/A') ?>  -
+                            <?= htmlspecialchars($skema_group['info']['judul_unit'] ?? 'N/A') ?>
+                            <?php if (!empty($skema_group['info']['nama_asesor'])): ?>
+                                - <?= htmlspecialchars($skema_group['info']['nama_asesor']) ?>
+                            <?php endif; ?>
+                        </h4>
+                        <span class="skema-count">
+                            <?= count($skema_group['units']) ?> Elemen
+                        </span>
+                    </div>
+                            
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>No Elemen</th>
+                                <th>Nama Elemen</th>
+                                <th style="width: 310px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php 
+                        $no = 1;
+                        foreach ($skema_group['units'] as $row): 
+                            $jumlah_kuk = intval($row['jumlah_kuk']);
+                            $color = getElemenButtonColor($jumlah_kuk);
+                        ?> 
+                            <tr>
+                                <td data-label="No"><?= $no++; ?></td>
+                                <td data-label="Kode Unit"><?= htmlspecialchars($row['no_elemen']) ?></td>
+                                <td data-label="Judul Unit"><?= htmlspecialchars($row['nama_elemen']) ?></td>
+                                <td data-label="Aksi" class="aksi">
+                                    <a href="../ELEMEN/ubah_elemen.php?id=<?= $row['id_elemen'] ?>" class="btn-ubah">
+                                        Ubah
+                                    </a>
+                                    <a href="../ELEMEN/hapus_elemen.php?id=<?= $row['id_elemen'] ?>" 
+                                       class="btn-hapus"
+                                       onclick="return confirm('Yakin ingin menghapus unit kompetensi ini?');">
+                                        Hapus
+                                    </a>
+
+                                    <?php if ($jumlah_kuk == 0): ?>
+                                        <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                           class="btn-elemen-empty">
+                                            Tambah KuK
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                           class="btn-elemen-badge"
+                                           style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
+                                           title="Tambah KUK">
+                                            <?= $jumlah_kuk > 10 ? '10+' : $jumlah_kuk ?>
+                                        </a>
+                                        <a href="UTAMA.php?page=../KUK/KUK.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                           class="btn-lihat-elemen"
+                                           title="Lihat KUK">
+                                            Lihat
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
                         
         <?php else: ?>
             <div class="empty-state">
@@ -283,6 +356,7 @@ if (isset($result) && $result) {
                 <?php endif; ?>
                 </p>
             </div>
+        <?php endif;?>
     <?php endif; ?>
 </div>
 

@@ -1,4 +1,7 @@
 <?php 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 ob_start();
 session_start();
 if (!isset($_SESSION['role'])) {
@@ -7,7 +10,7 @@ if (!isset($_SESSION['role'])) {
 }
 $role = $_SESSION['role'];
 $username = $_SESSION['username'] ?? 'User';
-$nama_user = $_SESSION['nama_user'];
+$nama_user = $_SESSION['nama_user'] ?? $_SESSION['username'];
 
 
 function get_initials($name) {

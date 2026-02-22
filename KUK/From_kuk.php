@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                 <div class="unit-container" id="unitContainer">
                     <div class="unit-item" data-unit="1">
                         <div class="unit-item-header">
-                            <span class="unit-number"><i class="fas fa-list-ol"></i> Kuk #1</span>
+                            <span class="unit-number">Kuk #1</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -245,9 +245,9 @@ dengan konteks permasalahan"></textarea>
         const kukHtml = `
             <div class="unit-item" data-unit="${kukCount}">
                 <div class="unit-item-header">
-                    <span class="unit-number"><i class="fas fa-list-ol"></i> kuk #${kukCount}</span>
+                    <span class="unit-number">kuk #${kukCount}</span>
                     <button type="button" class="btn-remove" onclick="removeUnit(this)">
-                        <i class="fas fa-trash"></i> Hapus
+                        Hapus
                     </button>
                 </div>
                 <div class="form-row">
@@ -287,7 +287,7 @@ dengan konteks permasalahan"></textarea>
         const kuk = document.querySelectorAll('.unit-item');
         kuk.forEach((unit, index) => {
             const number = index + 1;
-            unit.querySelector('.unit-number').innerHTML = `<i class="fas fa-list-ol"></i> Unit #${number}`;
+            unit.querySelector('.unit-number').innerHTML = `KUK #${number}`;
         });
         
         kukCount = units.length;

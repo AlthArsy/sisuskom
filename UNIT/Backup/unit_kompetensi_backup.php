@@ -233,7 +233,7 @@ if (isset($result) && $result) {
                                  data-id="<?= $row['id_unit'] ?>"
                                  data-id-skema="<?= $id_skema ?>"
                                     onclick="return confirm('Yakin ingin menghapus unit kompetensi ini?');">
-                                Hapus
+                                <i class="fas fa-trash"></i> Hapus
                             </a>
                             <?php if ($jumlah_elemen == 0): ?>
                                 <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $row['id_unit'] ?>" 
@@ -266,21 +266,94 @@ if (isset($result) && $result) {
             <?php endif; ?>
             </tbody>
         </table>
-
+        
     <?php else: ?>
+        <?php if (count($units_by_skema) > 0): ?>
+            <?php foreach ($units_by_skema as $skema_id => $skema_group): ?>
+                <div class="skema-group">
+                    <div class="skema-header">
+                        <h4>
+                            <?= htmlspecialchars($skema_group['info']['nomor_skema']) ?> - 
+                            <?= htmlspecialchars($skema_group['info']['judul_skema']) ?>
+                            <?php if (!empty($skema_group['info']['nama_asesor'])): ?>
+                                - <?= htmlspecialchars($skema_group['info']['nama_asesor']) ?>
+                            <?php endif; ?>
+                        </h4>
+                        <span class="skema-count">
+                            <?= count($skema_group['units']) ?> Unit
+                        </span>
+                    </div>
+                            
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Kode Unit</th>
+                                <th>Judul Unit Kompetensi</th>
+                                <th style="width: 310px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php 
+                        $no = 1;
+                        foreach ($skema_group['units'] as $row): 
+                            $jumlah_elemen = intval($row['jumlah_elemen']);
+                            $color = getElemenButtonColor($jumlah_elemen);
+                        ?> 
+                            <tr>
+                                <td data-label="No"><?= $no++; ?></td>
+                                <td data-label="Kode Unit"><?= htmlspecialchars($row['kode_unit']) ?></td>
+                                <td data-label="Judul Unit"><?= htmlspecialchars($row['judul_unit']) ?></td>
+                                <td data-label="Aksi" class="aksi">
+                                    <a href="../UNIT/Ubah_unit.php?id=<?= $row['id_unit'] ?>" class="btn-ubah">
+                                        Ubah
+                                    </a>
+                                    <a href="../UNIT/hapus_unit.php?id=<?= $row['id_unit'] ?>" 
+                                       class="btn-hapus"
+                                       onclick="return confirm('Yakin ingin menghapus unit kompetensi ini?');">
+                                        Hapus
+                                    </a>
+                                    <?php if ($jumlah_elemen == 0): ?>
+                                        <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $row['id_unit'] ?>" 
+                                           class="btn-elemen-empty">
+                                            Tambah Elemen
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $row['id_unit'] ?>" 
+                                           class="btn-elemen-badge"
+                                           style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
+                                           title="Tambah Elemen">
+                                            <?= $jumlah_elemen > 10 ? '10+' : $jumlah_elemen ?>
+                                        </a>
+                                        <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?= $row['id_unit'] ?>" 
+                                           class="btn-lihat-elemen"
+                                           title="Lihat Elemen">
+                                            Lihat
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+                        
+        <?php else: ?>
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>
-                <h3>Belum Ada Unit</h3>
+                <h3>Belum Ada unit</h3>
                 <p>
                     <?php if ($_SESSION['role'] === 'Asesor'): ?>
-                        Kamu belum memiliki unit kompetensi. Silakan tambahkan unit ke skema.
-                    <?php else: ?>
-                        Belum ada unit kompetensi.
-                    <?php endif; ?>
+                        Kamu belum memiliki unit kompetensi, Silakan tambahkan unit ke skema
+                <?php else: ?>
+                Belum ada unit
+                <?php endif; ?>
                 </p>
             </div>
         <?php endif; ?>
-    </div>
+    <?php endif; ?>
+</div>
 
 <script>
 setTimeout(function() {

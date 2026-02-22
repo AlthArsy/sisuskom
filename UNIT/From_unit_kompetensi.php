@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                 <div class="unit-container" id="unitContainer">
                     <div class="unit-item" data-unit="1">
                         <div class="unit-item-header">
-                            <span class="unit-number"><i class="fas fa-list-ol"></i> Unit #1</span>
+                            <span class="unit-number">Unit #1</span>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -235,15 +235,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         const unitHtml = `
             <div class="unit-item" data-unit="${unitCount}">
                 <div class="unit-item-header">
-                    <span class="unit-number"><i class="fas fa-list-ol"></i> Unit #${unitCount}</span>
+                    <span class="unit-number">Unit #${unitCount}</span>
                     <button type="button" class="btn-remove" onclick="removeUnit(this)">
-                        <i class="fas fa-trash"></i> Hapus
+                        Hapus
                     </button>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="required">
-                            <i class="fas fa-barcode"></i> Kode Unit
+                            Kode Unit
                         </label>
                         <input type="text" 
                                name="kode_unit[]" 
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                     </div>
                     <div class="form-group">
                         <label class="required">
-                            <i class="fas fa-heading"></i> Judul Unit
+                            Judul Unit
                         </label>
                         <input type="text" 
                                name="judul_unit[]" 
@@ -276,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         const units = document.querySelectorAll('.unit-item');
         units.forEach((unit, index) => {
             const number = index + 1;
-            unit.querySelector('.unit-number').innerHTML = `<i class="fas fa-list-ol"></i> Unit #${number}`;
+            unit.querySelector('.unit-number').innerHTML = `Unit #${number}`;
         });
         
         unitCount = units.length;

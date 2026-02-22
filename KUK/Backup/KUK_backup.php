@@ -225,6 +225,57 @@ if (isset($result) && $result) {
             </tbody>
         </table>
         
+    <?php else: ?>
+        <?php if (count($units_by_unit) > 0): ?>
+            <?php foreach ($units_by_unit as $skema_id => $skema_group): ?>
+                <div class="skema-group">
+                    <div class="skema-header">
+                        <h4>
+                            <?= htmlspecialchars($skema_group['info']['no_elemen'] ?? 'N/A') ?>  -
+                            <?= htmlspecialchars($skema_group['info']['nama_elemen'] ?? 'N/A') ?>
+                            <?php if (!empty($skema_group['info']['nama_asesor'])): ?>
+                                - <?= htmlspecialchars($skema_group['info']['nama_asesor']) ?>
+                            <?php endif; ?>
+                        </h4>
+                        <span class="skema-count">
+                            <?= count($skema_group['units']) ?> Elemen
+                        </span>
+                    </div>
+                            
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>No KUK</th>
+                                <th>KUK</th>
+                                <th style="width: 172px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $no = 1;
+                            foreach ($skema_group['units'] as $row): ?> 
+                            <tr>
+                                <td data-label="No"><?= $no++; ?></td>
+                                <td data-label="No KuK"><?= htmlspecialchars($row['no_kuk']) ?></td>
+                                <td data-label="KUK"><?= htmlspecialchars($row['kuk']) ?></td>
+                                <td data-label="Aksi" class="aksi">
+                                    <a href="../KUK/ubah_kuk.php?id=<?= $row['id_kuk'] ?>" class="btn-ubah">
+                                        Ubah
+                                    </a>
+                                    <a href="../KUK/hapus_kuk.phpid=<?= $row['id_kuk'] ?>" 
+                                       class="btn-hapus"
+                                       onclick="return confirm('Yakin ingin menghapus KUK ini?');">
+                                        Hapus
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endforeach; ?>
+                        
         <?php else: ?>
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>
@@ -237,6 +288,7 @@ if (isset($result) && $result) {
                 <?php endif; ?>
                 </p>
             </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 
