@@ -190,9 +190,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             <i class="fas fa-exclamation-triangle"></i> 
             Data unit kompetensi tidak ditemukan. Silakan pilih unit yang valid.
             <br><br>
-            <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
+            <!-- <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
                 <i class="fas fa-arrow-left"></i> Kembali ke Daftar Unit
-            </a>
+            </a> -->
         </div>
     <?php endif; ?>
 </div>

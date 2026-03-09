@@ -19,7 +19,7 @@ if (mysqli_connect_errno()) {
 
 $message = '';
 $message_type = ''; 
-$unit_data = [];
+$elemen_data = [];
 
 if (isset($_GET['id'])) {
     $id_elemen = intval($_GET['id']);
@@ -31,7 +31,7 @@ if (isset($_GET['id'])) {
                 uk.id_asesor
             FROM tb_elemen el
             LEFT JOIN tb_unit_kompetensi uk ON el.id_unit = uk.id_unit
-            WHERE el.id_unit = ?";
+            WHERE el.id_elemen = ?";
     
     $stmt = mysqli_prepare($koneksi, $sql);
     
@@ -41,15 +41,15 @@ if (isset($_GET['id'])) {
         $result = mysqli_stmt_get_result($stmt);
         
         if ($result && mysqli_num_rows($result) > 0) {
-            $unit_data = mysqli_fetch_assoc($result);
+            $elemen_data = mysqli_fetch_assoc($result);
             
             if ($_SESSION['role'] === 'Asesor') {
                 $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
                 
-                if ($unit_data['id_asesor'] != $id_asesor_login) {
+                if ($elemen_data['id_asesor'] != $id_asesor_login) {
                     $message = "Anda tidak memiliki akses untuk mengubah elemen ini.";
                     $message_type = 'error';
-                    $unit_data = [];
+                    $elemen_data = [];
                 }
             }
         } else {
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 <div class="ubah-container">
     <div class="ubah-header">
         <h1>Ubah Elemen</h1>
-        <p>Perbarui informasi unit kompetensi</p>
+        <p>Perbarui informasi Elemen</p>
     </div>
     
     <div class="user-info">
@@ -136,47 +136,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         </div>
     <?php endif; ?>
     
-    <?php if (!empty($unit_data)): ?>
+    <?php if (!empty($elemen_data)): ?>
         <div class="form-container">
             <div class="skema-info-box">
-                <h3>Informasi Skema</h3>
-                <p><strong>Nomor Skema:</strong> <?php echo htmlspecialchars($unit_data['nomor_skema']); ?></p>
-                <p><strong>Judul Skema:</strong> <?php echo htmlspecialchars($unit_data['judul_skema']); ?></p>
+                <h3>Informasi Elemen</h3>
+                <p><strong>No Elemen :</strong> <?php echo htmlspecialchars($elemen_data['no_elemen']); ?></p>
+                <p><strong>Nama Elemen:</strong> <?php echo htmlspecialchars($elemen_data['nama_elemen']); ?></p>
             </div>
             
             <form method="post" action="" id="editUnitForm">
-                <input type="hidden" name="id_unit" value="<?php echo $unit_data['id_unit']; ?>">
-                <input type="hidden" name="id_skema" value="<?php echo $unit_data['id_skema']; ?>">
+                <input type="hidden" name="id_elemen" value="<?php echo $elemen_data['id_elemen']; ?>">
+                <input type="hidden" name="id_unit" value="<?php echo $elemen_data['id_unit']; ?>">
                 
                 <div class="form-group">
-                    <label for="kode_unit" class="required">
-                         Kode Unit
+                    <label for="no_elemen" class="required">
+                        No Elemen
                     </label>
                     <input type="text" 
-                           id="kode_unit" 
-                           name="kode_unit" 
+                           id="no_elemen" 
+                           name="no_elemen" 
                            class="form-control" 
-                           value="<?php echo htmlspecialchars($unit_data['kode_unit']); ?>"
-                           required
-                           maxlength="50">
-                    <span class="form-hint">Kode unik identifikasi unit kompetensi</span>
+                           value="<?php echo htmlspecialchars($elemen_data['no_elemen']); ?>"
+                           required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="judul_unit" class="required">
-                         Judul Unit Kompetensi
+                    <label for="nama_elemen" class="required">
+                        Nama Elemen
                     </label>
                     <textarea 
-                        id="judul_unit" 
-                        name="judul_unit" 
+                        id="nama_elemen" 
+                        name="nama_elemen" 
                         class="form-control" 
                         required
-                        rows="3"><?php echo htmlspecialchars($unit_data['judul_unit']); ?></textarea>
-                    <span class="form-hint">Nama lengkap unit kompetensi</span>
+                        rows="3"><?php echo htmlspecialchars($elemen_data['nama_elemen']); ?></textarea>
                 </div>
                 
                 <div class="button-group">
-                    <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?php echo $unit_data['id_skema']; ?>" class="btn btn-secondary">
+                    <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?php echo $elemen_data['id_unit']; ?>" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Batal
                     </a>
                     <button type="submit" name="update" class="btn btn-primary">
@@ -188,11 +185,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     <?php elseif (empty($message)): ?>
         <div class="message error">
             <i class="fas fa-exclamation-triangle"></i> 
-            Data unit kompetensi tidak ditemukan. Silakan pilih unit yang valid.
+            Data Elemen tidak ditemukan. Silakan pilih Elemen yang valid.
             <br><br>
-            <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
+            <!-- <a href="../BERANDA/UTAMA.php?page=../" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
                 <i class="fas fa-arrow-left"></i> Kembali ke Daftar Unit
-            </a>
+            </a> -->
         </div>
     <?php endif; ?>
 </div>
@@ -241,11 +238,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         let errors = [];
         
         if (!kode_unit) {
-            errors.push('Kode unit harus diisi');
+            errors.push('No Elemen harus diisi');
         }
         
         if (!judul_unit) {
-            errors.push('Judul unit harus diisi');
+            errors.push('Nama Elemen harus diisi');
         }
         
         if (errors.length > 0) {
