@@ -20,7 +20,7 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $allowed_roles = ['Admin', 'Asesor', 'Asesi'];
 
 $sql = "SELECT * FROM users";
-$conditions = [];
+$conditions = [];  
 $params = [];
 
 if ($role_filter && in_array($role_filter, $allowed_roles)) {

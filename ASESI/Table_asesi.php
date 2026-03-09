@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include "../koneksi.php";
 
-if (!isset($_SESSION['username']) || !isset($_SESSION['role'])) {
+if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
     echo "<script>alert('Akses ditolak! Silakan login terlebih dahulu.'); window.location.href='../LOGIN/login.php';</script>";
     exit;
 }

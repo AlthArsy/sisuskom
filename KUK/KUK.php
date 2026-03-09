@@ -206,7 +206,7 @@ if (isset($result) && $result) {
                             <a href="UTAMA.php?page=../KUK/ubah_kuk.php&id=<?= $row['id_kuk'] ?>" class="btn-ubah">
                               Ubah
                             </a>
-                            <a href="UTAMA.php?page=../KUK/hapus_kuk.php&id=<?= $row['id_kuk'] ?>" 
+                            <a href="UTAMA.php?page=../KUK/hapus_kuk.php&id_kuk=<?= $row['id_kuk'] ?>" 
                               class="btn-hapus"
                               onclick="return confirm('Yakin ingin menghapus KUK ini?');">
                               Hapus

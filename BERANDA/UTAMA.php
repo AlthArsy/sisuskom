@@ -47,11 +47,67 @@ $roles_data = [
                 'icon' => 'fas fa-user-graduate',
                 'label' => 'Manajemen Asesi'
             ],
-                        [
+            [
                 'href' => '../ASESOR/Table_asesor.php',
                 'icon' => 'fas fa-user-tie',
                 'label' => 'Manajemen Asesor'
             ],
+            [
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Bukti & Isi',
+                'has_dropdown' => true,
+                'submenu' => [
+                    [
+                        'href' => '../DASAR/bukti_dasar.php',
+                        'icon' => '#',
+                        'label' => 'Bukti Dasar'
+                    ],
+                    [
+                        'href' => '../ADM/bukti_adm.php',
+                        'icon' => '#',
+                        'label' => 'Bukti Adm'
+                    ],
+                    [
+                        'href' => '../DASAR/isi_bukti_dasar.php',
+                        'icon' => '#',
+                        'label' => 'Isi Bukti Dasar'
+                    ],
+                    [
+                        'href' => '../ADM/isi_bukti_adm.php',
+                        'icon' => '#',
+                        'label' => 'Isi Bukti Adm'
+                    ],
+                    // [
+                    //     'href' => '../ELEMEN/elemen.php',
+                    //     'icon' => 'fas fa-puzzle-piece',
+                    //     'label' => 'Element'
+                    // ],
+                    // [
+                    //     'href' => '../KUK/KUK.php',
+                    //     'icon' => 'fas fa-check-circle',
+                    //     'label' => 'KUK'
+                    // ]
+                ]
+            ],
+            // [
+            //     'href' => '#',
+            //     'icon' => 'fas fa-book',
+            //     'label' => 'Isi Bukti Dasar & Adm',
+            //     'has_dropdown' => true,
+            //     'submenu' => [
+            //         [
+            //             'href' => '../DASAR/isi_bukti_dasar.php',
+            //             'icon' => '#',
+            //             'label' => 'Isi Bukti Dasar'
+            //         ],
+            //         [
+            //             'href' => '../ADM/isi_bukti_adm.php',
+            //             'icon' => '#',
+            //             'label' => 'Isi Bukti Adm'
+            //         ],
+            //     ]
+            // ],
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
@@ -85,7 +141,7 @@ $roles_data = [
     'Asesor' => [
         'icon' => 'fas fa-user-tie',
         'role_name' => '',
-        'role_desc' => '',
+        'role_desc' => 'Asesor',
         'menu' => [
             [
                 'href' => 'UTAMA.php',
@@ -126,13 +182,31 @@ $roles_data = [
     'Asesi' => [
         'icon' => 'fas fa-user-graduate',
         'role_name' => '',
-        'role_desc' => '',
+        'role_desc' => 'Asesi',
         'menu' => [
             [
                 'href' => 'UTAMA.php',
                 'icon' => 'fas fa-home',
                 'label' => 'Dashboard',
                 'active' => true
+            ],
+            [
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Isi Bukti Dasar & Adm',
+                'has_dropdown' => true,
+                'submenu' => [
+                    [
+                        'href' => '../DASAR/isi_bukti_dasar.php',
+                        'icon' => '#',
+                        'label' => 'Isi Bukti Dasar'
+                    ],
+                    [
+                        'href' => '../ADM/isi_bukti_adm.php',
+                        'icon' => '#',
+                        'label' => 'Isi Bukti Adm'
+                    ],
+                ]
             ]
         ]
     ]
@@ -165,11 +239,27 @@ $allowed_pages = [
     '../PENAGATURAN/hapus.php',
     '../ASESOR/edit.php',
     '../ASESOR/hapus_asesor.php',
-    '../',
+    '../DASAR/bukti_dasar.php',
     '../ASESI/detail_asesi.php',
     '../ASESI/edit.php',
     '../ASESI/hapus_asesi.php',
     '../PROFIL/profil.php',
+    '../DASAR/Tambah_bd.php',
+    '../ADM/bukti_adm.php',
+    '../ADM/isi_bukti_.php',
+    '../ADM/Tambah_ba.php',
+    '../DASAR/isi_bukti_dasar.php',
+    '../UNIT/Ubah_unit.php',
+    '../UNIT/hapus_unit.php',
+    '../ELEMEN/ubah_elemen.php',
+    '../ELEMEN/hapus_elemen.php',
+    '../KUK/hapus_kuk.php',
+    '../KUK/ubah_kuk.php',
+    '../',
+    '../',
+    '../',
+    '../',
+    '../',
     '../'
 ];
 
@@ -195,7 +285,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
         <aside class="sidebar" id="sidebar">
             <div class="profile-section">
-                <h2><?=htmlspecialchars(strtoupper($username))?></h2>
+                <h2><?=htmlspecialchars($nama_user)?></h2>
                 <p><?=htmlspecialchars($user_data['role_desc'])?></p>
             </div>
 
@@ -278,7 +368,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
             </nav>
             <div class="developer">
                 <div class="copyright">
-                    © 2025 Dev : <a href="http://althaf.com">Althaf Dan Riyan</a></div>
+                    © 2025 Dev : <a href="http://#.com"></a></div>
                 <div class="version">
                     <b>Version: </b> M1
                 </div>        

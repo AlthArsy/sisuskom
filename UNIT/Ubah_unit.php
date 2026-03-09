@@ -2,7 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-if (session_status() === PHP_SESSION_NONE) {
+if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
@@ -13,164 +13,248 @@ if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Asesor'
 
 include '../koneksi.php';
 
-$id = isset($_GET["id"]) ? intval($_GET["id"]) : 0;
-$id_skema = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
-
-$unit_data = null;
-if ($id > 0) {
-    $query = 'SELECT * FROM tb_unit_kompetensi WHERE id_unit = ?';
-    $stmt = mysqli_prepare($koneksi, $query);
-    mysqli_stmt_bind_param($stmt, 'i', $id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $unit_data = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
+if (mysqli_connect_errno()) {
+    die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
 
-if (!$unit_data) {
-    $_SESSION['error'] = 'Data unit kompetensi tidak ditemukan';
-    if ($id_skema > 0) {
-        header("Location: ../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=$id_skema");
-    } else {
-        header('Location: ../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php');
-    }
-    exit();
-}
+$message = '';
+$message_type = ''; 
+$unit_data = [];
 
-$query_skema = "SELECT id_skema, nomor_skema, judul_skema FROM tb_skema ORDER BY nomor_skema";
-$result_skema = mysqli_query($koneksi, $query_skema);
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $kode_unit = mysqli_real_escape_string($koneksi, $_POST['kode_unit']);
-    $judul_unit = mysqli_real_escape_string($koneksi, $_POST['judul_unit']);
-    $id_skema_update = intval($_POST['id_skema']);
-
-    if (empty($kode_unit) || empty($judul_unit)) {
-        $_SESSION['error'] = 'Kode unit dan judul harus diisi!';
-    } else {
-        $query_update = 'UPDATE tb_unit_kompetensi SET
-                        kode_unit = ?,
-                        judul_unit = ?,
-                        id_skema = ?
-                        WHERE id_unit = ?';
-        $stmt_update = mysqli_prepare($koneksi, $query_update);
-        mysqli_stmt_bind_param($stmt_update, "ssii", $kode_unit, $judul_unit, $id_skema_update, $id);
-
-        if(mysqli_stmt_execute($stmt_update)) {
-            $_SESSION["success"] = "Data unit berhasil diupdate!";
-            mysqli_stmt_close($stmt_update);
+if (isset($_GET['id'])) {
+    $id_unit = intval($_GET['id']);
+    
+    $sql = "SELECT 
+                uk.*, 
+                s.nomor_skema, 
+                s.judul_skema,
+                s.id_asesor
+            FROM tb_unit_kompetensi uk
+            LEFT JOIN tb_skema s ON uk.id_skema = s.id_skema
+            WHERE uk.id_unit = ?";
+    
+    $stmt = mysqli_prepare($koneksi, $sql);
+    
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $id_unit);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        
+        if ($result && mysqli_num_rows($result) > 0) {
+            $unit_data = mysqli_fetch_assoc($result);
             
-            if ($id_skema > 0) {
-                header("Location: ../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=$id_skema");
-            } else {
-                header("Location: ../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php");
+            if ($_SESSION['role'] === 'Asesor') {
+                $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
+                
+                if ($unit_data['id_asesor'] != $id_asesor_login) {
+                    $message = "Anda tidak memiliki akses untuk mengubah unit ini.";
+                    $message_type = 'error';
+                    $unit_data = [];
+                }
             }
-            exit();
         } else {
-            $_SESSION['error'] = "Gagal mengubah data: " . mysqli_error($koneksi);
+            $message = "Data unit kompetensi tidak ditemukan.";
+            $message_type = 'error';
         }
+        mysqli_stmt_close($stmt);
+    }
+} else {
+    $message = "ID unit tidak valid.";
+    $message_type = 'error';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
+    $id_unit = intval($_POST['id_unit']);
+    $kode_unit = mysqli_real_escape_string($koneksi, trim($_POST['kode_unit']));
+    $judul_unit = mysqli_real_escape_string($koneksi, trim($_POST['judul_unit']));
+    
+    $errors = [];
+    
+    if (empty($kode_unit)) {
+        $errors[] = "Kode unit harus diisi";
+    }
+    
+    if (empty($judul_unit)) {
+        $errors[] = "Judul unit harus diisi";
+    }
+    
+    $check_sql = "SELECT id_unit FROM tb_unit_kompetensi WHERE kode_unit = ? AND id_unit != ?";
+    $check_stmt = mysqli_prepare($koneksi, $check_sql);
+    mysqli_stmt_bind_param($check_stmt, "si", $kode_unit, $id_unit);
+    mysqli_stmt_execute($check_stmt);
+    mysqli_stmt_store_result($check_stmt);
+    
+    if (mysqli_stmt_num_rows($check_stmt) > 0) {
+        $errors[] = "Kode unit sudah digunakan";
+    }
+    mysqli_stmt_close($check_stmt);
+    
+    if (empty($errors)) {
+        $update_sql = "UPDATE tb_unit_kompetensi SET kode_unit = ?, judul_unit = ? WHERE id_unit = ?";
+        $update_stmt = mysqli_prepare($koneksi, $update_sql);
+        
+        if ($update_stmt) {
+            mysqli_stmt_bind_param($update_stmt, "ssi", $kode_unit, $judul_unit, $id_unit);
+            
+            if (mysqli_stmt_execute($update_stmt)) {
+                $_SESSION['pesan'] = "Data unit kompetensi berhasil diperbarui!";
+                $_SESSION['tipe'] = 'success';
+                
+                $id_skema = intval($_POST['id_skema']);
+                header("Location: ../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=" . $id_skema);
+                exit();
+            } else {
+                $message = "Gagal memperbarui data: " . mysqli_error($koneksi);
+                $message_type = 'error';
+            }
+            mysqli_stmt_close($update_stmt);
+        }
+    } else {
+        $message = implode("<br>", $errors);
+        $message_type = 'error';
     }
 }
 ?>
-<link rel="stylesheet" href="../assets/CSS/ubah_UEK.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <div class="container">
-        <div class="header">
-            <h2><i class="fas fa-edit"></i> Ubah Unit Kompetensi</h2>
+<link rel="stylesheet" href="../assets/CSS/ubah_skema.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<div class="ubah-container">
+    <div class="ubah-header">
+        <h1>Ubah Unit Kompetensi</h1>
+        <p>Perbarui informasi unit kompetensi</p>
+    </div>
+    
+    <div class="user-info">
+        Logged in sebagai: 
+        <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+        (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
+    </div>
+    
+    <?php if (!empty($message)): ?>
+        <div class="message <?php echo $message_type; ?>">
+            <?php echo $message; ?>
         </div>
-        
+    <?php endif; ?>
+    
+    <?php if (!empty($unit_data)): ?>
         <div class="form-container">
-            <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($_SESSION['error']) ?>
-                </div>
-                <?php unset($_SESSION['error']); ?>
-            <?php endif; ?>
+            <div class="skema-info-box">
+                <h3>Informasi Skema</h3>
+                <p><strong>Nomor Skema:</strong> <?php echo htmlspecialchars($unit_data['nomor_skema']); ?></p>
+                <p><strong>Judul Skema:</strong> <?php echo htmlspecialchars($unit_data['judul_skema']); ?></p>
+            </div>
             
-            <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> <?= htmlspecialchars($_SESSION['success']) ?>
-                </div>
-                <?php unset($_SESSION['success']); ?>
-            <?php endif; ?>
-            
-            <?php if ($id_skema > 0): ?>
-                <div class="info-box">
-                    <h4><i class="fas fa-info-circle"></i> Konteks Skema</h4>
-                    <p>Anda sedang mengubah unit kompetensi dalam skema tertentu. Skema tidak dapat diubah dari halaman ini.</p>
-                </div>
-            <?php endif; ?>
-            
-            <form method="POST" action="">
-                <input type="hidden" name="id_skema" value="<?= $id_skema > 0 ? $id_skema : ($unit_data['id_skema'] ?? '') ?>">
+            <form method="post" action="" id="editUnitForm">
+                <input type="hidden" name="id_unit" value="<?php echo $unit_data['id_unit']; ?>">
+                <input type="hidden" name="id_skema" value="<?php echo $unit_data['id_skema']; ?>">
                 
                 <div class="form-group">
-                    <label for="kode_unit">Kode Unit <span class="required">*</span></label>
-                    <input type="text" id="kode_unit" name="kode_unit" 
-                           value="<?= htmlspecialchars($unit_data['kode_unit'] ?? '') ?>"
-                           placeholder="Contoh: UNIT001" required>
+                    <label for="kode_unit" class="required">
+                         Kode Unit
+                    </label>
+                    <input type="text" 
+                           id="kode_unit" 
+                           name="kode_unit" 
+                           class="form-control" 
+                           value="<?php echo htmlspecialchars($unit_data['kode_unit']); ?>"
+                           required
+                           maxlength="50">
+                    <span class="form-hint">Kode unik identifikasi unit kompetensi</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="judul_unit">Judul Unit Kompetensi <span class="required">*</span></label>
-                    <input type="text" id="judul_unit" name="judul_unit" 
-                           value="<?= htmlspecialchars($unit_data['judul_unit'] ?? '') ?>"
-                           placeholder="Contoh: Melakukan Instalasi Perangkat Jaringan" required>
+                    <label for="judul_unit" class="required">
+                         Judul Unit Kompetensi
+                    </label>
+                    <textarea 
+                        id="judul_unit" 
+                        name="judul_unit" 
+                        class="form-control" 
+                        required
+                        rows="3"><?php echo htmlspecialchars($unit_data['judul_unit']); ?></textarea>
+                    <span class="form-hint">Nama lengkap unit kompetensi</span>
                 </div>
                 
-                <?php if ($id_skema == 0): ?>
-                <div class="form-group">
-                    <label for="id_skema">Skema Sertifikasi <span class="required">*</span></label>
-                    <select id="id_skema" name="id_skema" required>
-                        <option value="">-- Pilih Skema --</option>
-                        <?php 
-                        mysqli_data_seek($result_skema, 0);
-                        while ($skema = mysqli_fetch_assoc($result_skema)): 
-                        ?>
-                            <option value="<?= $skema['id_skema'] ?>"
-                                <?= ($skema['id_skema'] == ($unit_data['id_skema'] ?? 0)) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($skema['nomor_skema']) ?> - <?= htmlspecialchars($skema['judul_skema']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <?php endif; ?>
-                
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-simpan">
+                <div class="button-group">
+                    <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?php echo $unit_data['id_skema']; ?>" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Batal
+                    </a>
+                    <button type="submit" name="update" class="btn btn-primary">
                         <i class="fas fa-save"></i> Simpan Perubahan
                     </button>
-                    
-                    <?php if ($id_skema > 0): ?>
-                        <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $id_skema ?>" 
-                           class="btn btn-batal">
-                            <i class="fas fa-times"></i> Batal
-                        </a>
-                    <?php else: ?>
-                        <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php" 
-                           class="btn btn-batal">
-                            <i class="fas fa-times"></i> Batal
-                        </a>
-                    <?php endif; ?>
                 </div>
             </form>
         </div>
-    </div>
-    
-    <script>
-        document.getElementById('kode_unit').focus();
-        
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const kodeUnit = document.getElementById('kode_unit').value.trim();
-            const judulUnit = document.getElementById('judul_unit').value.trim();
-            
-            if (!kodeUnit || !judulUnit) {
-                e.preventDefault();
-                alert('Harap isi semua field yang wajib diisi!');
-                return false;
-            }
+    <?php elseif (empty($message)): ?>
+        <div class="message error">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Data unit kompetensi tidak ditemukan. Silakan pilih unit yang valid.
+            <br><br>
+            <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
+                <i class="fas fa-arrow-left"></i> Kembali ke Daftar Unit
+            </a>
+        </div>
+    <?php endif; ?>
+</div>
+
+<style>
+.skema-info-box {
+    background: #f8f9fa;
+    border-left: 4px solid #4186e0;
+    padding: 15px;
+    margin-bottom: 25px;
+    border-radius: 4px;
+}
+
+.skema-info-box h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+.skema-info-box p {
+    margin: 8px 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.skema-info-box strong {
+    color: #2c3e50;
+}
+</style>
+
+<script>
+    setTimeout(function() {
+        const messages = document.querySelectorAll('.message');
+        messages.forEach(message => {
+            message.style.opacity = '0';
+            message.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => message.remove(), 500);
         });
-    </script>
+    }, 5000);
+    
+    document.getElementById('editUnitForm')?.addEventListener('submit', function(e) {
+        const kode_unit = document.getElementById('kode_unit').value.trim();
+        const judul_unit = document.getElementById('judul_unit').value.trim();
+        
+        let errors = [];
+        
+        if (!kode_unit) {
+            errors.push('Kode unit harus diisi');
+        }
+        
+        if (!judul_unit) {
+            errors.push('Judul unit harus diisi');
+        }
+        
+        if (errors.length > 0) {
+            e.preventDefault();
+            alert('Harap perbaiki kesalahan berikut:\n\n' + errors.join('\n'));
+            return false;
+        }
+    });
+</script>
 
 <?php
 mysqli_close($koneksi);

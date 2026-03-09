@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         <div class="message <?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
-    <?php endif; ?>
+    <?php endif; ?> 
     
     <?php if (!empty($unit_data)): ?>
         <div class="form-container">
@@ -248,7 +248,7 @@ dengan konteks permasalahan"></textarea>
                     <span class="unit-number">kuk #${kukCount}</span>
                     <button type="button" class="btn-remove" onclick="removeUnit(this)">
                         Hapus
-                    </button>
+                    </button> 
                 </div>
                 <div class="form-row">
                     <div class="form-group">

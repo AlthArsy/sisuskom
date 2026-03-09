@@ -234,7 +234,7 @@ if (isset($result) && $result) {
                             <a href="../ELEMEN/ubah_elemen.php&id=<?= $row['id_elemen'] ?>" class="btn-ubah">
                                 Ubah
                             </a>
-                            <a href="../ELEMEN/hapus_elemen.php&id=<?= $row['id_elemen'] ?>" 
+                            <a href="UTAMA.php?page=../ELEMEN/hapus_elemen.php&id_elemen=<?= $row['id_elemen'] ?>" 
                                class="btn-hapus"
                                onclick="return confirm('Yakin ingin menghapus Elemen ini?');">
                                 Hapus

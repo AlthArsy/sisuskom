@@ -39,7 +39,7 @@ if (isset($_GET['id'])) {
             $skema_data = mysqli_fetch_assoc($result);
             
             if ($_SESSION['role'] === 'Asesor') {
-                $id_asesor_login = $_SESSION['id_referensi'] ?? 0;
+                $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
                 
                 if ($skema_data['id_asesor'] != $id_asesor_login) {
                     $message = "Anda tidak memiliki akses untuk mengubah skema ini.";
@@ -117,12 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <div class="ubah-container">
     <div class="ubah-header">
-        <h1><i class="fas fa-edit"></i> Ubah Data Skema</h1>
+        <h1>Ubah Data Skema</h1>
         <p>Perbarui informasi skema sertifikasi</p>
     </div>
     
     <div class="user-info">
-        <i class="fas fa-user-circle"></i> Logged in sebagai: 
+         Logged in sebagai: 
         <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
         (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
     </div>
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 
                 <div class="form-group">
                     <label for="nomor_skema" class="required">
-                        <i class="fas fa-hashtag"></i> Nomor Skema
+                        Nomor Skema
                     </label>
                     <input type="text" 
                            id="nomor_skema" 
@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 
                 <div class="form-group">
                     <label for="judul_skema" class="required">
-                        <i class="fas fa-heading"></i> Judul Skema
+                        Judul Skema
                     </label>
                     <input type="text" 
                            id="judul_skema" 
@@ -168,7 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 
                 <div class="form-group">
                     <label for="standar_kompetensi_kerja" class="required">
-                        <i class="fas fa-clipboard-list"></i> Standar Kompetensi Kerja
+                        Standar Kompetensi Kerja
                     </label>
                     <textarea 
                         id="standar_kompetensi_kerja" 
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 
                 <div class="form-group">
                     <label for="nama_asesor">
-                        <i class="fas fa-user-tie"></i> Asesor
+                        Asesor
                     </label>
                     <input type="text" 
                            id="nama_asesor" 

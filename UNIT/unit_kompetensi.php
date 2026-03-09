@@ -225,9 +225,9 @@ if (isset($result) && $result) {
                         <td data-label="Kode Unit"><?= htmlspecialchars($row['kode_unit']) ?></td>
                         <td data-label="Judul Unit"><?= htmlspecialchars($row['judul_unit']) ?></td>
                         <td data-label="Aksi" class="aksi">
-                            <a href="UTAMA.php?page=../UNIT/Ubah_unit.php&id=<?= $row['id_unit'] ?>" class="btn-ubah">
-                                Ubah
-                            </a>
+                        <a href='UTAMA.php?page=../UNIT/Ubah_unit.php&id=<?= $row['id_unit'] ?>' class='btn-ubah'>
+                            Ubah
+                        </a>
                             <a href="UTAMA.php?page=../UNIT/hapus_unit.php&id_unit=<?= $row['id_unit'] ?>" 
                              class="btn-hapus"
                                  data-id="<?= $row['id_unit'] ?>"
