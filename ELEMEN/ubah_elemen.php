@@ -26,9 +26,9 @@ if (isset($_GET['id'])) {
     
     $sql = "SELECT 
                 el.*, 
-                uk.nomor_skema, 
-                uk.judul_skema,
-                uk.id_asesor
+                uk.kode_unit,
+                uk.judul_unit,
+                uk.id_skema
             FROM tb_elemen el
             LEFT JOIN tb_unit_kompetensi uk ON el.id_unit = uk.id_unit
             WHERE el.id_elemen = ?";
@@ -65,6 +65,7 @@ if (isset($_GET['id'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $id_elemen = intval($_POST['id_elemen']);
+    $id_unit = intval($_POST['id_elemen']);
     $no_elemen = mysqli_real_escape_string($koneksi, trim($_POST['no_elemen']));
     $nama_elemen = mysqli_real_escape_string($koneksi, trim($_POST['nama_elemen']));
     
@@ -78,9 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         $errors[] = "Nama Elemen harus diisi";
     }
     
-    $check_sql = "SELECT id_elemen FROM tb_elemen WHERE no_elemen = ? AND id_elemen != ?";
+    $check_sql = "SELECT id_elemen FROM tb_elemen WHERE no_elemen = ? AND id_unit = ? AND id_elemen != ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "si", $no_elemen, $nama_elemen);
+    mysqli_stmt_bind_param($check_stmt, "sii", $no_elemen, $id_unit, $id_elemen);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
     
@@ -144,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 <p><strong>Nama Elemen:</strong> <?php echo htmlspecialchars($elemen_data['nama_elemen']); ?></p>
             </div>
             
-            <form method="post" action="" id="editUnitForm">
+            <form method="post" action="" id="editElemenForm">
                 <input type="hidden" name="id_elemen" value="<?php echo $elemen_data['id_elemen']; ?>">
                 <input type="hidden" name="id_unit" value="<?php echo $elemen_data['id_unit']; ?>">
                 
@@ -231,17 +232,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         });
     }, 5000);
     
-    document.getElementById('editUnitForm')?.addEventListener('submit', function(e) {
-        const kode_unit = document.getElementById('kode_unit').value.trim();
-        const judul_unit = document.getElementById('judul_unit').value.trim();
+    document.getElementById('editElemenForm')?.addEventListener('submit', function(e) {
+        const no_elemen = document.getElementById('no_elemen').value.trim();
+        const nama_elemen = document.getElementById('nama_elemen').value.trim();
         
         let errors = [];
         
-        if (!kode_unit) {
+        if (!no_elemen) {
             errors.push('No Elemen harus diisi');
         }
         
-        if (!judul_unit) {
+        if (!nama_elemen) {
             errors.push('Nama Elemen harus diisi');
         }
         

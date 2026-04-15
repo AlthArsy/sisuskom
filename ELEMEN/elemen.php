@@ -231,7 +231,7 @@ if (isset($result) && $result) {
                         <td data-label="No Elemen"><?= htmlspecialchars($row['no_elemen']) ?></td>
                         <td data-label="Nama Elemen"><?= htmlspecialchars($row['nama_elemen']) ?></td>
                         <td data-label="Aksi" class="aksi">
-                            <a href="../ELEMEN/ubah_elemen.php&id=<?= $row['id_elemen'] ?>" class="btn-ubah">
+                            <a href="UTAMA.php?page=../ELEMEN/ubah_elemen.php&id=<?= $row['id_elemen'] ?>" class="btn-ubah">
                                 Ubah
                             </a>
                             <a href="UTAMA.php?page=../ELEMEN/hapus_elemen.php&id_elemen=<?= $row['id_elemen'] ?>" 

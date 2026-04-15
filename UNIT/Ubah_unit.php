@@ -159,7 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                            value="<?php echo htmlspecialchars($unit_data['kode_unit']); ?>"
                            required
                            maxlength="50">
-                    <span class="form-hint">Kode unik identifikasi unit kompetensi</span>
                 </div>
                 
                 <div class="form-group">
@@ -172,7 +171,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                         class="form-control" 
                         required
                         rows="3"><?php echo htmlspecialchars($unit_data['judul_unit']); ?></textarea>
-                    <span class="form-hint">Nama lengkap unit kompetensi</span>
                 </div>
                 
                 <div class="button-group">
