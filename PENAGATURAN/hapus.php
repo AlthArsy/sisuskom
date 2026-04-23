@@ -67,7 +67,7 @@
 
 session_start();
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm') {
     echo "<script>alert('Akses ditolak! Silakan login sebagai Admin.'); window.location.href='../LOGIN/login.php';</script>";
     exit();
 }

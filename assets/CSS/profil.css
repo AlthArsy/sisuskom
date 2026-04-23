@@ -3,25 +3,6 @@
     margin: 0 auto;
 }
 
-.page-header {
-    background: #5568d3;  
-    color: white;
-    padding: 30px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.page-header h1 {
-    margin: 0 0 10px 0;
-    font-size: 2em;
-}
-
-.page-header p {
-    margin: 0;
-    opacity: 0.9;
-}
-
 .card {
     background: white;
     border-radius: 10px;

@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Asesor'])) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -28,9 +28,11 @@ if (isset($_GET['id'])) {
                 el.*, 
                 uk.kode_unit,
                 uk.judul_unit,
-                uk.id_skema
+                uk.id_skema,
+                s.id_asesor
             FROM tb_elemen el
             LEFT JOIN tb_unit_kompetensi uk ON el.id_unit = uk.id_unit
+            LEFT JOIN tb_skema s ON uk.id_skema = s.id_skema
             WHERE el.id_elemen = ?";
     
     $stmt = mysqli_prepare($koneksi, $sql);
@@ -140,9 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     <?php if (!empty($elemen_data)): ?>
         <div class="form-container">
             <div class="skema-info-box">
-                <h3>Informasi Elemen</h3>
-                <p><strong>No Elemen :</strong> <?php echo htmlspecialchars($elemen_data['no_elemen']); ?></p>
-                <p><strong>Nama Elemen:</strong> <?php echo htmlspecialchars($elemen_data['nama_elemen']); ?></p>
+                <h3>Informasi Unit</h3>
+                <p><strong>Kode Unit :</strong> <?php echo htmlspecialchars($elemen_data['kode_unit']); ?></p>
+                <p><strong>Judul Unit:</strong> <?php echo htmlspecialchars($elemen_data['judul_unit']); ?></p>
             </div>
             
             <form method="post" action="" id="editElemenForm">

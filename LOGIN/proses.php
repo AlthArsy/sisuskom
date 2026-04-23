@@ -5,25 +5,27 @@ $username = isset($_POST['username']) ? trim($_POST['username']) : (isset($_GET[
 $password = isset($_POST['password']) ? trim($_POST['password']) : (isset($_GET['password']) ? trim($_GET['password']) : '');
 $role_raw = isset($_POST['role']) ? trim($_POST['role']) : (isset($_GET['role']) ? trim($_GET['role']) : '');
 
+
 $role_map = [
-    'admin'  => 'Admin',
+    'admin_utm'  => 'Admin_utm',
+    'admin_lsp'  => 'Admin_lsp',
     'asesor' => 'Asesor',
     'asesi'  => 'Asesi'
 ];
 $role_key = strtolower($role_raw);
 
 if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
-        (($role_map[$role_key] == 'Admin' || $role_map[$role_key] == 'Asesor' || $role_map[$role_key] == 'Asesi') && !empty($username))
+        (($role_map[$role_key] == 'Admin_utm' || $role_map[$role_key] == 'Admin_lsp' || $role_map[$role_key] == 'Asesor' || $role_map[$role_key] == 'Asesi') && !empty($username))
     )) {
 
     $role = $role_map[$role_key];
     $role_esc = mysqli_real_escape_string($koneksi, $role);
 
     if ($role === '') {
-        $sql = "SELECT * FROM users WHERE role='$role_esc' LIMIT 1";
+        $sql = "SELECT * FROM users WHERE role='$role_esc' LIMIT 1" && $role === 'Admin_utm' ? "SELECT * FROM users_admin WHERE role='$role_esc' LIMIT 1" : "SELECT * FROM users WHERE role='$role_esc' LIMIT 1";
     } else {
         $username_esc = mysqli_real_escape_string($koneksi, $username);
-        $sql = "SELECT * FROM users WHERE username='$username_esc' AND role='$role_esc' LIMIT 1";
+        $sql = "SELECT * FROM users WHERE username='$username_esc' AND role='$role_esc' LIMIT 1" && $role === 'Admin_utm' ? "SELECT * FROM users_admin WHERE username='$username_esc' AND role='$role_esc' LIMIT 1" : "SELECT * FROM users WHERE username='$username_esc' AND role='$role_esc' LIMIT 1";
     }
 
     $result = mysqli_query($koneksi, $sql);
@@ -43,6 +45,21 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
             $_SESSION['id_user'] = $user['id_user'] ?? 0;
             $_SESSION['id_asesor'] = $user['id_asesor'] ?? null;
             $_SESSION['id_asesi'] = $user['id_asesi'] ?? null;
+            $_SESSION['id_admin'] = $user['id_admin'] ?? null;
+
+            if (!empty($user['id_admin']) && !is_null($user['id_admin'])) {
+                $id_admin = $user['id_admin'];
+                
+                if ($role === 'Admin_lsp') {
+
+                    $profil = mysqli_query($koneksi, "SELECT nama_admin FROM tb_admin WHERE id_admin = '$id_admin'");
+                    $data_profil = mysqli_fetch_assoc($profil);
+                    
+                    if ($data_profil) {
+                        $_SESSION['nama_user'] = $data_profil['nama_admin'];
+                    }
+                }
+            }
 
             if (!empty($user['id_asesor']) && !is_null($user['id_asesor'])) {
                 $id_asesor = $user['id_asesor'];
@@ -71,7 +88,14 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
                 } 
             } 
 
-            
+            if ($role === 'Admin_lsp') {
+                if (empty($user['id_admin']) || is_null($user['id_admin'])) {
+                    if ($role === 'Admin_lsp') {
+                        echo "<script>alert('Silakan lengkapi profil terlebih dahulu.'); window.location.href='../Admin/input_profil.php';</script>";
+                        exit;
+                    } 
+                }
+            }            
 
             if ($role === 'Asesor') {
                 if (empty($user['id_asesor']) || is_null($user['id_asesor'])) {
@@ -90,9 +114,11 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
                     }
                 }
             }
-
-            if ($role === 'Admin') {
-                echo "<script>alert('Login berhasil sebagai ADMIN'); window.location.href='../BERANDA/UTAMA.php';</script>";
+            
+            if ($role === 'Admin_utm') {
+                echo "<script>alert('Login berhasil sebagai ADMIN UTAMA'); window.location.href='../BERANDA/UTAMA.php';</script>";
+            } elseif ($role === 'Admin_lsp') {
+                echo "<script>alert('Login berhasil sebagai ADMIN LSP'); window.location.href='../BERANDA/UTAMA.php';</script>";
             } elseif ($role === 'Asesor') {
                 echo "<script>alert('Login berhasil sebagai Asesor'); window.location.href='../BERANDA/UTAMA.php';</script>";
             } elseif ($role === 'Asesi') {
@@ -107,7 +133,7 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
         echo "<script>alert('Username atau Role tidak sesuai!'); window.location.href='../LOGIN/login.php';</script>";
     }
 } else {
-    if (isset($role) && $role === 'Admin' && empty($password)) {
+    if (isset($role) && $role === 'Admin_lsp' && empty($password)) {
         echo "<script>alert('Harap isi password!'); window.location.href='../LOGIN/login.php';</script>";
     } else {
         echo "<script>alert('Harap isi semua field!'); window.location.href='../LOGIN/login.php';</script>";

@@ -57,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $alamat_institusi_esc   = mysqli_real_escape_string($koneksi, $alamat_institusi);
         $kode_pos_institusi_esc = mysqli_real_escape_string($koneksi, $kode_pos_institusi);
         $telp_institusi_esc     = mysqli_real_escape_string($koneksi, $telp_institusi);
-        // Validasi panjang telp institusi (maks 15 sesuai DB)
         if (!empty($telp_institusi_esc) && strlen($telp_institusi_esc) > 15) {
             echo "<script>alert('Nomor telepon institusi terlalu panjang. Maksimum 15 karakter.'); window.history.back();</script>";
             exit;
@@ -94,6 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<script>alert('Gagal menyimpan profil!\\n\\nTerjadi error pada query ke database. Silakan cek koneksi, struktur tabel, atau hubungi admin.\\nPesan error: " . addslashes($error_msg) . "');</script>";
         } else {
             $id_asesi = mysqli_insert_id($koneksi);
+            $_SESSION['id_asesi'] = $id_asesi;
 
             $id_user = intval($_SESSION['id_user']);
             $update_q = mysqli_query($koneksi, "UPDATE users SET id_asesi='$id_asesi' WHERE id_user='$id_user'");
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_err = mysqli_error($koneksi);
                 echo "<script>alert('Profil tersimpan, tetapi gagal menghubungkan user ke profil asesi.\\nPesan error: " . addslashes($update_err) . "');</script>";
             } else {
-                echo "<script>alert('Profil berhasil disimpan!'); window.location.href='../BERANDA/UTAMA.php';</script>";
+                echo "<script>window.location.href='../BERANDA/UTAMA.php?id_asesi={$id_asesi}';</script>";
                 exit;
             }
         }
@@ -116,89 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FR</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .form-box {
-            margin: 35px auto;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 25px 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .form-control {
-            width: 99%;
-            padding: 5px 7px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            margin-top: 16px;
-            background: #4A7AFF;
-            color: #fff;
-            border: none;
-            padding: 8px 22px;
-            border-radius: 4px;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        .btn-submit:hover { background: #325fd6; }
-        .section-title {
-            font-weight: bold;
-            background: #f8faff;
-            font-size: 15px;
-            border-radius: 3px;
-            padding-bottom: 7px;
-        }
-        .label {
-            font-weight: bold;
-        }
-        .required {
-            color: red;
-            font-weight: normal;
-        }
-        .small-text {
-            font-size: 12px;
-            color: #444;
-        }
-        @media screen and (max-width: 768px) {
-            .form-box {
-                min-width: unset;
-                margin: 6vw auto;
-                padding: 14px 4vw;
-            }
-            .form-control, select, input[type="text"], input[type="number"] {
-                width: 100% !important;
-            }
-
-            h2 {
-                font-size: 20px;
-            }
-            .btn-submit {
-                width: 100%;
-                padding: 10px;
-                font-size: 16px;
-            }
-            td {
-                display: block;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .section-title {
-                font-size: 14px;
-                padding-bottom: 10px;
-            }
-        }
-        input[type="text"],
-        select,
-        .btn-submit {
-            font-size: 16px;
-        }
-    </style>
+    <title>FR APL 1</title>
+    <link rel="stylesheet" href="../assets/CSS/CSS_APL/FR_APL1.css">
 </head>
 <body>
     <div class="form-box">
@@ -233,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div>
                     <label class="label" for="kebangsaan">Kebangsaan <span class="required">*</span></label>
                     <select id="kebangsaan" name="kebangsaan" class="form-control" placeholder="Kebangsaan" required>
-                        <option>Kebangsaan</option>
+                        <option value="">Pilih Kebangsaan</option>
                         <option value="WNI">WNI</option>
                         <option value="WNA">WNA</option>
                     </select>
@@ -290,7 +209,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="number" id="kode_pos_institusi" name="kode_pos_institusi" class="form-control" placeholder="Kode Pos Institusi" required>
                 </div>
 
-                
                 <div class="label" style="margin-bottom:2px;">No. Telp/Fax/E-mail</div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:120px;">
@@ -307,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="email" id="email_institusi" name="email_institusi" class="form-control" placeholder="E-mail Kantor" maxlength="15">
                 </div>
             </div>
-            <button type="submit" class="btn-submit" style="margin-top: 18px;">Simpan Profil</button>
+            <button type="submit" class="btn-submit" style="margin-top: 18px;">SIMPAN</button>
         </form>
     </div>
 </body>

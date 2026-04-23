@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 
 include '../koneksi.php';
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Asesor'])) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }

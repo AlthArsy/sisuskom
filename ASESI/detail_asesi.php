@@ -8,7 +8,7 @@ session_start();
 
 include "../koneksi.php";
 
-if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'Asesor') {
+if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm' && $_SESSION['role'] !== 'Admin_lsp' && $_SESSION['role'] !== 'Asesor') {
     echo "<script>alert('Akses ditolak! Hanya Admin dan Asesor yang dapat mengakses.'); window.location.href='../LOGIN/login.php';</script>";
     exit;
 }

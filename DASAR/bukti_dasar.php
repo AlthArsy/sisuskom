@@ -4,7 +4,7 @@ if (session_status() == PHP_SESSION_NONE) {
 session_start();
 }
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -39,6 +39,16 @@ if (!$hasil) {
 <link rel="stylesheet" href="../assets/CSS/manajeman_penguna.css">
 <div class="konten-user">
     <h2 class="jdm">Bukti Dasar</h2>
+
+    <?php if (isset($_SESSION['pesan'])): ?>
+        <div class="message <?php echo $_SESSION['tipe']; ?>">
+            <?php 
+                echo htmlspecialchars($_SESSION['pesan']); 
+                unset($_SESSION['pesan']);
+                unset($_SESSION['tipe']);
+            ?>
+        </div>
+    <?php endif; ?>
     
     <form method="get" action="" class="cari">
         <?php if (isset($_GET['page'])): ?>
@@ -99,4 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+setTimeout(function() {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(message => {
+        message.style.opacity = '0';
+        message.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => message.remove(), 500);
+    });
+}, 5000); 
 </script>

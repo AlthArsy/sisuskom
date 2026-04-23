@@ -69,7 +69,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             mysqli_stmt_close($stmt);
         }
-    } elseif (isset($_POST['update_username']) && $role === 'Admin') {
+    } 
+    // elseif (isset($_POST['update_username']) && $role === 'Admin_utm') {
+    //     $new_username = trim($_POST['username']);
+        
+    //     if (empty($new_username)) {
+    //         $message = "Username tidak boleh kosong!";
+    //         $message_type = "error";
+    //     } else {
+    //         $update = "UPDATE users_admin SET username = ? WHERE id_user_admin = ?";
+    //         $stmt = mysqli_prepare($koneksi, $update);
+    //         mysqli_stmt_bind_param($stmt, "si", $new_username, $user_data['id_user_admin']);
+            
+    //         if (mysqli_stmt_execute($stmt)) {
+    //             $_SESSION['username'] = $new_username;
+    //             $message = "Username berhasil diubah!";
+    //             $message_type = "success";
+    //             header("Refresh:1");
+    //         } else {
+    //             $message = "Gagal mengubah username!";
+    //             $message_type = "error";
+    //         }
+    //         mysqli_stmt_close($stmt);
+    //     }
+    // } 
+        elseif (isset($_POST['update_username']) && $role === 'Admin_lsp') {
         $new_username = trim($_POST['username']);
         
         if (empty($new_username)) {
@@ -150,11 +174,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <div class="pengaturan-container">
-    <div class="page-header">
-        <h1><i class="fas fa-user-cog"></i> Pengaturan</h1>
-        <p>Kelola profil dan keamanan akun Anda</p>
-    </div>
-
     <?php if ($message): ?>
         <div class="message <?= $message_type ?>">
             <?= htmlspecialchars($message) ?>

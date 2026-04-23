@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -52,6 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                     if (mysqli_stmt_execute($insert_stmt)) { 
                         $message = "Bukti dasar baru berhasil ditambahkan!";
                         $message_type = 'success';
+                        $_SESSION['pesan'] = $message;
+                        $_SESSION['tipe'] = $message_type;
+                        header("Location: ../BERANDA/UTAMA.php?page=../DASAR/bukti_dasar.php");
+                        exit();
+
                         
                         
                         $_POST = [];

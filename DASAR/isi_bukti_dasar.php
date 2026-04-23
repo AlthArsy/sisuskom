@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Asesor', 'Asesi'])) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor', 'Asesi'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -91,23 +91,9 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
 
 <div class="s-container">
     <div class="header-container">
-        <h2 class="jdm">Kelola Skema Sertifikasi</h2>
-        <?php if ($_SESSION['role'] === 'Admin' ||  $_SESSION['role'] === 'Asesor' || $_SESSION['role'] === 'Asesi'): ?>
-            <a href="UTAMA.php?page=../SKEMA/Form_Skema.php" class="btn-tambah">
-                <i class="fas fa-plus"></i> Tambah Skema
-            </a>
-        <?php endif; ?>
+        <h2 class="jdm">Isi Bukti Dasar</h2>
     </div>
     
-    <?php if (isset($_SESSION['pesan'])): ?>
-        <div class="message <?php echo $_SESSION['tipe']; ?>">
-            <?php 
-                echo htmlspecialchars($_SESSION['pesan']); 
-                unset($_SESSION['pesan']);
-                unset($_SESSION['tipe']);
-            ?>
-        </div>
-    <?php endif; ?>
     <form method="get" action="" class="cari">
         <?php if (isset($_GET['page'])): ?>
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
@@ -163,18 +149,6 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
             </tbody>
     </table>
 </div>
-
-<script>
-setTimeout(function() {
-    const messages = document.querySelectorAll('.message');
-    messages.forEach(message => {
-        message.style.opacity = '0';
-        message.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => message.remove(), 500);
-    });
-}, 5000);
-</script>
-
 <?php
 mysqli_close($koneksi);
 ?>

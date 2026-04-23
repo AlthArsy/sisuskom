@@ -6,7 +6,7 @@ ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm' && $_SESSION['role'] !== 'Admin_lsp') {
     header("Location: ../LOGIN/login.php");
     exit();
 }

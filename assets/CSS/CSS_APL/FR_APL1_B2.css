@@ -1,0 +1,151 @@
+        body { font-family: Arial, sans-serif; }
+
+        .form-box {
+            margin: 35px auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 25px 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .form-control {
+            width: 99%;
+            padding: 5px 7px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .btn-submit {
+            background: #4A7AFF; color: #fff; border: none;
+            padding: 8px 22px; border-radius: 4px; font-size: 15px; cursor: pointer;
+        }
+        .btn-submit:hover { background: #325fd6; }
+        .btn-back {
+            background: #888; color: #fff; border: none;
+            padding: 8px 22px; border-radius: 4px; font-size: 15px;
+            cursor: pointer; margin-right: 8px;
+        }
+        .btn-back:hover { background: #666; }
+        .section-title {
+            font-weight: bold; background: #f8faff;
+            font-size: 15px; border-radius: 3px; padding-bottom: 7px;
+        }
+        .label { font-weight: bold; }
+        .required { color: red; font-weight: normal; }
+        .small-text { font-size: 12px; color: #444; }
+
+        .skema-wrap { position: relative; }
+        .skema-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            background: #fff;
+            border: 1px solid #4A7AFF;
+            border-radius: 0 0 5px 5px;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12); 
+            display: none;
+        }
+        .skema-item {
+            padding: 9px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #eef;
+        }
+        .skema-item:hover { background: #eef3ff; }
+        .skema-item .skema-judul { font-weight: bold; color: #1a237e; }
+        .skema-item .skema-nomor { font-size: 11px; color: #777; margin-top: 2px; }
+        .skema-loading {
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #888;
+        }
+        .skema-selected-badge {
+            display: none;
+            font-size: 11px;
+            color: #2e7d32;
+            background: #e6f4ea;
+            border-radius: 3px;
+            padding: 2px 8px;
+            margin-top: 4px;
+        }
+
+        .tbl-unit { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+        .tbl-unit th { background:#cadbfc; padding:7px 8px; border:1px solid #bbb; text-align:center; }
+        .tbl-unit td { padding:6px 8px; border:1px solid #ccc; vertical-align:top; }
+        .tbl-unit td:first-child { text-align:center; width:32px; }
+        .tbl-unit td:nth-child(2) { width:170px; }
+        .tbl-unit td:last-child { font-size:12px; color:#444; }
+        .unit-placeholder {
+            text-align: center;
+            padding: 18px;
+            color: #aaa;
+            font-size: 13px;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .tbl-bukti { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+        .tbl-bukti th { background:#cadbfc; padding:7px 8px; border:1px solid #bbb; text-align:center; }
+        .tbl-bukti td { padding:7px 8px; border:1px solid #ccc; text-align:center; vertical-align:middle; }
+        .tbl-bukti td:nth-child(1) { text-align:center; width:32px; }
+        .tbl-bukti td:nth-child(2) { text-align:left; }
+
+        .rekomendasi-box { display:flex; gap:16px; flex-wrap:wrap; margin-top:18px; }
+        .rekomendasi-col {
+            flex:1; min-width:200px; border:1px solid #ccc;
+            border-radius:4px; padding:10px 14px; background:#fafbff;
+        }
+        .rekomendasi-col .col-title {
+            font-weight:bold; font-size:14px; margin-bottom:8px;
+            border-bottom:1px solid #ddd; padding-bottom:5px;
+        }
+
+        .qr-signature-box {
+            border: 2px dashed #4A7AFF;
+            border-radius: 8px;
+            padding: 14px 10px;
+            background: #f4f7ff;
+            margin-top: 12px;
+            text-align: center;
+        }
+        .qr-title { font-size:12px; font-weight:bold; color:#1a237e; margin-bottom:4px; }
+        #qr-canvas {
+            display:flex; justify-content:center; align-items:center;
+            min-height:100px; margin-bottom:6px;
+        }
+        #qr-canvas canvas, #qr-canvas img {
+            border:3px solid #4A7AFF; border-radius:6px;
+            padding:5px; background:#fff;
+            box-shadow:0 2px 8px rgba(74,122,255,0.15);
+        }
+        .qr-placeholder {
+            width:120px; height:120px; border:2px dashed #aac; border-radius:6px;
+            display:flex; align-items:center; justify-content:center;
+            color:#bbb; font-size:11px; background:#fff; flex-direction:column; gap:4px;
+        }
+        .qr-placeholder span { font-size:24px; }
+        .qr-meta { font-size:10px; color:#4A7AFF; margin:4px 0; word-break:break-all; }
+        .qr-badge {
+            display:inline-block; background:#e6f4ea; color:#2e7d32;
+            border-radius:20px; padding:2px 10px; font-size:11px; font-weight:bold; margin-top:4px;
+        }
+        .btn-dl-qr {
+            display:none; font-size:11px; background:#4A7AFF; color:#fff;
+            border:none; padding:4px 12px; border-radius:20px; cursor:pointer; margin-top:6px;
+        }
+        .btn-dl-qr:hover { background:#325fd6; }
+
+        @media (max-width:768px) {
+            .form-box { margin:6vw auto; padding:14px 4vw; }
+            .form-control { width:100% !important; }
+            h2 { font-size:20px; }
+            .btn-submit, .btn-back { width:48%; padding:10px; font-size:15px; }
+            .tbl-unit, .tbl-bukti { font-size:11px; }
+            .rekomendasi-box { flex-direction:column; }
+        }
+        input[type="text"], select, .btn-submit { font-size:16px; }
