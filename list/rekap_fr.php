@@ -174,7 +174,7 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
                         <?php if (empty($r['rekomendasi'])): ?>
                         <a class="btn-rek"
                            href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>#form-rek">
-                        Isi Rek.
+                        Isi Rek
                         </a>
                         <?php else: ?>
                         <a class="btn-rek" style="background:#888;"
