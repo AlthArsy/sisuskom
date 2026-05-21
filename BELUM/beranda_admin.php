@@ -321,7 +321,7 @@ if ($route && in_array($route, $allowed_pages)) {
     </style>
 </head>
 <body>
-    
+
         <div class="container">
             <aside class="sidebar">
                 <div class="logo">
@@ -368,7 +368,7 @@ if ($route && in_array($route, $allowed_pages)) {
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Cari...">
                     </div>
-                    
+
                     <div class="user-info">
                         <div class="user-profile">
                             <div class="avatar"><?=htmlspecialchars($init)?></div>
@@ -396,6 +396,6 @@ if ($route && in_array($route, $allowed_pages)) {
                 </footer>
             </main>
         </div>
-    
+
 </body>
 </html>

@@ -205,24 +205,24 @@ tbody tr:last-child td {
         align-items: flex-start;
         gap: 15px;
     }
-    
+
     .btn-tambah {
         width: 100%;
         text-align: center;
     }
-    
+
     table {
         border: 0;
     }
-    
+
     table thead {
         display: none;
     }
-    
+
     table tbody {
         display: block;
     }
-    
+
     table tr {
         display: block;
         margin-bottom: 15px;
@@ -230,7 +230,7 @@ tbody tr:last-child td {
         border-radius: 8px;
         background: #fff !important;
     }
-    
+
     table td {
         display: block;
         text-align: right;
@@ -240,11 +240,11 @@ tbody tr:last-child td {
         position: relative;
         padding-left: 50%;
     }
-    
+
     table td:last-child {
         border-bottom: none;
     }
-    
+
     table td:before {
         content: attr(data-label);
         position: absolute;
@@ -253,16 +253,16 @@ tbody tr:last-child td {
         text-align: left;
         color: #24365e;
     }
-    
+
     .aksi {
         text-align: center !important;
         padding-left: 10px !important;
     }
-    
+
     .aksi:before {
         display: none;
     }
-    
+
     .aksi a {
         display: inline-block;
         margin: 5px 3px;

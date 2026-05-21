@@ -1,81 +1,175 @@
-<?php
+<?php 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) session_start();
 include "../koneksi.php";
 
-// if (!isset($_SESSION['username'])) {
-//     echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
-// }
+if (!isset($_SESSION['username']) || !in_array($_SESSION['role'] ?? '', ['Asesi','Asesor','Admin_lsp','Admin_utm'])) {
+    echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
+}
 
-$id_asesi = isset($_GET['id_asesi'])
+function h($value)
+{
+    return htmlspecialchars((string) $value);
+}
+
+$id_asesi = isset($_GET['id_asesi']) 
     ? intval($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
 
-$role     = isset($_SESSION['role']) ? $_SESSION['role'] : '';
-$is_asesi = ($role === 'Asesi');
+$role = $_SESSION['role'] ?? '';
+$is_asesi = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesi');
+$is_asesor = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesor');
+$mode_lihat  = isset($_GET['view']) && $_GET['view'] == 1;
 
-$res_skema_list = mysqli_query($koneksi,
-    "SELECT s.id_skema, s.nomor_skema, s.judul_skema, s.standar_kompetensi_kerja,
-            a.nama_asesor, a.no_reg
-     FROM tb_skema s
-     LEFT JOIN tb_asesor a ON a.id_asesor = s.id_asesor
-     ORDER BY s.judul_skema ASC");
+$apl1 = null;
+if ($id_asesi) {
+    $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
+                s.standar_kompetensi_kerja,
+                as2.nama_asesor, as2.no_reg, as2.id_asesor
+         FROM tb_apl1 a
+         JOIN tb_skema s ON s.id_skema = a.id_skema
+         LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+         WHERE a.id_asesi = '$id_asesi'
+         ORDER BY a.id_apl1 ASC LIMIT 1"));
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_skema        = isset($_POST['id_skema'])        ? intval($_POST['id_skema'])        : 0;
-    $nama_asesi_ttd  = isset($_POST['nama_asesi_ttd'])  ? trim($_POST['nama_asesi_ttd'])    : '';
-    $tanggal_asesi   = isset($_POST['tanggal_asesi'])   ? trim($_POST['tanggal_asesi'])     : '';
-    $rekomendasi     = isset($_POST['rekomendasi'])     ? trim($_POST['rekomendasi'])       : '';
-    $pendekatan      = isset($_POST['pendekatan'])      ? trim($_POST['pendekatan'])        : '';
-    $tanggal_asesor  = isset($_POST['tanggal_asesor'])  ? trim($_POST['tanggal_asesor'])    : '';
-    $jawaban         = isset($_POST['jawaban'])         ? $_POST['jawaban']                : [];
-    $bukti           = isset($_POST['bukti'])           ? $_POST['bukti']                  : [];
+$nama_asesi_db = '';
+if ($id_asesi) {
+    $r = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT nama_asesi FROM tb_asesi WHERE id_asesi='$id_asesi' LIMIT 1"));
+    $nama_asesi_db = $r['nama_asesi'] ?? '';
+}
 
-    $info_asesor = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.nama_asesor, a.no_reg FROM tb_skema s
-         LEFT JOIN tb_asesor a ON a.id_asesor = s.id_asesor
-         WHERE s.id_skema = '$id_skema' LIMIT 1"));
-    $nama_asesor_ttd = $info_asesor['nama_asesor'] ?? '';
-    $no_reg_asesor   = $info_asesor['no_reg']       ?? '';
+$bukti_list = [];
+if ($id_asesi) {
+    $rb = mysqli_query($koneksi,
+        "SELECT bd.bukti_dasar, ibd.kondisi
+         FROM tb_isi_bukti_dasar ibd
+         JOIN tb_bukti_dasar bd ON bd.id_bd = ibd.id_bd
+         WHERE ibd.id_asesi = '$id_asesi'
+         ORDER BY ibd.id_bd ASC");
+    while ($b = mysqli_fetch_assoc($rb)) {
+        $bukti_list[] = $b['bukti_dasar'] . ' [' . $b['kondisi'] . ']';
+    }
+}
+$bukti_text = implode("\n", $bukti_list);
+$apl2_exist = null;
+if ($id_asesi) {
+    $apl2_exist = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT * FROM tb_apl2 WHERE id_asesi='$id_asesi' ORDER BY id_apl2 DESC LIMIT 1"));
+}
 
-    if ($id_skema && $id_asesi) {
-        $e = fn($v) => mysqli_real_escape_string($koneksi, $v);
+$id_skema = intval($apl1['id_skema'] ?? 0);
+$units = [];
+if ($id_skema) {
+    $ru = mysqli_query($koneksi,
+        "SELECT * FROM tb_unit_kompetensi WHERE id_skema='$id_skema' ORDER BY id_unit ASC");
+    while ($u = mysqli_fetch_assoc($ru)) {
+        $id_unit = intval($u['id_unit']);
+        $re = mysqli_query($koneksi,
+            "SELECT * FROM tb_elemen WHERE id_unit='$id_unit' ORDER BY id_elemen ASC");
+        $u['elemen'] = [];
+        while ($el = mysqli_fetch_assoc($re)) {
+            $id_el = intval($el['id_elemen']);
+            $rk = mysqli_query($koneksi,
+                "SELECT * FROM tb_kuk WHERE id_elemen='$id_el'");
+            $el['kuk'] = [];
+            while ($k = mysqli_fetch_assoc($rk)) $el['kuk'][] = $k;
+            $u['elemen'][] = $el;
+        }
+        $units[] = $u;
+    }
+}
+$jawaban_exist = [];
+if ($apl2_exist) {
+    $id_apl2_q = intval($apl2_exist['id_apl2']);
+    $rj = mysqli_query($koneksi,
+        "SELECT id_elemen, nilai
+         FROM detail_apl2
+         WHERE id_apl2='$id_apl2_q'
+           AND nilai != ''
+           AND id_detail_apl2 IN (
+               SELECT MAX(id_detail_apl2)
+               FROM detail_apl2
+               WHERE id_apl2='$id_apl2_q' AND nilai != ''
+               GROUP BY id_elemen
+           )");
+    while ($j = mysqli_fetch_assoc($rj)) {
+        $jawaban_exist[$j['id_elemen']] = $j['nilai'];
+    }
+}
 
-        $sql_apl2 = "INSERT INTO tb_apl2
-            (id_asesi, id_skema, rekomendasi, pendekatan,
-             nama_asesi_ttd, tanggal_asesi,
-             nama_asesor_ttd, no_reg_asesor, tanggal_asesor)
-            VALUES (
-                '$id_asesi', '$id_skema',
-                " . ($rekomendasi    ? "'{$e($rekomendasi)}'"    : "NULL") . ",
-                " . ($pendekatan     ? "'{$e($pendekatan)}'"     : "NULL") . ",
-                '{$e($nama_asesi_ttd)}',
-                " . ($tanggal_asesi  ? "'{$e($tanggal_asesi)}'"  : "NULL") . ",
-                '{$e($nama_asesor_ttd)}', '{$e($no_reg_asesor)}',
-                " . ($tanggal_asesor ? "'{$e($tanggal_asesor)}'" : "NULL") . "
-            )";
-        $res = mysqli_query($koneksi, $sql_apl2);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesi') {
+    $id_apl1_fk   = intval($apl1['id_apl1']  ?? 0);
+    $id_asesor_fk = intval($apl1['id_asesor'] ?? 0);
+    $nama_ttd     = trim($_POST['nama_asesi_ttd'] ?? '');
+
+    if ($id_skema && $id_asesi && $id_apl1_fk) {
+        $e   = fn($v) => mysqli_real_escape_string($koneksi, $v);
+        $res = mysqli_query($koneksi,
+            "INSERT INTO tb_apl2 (id_apl1, id_asesi, id_asesor, rekomendasi, tertanda)
+             VALUES ('$id_apl1_fk','$id_asesi','$id_asesor_fk', NULL, '{$e($nama_ttd)}')");
 
         if (!$res) {
-            echo "<script>alert('Gagal simpan APL2!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
+            echo "<script>alert('Gagal simpan!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
         } else {
-            $id_apl2 = mysqli_insert_id($koneksi);
-            foreach ($jawaban as $id_elemen => $k_bk) {
-                $id_el  = intval($id_elemen);
-                $kb_esc = mysqli_real_escape_string($koneksi, $k_bk);
-                $bk_esc = mysqli_real_escape_string($koneksi, $bukti[$id_elemen] ?? '');
-                mysqli_query($koneksi,
-                    "INSERT INTO tb_jawaban_apl2 (id_apl2, id_elemen, k_bk, bukti)
-                     VALUES ('$id_apl2','$id_el','$kb_esc','$bk_esc')");
+            $id_apl2_new = mysqli_insert_id($koneksi);
+            foreach ($units as $u) {
+                foreach ($u['elemen'] as $el) {
+                    $id_el_i = intval($el['id_elemen']);
+                    foreach ($el['kuk'] as $k) {
+                        $id_kuk_i = intval($k['id_kuk']);
+                        mysqli_query($koneksi,
+                            "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
+                             VALUES ('$id_apl2_new','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
+                    }
+                }
             }
-            echo "<script>alert('Asesmen Mandiri berhasil disimpan!');
-                          window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
+            echo "<script>alert('APL-02 berhasil disimpan!');
+                  window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
             exit;
         }
     } else {
-        echo "<script>alert('Pilih skema terlebih dahulu!');</script>";
+        echo "<script>alert('Data APL 1 belum ada atau skema tidak ditemukan!');</script>";
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesor') {
+    $id_apl2_upd = intval($_POST['id_apl2_upd'] ?? 0);
+    $rekomendasi = trim($_POST['rekomendasi']   ?? '');
+    $jawaban     = $_POST['jawaban']            ?? [];
+
+    if ($id_apl2_upd) {
+        $e = fn($v) => mysqli_real_escape_string($koneksi, $v);
+        mysqli_query($koneksi,
+            "UPDATE tb_apl2 SET rekomendasi=" . ($rekomendasi ? "'{$e($rekomendasi)}'" : "NULL") .
+            " WHERE id_apl2='$id_apl2_upd'");
+
+        foreach ($jawaban as $id_elemen => $nilai) {
+            $id_el_i   = intval($id_elemen);
+            $nilai_esc = mysqli_real_escape_string($koneksi, $nilai);
+            $cek = mysqli_num_rows(mysqli_query($koneksi,
+                "SELECT id_detail_apl2 FROM detail_apl2
+                 WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i' LIMIT 1"));
+            if ($cek > 0) {
+                mysqli_query($koneksi,
+                    "UPDATE detail_apl2 SET nilai='$nilai_esc'
+                     WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i'");
+            } else {
+                mysqli_query($koneksi,
+                    "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
+                     SELECT '$id_apl2_upd',u.id_skema,u.id_unit,'$id_el_i',MIN(k.id_kuk),'$nilai_esc'
+                     FROM tb_elemen e
+                     JOIN tb_unit_kompetensi u ON u.id_unit = e.id_unit
+                     JOIN tb_kuk k ON k.id_elemen = e.id_elemen
+                     WHERE e.id_elemen='$id_el_i' LIMIT 1");
+            }
+        }
+        echo "<script>alert('Penilaian K/BK berhasil disimpan!'); window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_frapl2.php';</script>";
+        exit;
     }
 }
 ?>
@@ -84,228 +178,378 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/CSS/CSS_APL/fapl2.css">
     <title>FR APL-02 Asesmen Mandiri</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="../assets/JS/lsp_common.js"></script>
-    <script src="../assets/JS/fr_apl02.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .form-box {
-            margin: 35px auto;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 25px 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .form-control {
-            width: 99%; padding: 5px 7px;
-            border: 1px solid #ccc; border-radius: 4px;
-            box-sizing: border-box; font-size: 14px;
-        }
-        .btn-submit {
-            background:#4A7AFF; color:#fff; border:none;
-            padding:8px 22px; border-radius:4px; font-size:15px; cursor:pointer;
-        }
-        .btn-submit:hover { background:#325fd6; }
-        .btn-back {
-            background:#888; color:#fff; border:none;
-            padding:8px 22px; border-radius:4px; font-size:15px; cursor:pointer; margin-right:8px;
-        }
-        .btn-back:hover { background:#666; }
-        .section-title { font-weight:bold; font-size:15px; border-radius:3px; padding-bottom:7px; }
-        .label { font-weight:bold; }
-        .required { color:red; font-weight:normal; }
-        .small-text { font-size:12px; color:#444; }
-
-        .skema-wrap { position:relative; }
-        .skema-dropdown {
-            position:absolute; top:100%; left:0; right:0;
-            background:#fff; border:1px solid #4A7AFF;
-            border-radius:0 0 5px 5px; max-height:220px;
-            overflow-y:auto; z-index:999; display:none;
-            box-shadow:0 4px 12px rgba(0,0,0,0.12);
-        }
-        .skema-item { padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid #eef; }
-        .skema-item:hover { background:#eef3ff; }
-        .skema-item .sk-judul { font-weight:bold; color:#1a237e; }
-        .skema-item .sk-nomor { font-size:11px; color:#777; margin-top:2px; }
-
-        .unit-box {
-            border: 1px solid #b0bec5;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .unit-header {
-            background: #cadbfc;
-            padding: 10px 14px;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        .unit-header .unit-sub {
-            font-size: 12px;
-            font-weight: normal;
-            color: #333;
-        }
-
-        .tbl-apl2 { width:100%; border-collapse:collapse; font-size:13px; }
-        .tbl-apl2 th {
-            background:#dce8ff; padding:8px 10px;
-            border:1px solid #b0c4de; text-align:center;
-        }
-        .tbl-apl2 td { padding:8px 10px; border:1px solid #d0d8e8; vertical-align:top; }
-        .elemen-row td { background:#f0f4ff; font-weight:bold; font-size:12px; }
-        .kuk-list { list-style:none; margin:0; padding:0; }
-        .kuk-list li { padding:3px 0; font-size:12px; color:#333; }
-        .kuk-list li::before { content:"• "; color:#4A7AFF; }
-
-        .radio-kb { display:flex; justify-content:center; gap:10px; }
-        .radio-kb label { font-size:13px; cursor:pointer; }
-
-        .bukti-input {
-            width:100%; min-height:48px; resize:vertical;
-            border:1px solid #ccc; border-radius:4px;
-            font-size:12px; padding:4px 6px; box-sizing:border-box;
-        }
-
-        .rek-box {
-            display:flex; gap:16px; flex-wrap:wrap; margin-top:18px;
-            border:1px solid #ccc; border-radius:5px; padding:14px;
-            background:#fafbff;
-        }
-        .rek-col { flex:1; min-width:200px; }
-        .rek-col .col-title {
-            font-weight:bold; font-size:14px;
-            border-bottom:1px solid #ddd; padding-bottom:5px; margin-bottom:8px;
-        }
-        .placeholder-box {
-            text-align:center; padding:24px; color:#aaa;
-            font-size:13px; border:1px dashed #ccc;
-            border-radius:5px; margin-top:8px;
-        }
-
-        @media(max-width:768px){
-            .form-box { margin:6vw auto; padding:14px 4vw; }
-            h2 { font-size:18px; }
-            .btn-submit,.btn-back { width:48%; padding:10px; }
-            .tbl-apl2 { font-size:11px; }
-            .rek-box { flex-direction:column; }
-        }
-    </style>
+    <script>var ID_ASESI = <?php echo $id_asesi; ?>;</script>
 </head>
 <body>
 <div class="form-box">
-<form method="post" autocomplete="off" id="mainForm">
-    <input type="hidden" name="id_asesi" value="<?php echo $id_asesi; ?>">
-    <input type="hidden" name="id_skema" id="id_skema_hidden">
 
-    <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
-        FR. APL-02. ASESMEN MANDIRI
-    </h2>
+<h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
+    FR. APL-02. ASESMEN MANDIRI
+</h2>
 
-    <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff; margin:16px 0 10px;">
+<?php if (!$apl1): ?>
+<div style="text-align:center; padding:30px; color:#c00; font-size:14px;">
+    Formulir APL 1 belum diisi. Silakan isi APL 1 terlebih dahulu.<br><br>
+    <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">← Kembali</a>
+</div>
+
+<?php elseif ($mode_lihat && $apl2_exist): ?>
+<?php if (!$is_asesi): ?>
+<form method="post" autocomplete="off">
+    <input type="hidden" name="aksi"        value="simpan_asesor">
+    <input type="hidden" name="id_apl2_upd" value="<?= $apl2_exist['id_apl2'] ?>">
+<?php endif; ?>
+
+    <div style="border:1px solid #ddd;border-radius:5px;padding:12px 14px;background:#fafbff;margin:16px 0 10px;">
         <div class="label" style="margin-bottom:8px;">
-            Skema Sertifikasi <span style="font-size:12px; color:#555;">(KKNI/Okupasi/Klaster)</span>
+            Skema Sertifikasi <span style="font-size:12px;color:#555;">(KKNI/Okupasi/Klaster)</span>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <div style="flex:2; min-width:180px;">
-                <label class="small-text">Judul <span class="required">*</span></label>
-                <div class="skema-wrap">
-                    <input type="text" id="judul_skema" class="form-control"
-                           placeholder="Ketik judul skema..." autocomplete="off"
-                           oninput="searchSkema(this.value)" required>
-                    <div class="skema-dropdown" id="skema-dropdown"></div>
-                </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="flex:2;min-width:180px;">
+                <label class="small-text">Judul</label>
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['judul_skema']) ?>"
+                       readonly style="background:#f5f5f5;">
             </div>
-            <div style="flex:1; min-width:140px;">
+            
+            <div style="flex:1;min-width:140px;">
                 <label class="small-text">Nomor</label>
-                <input type="text" id="nomor_skema" class="form-control"
-                       placeholder="Otomatis terisi" readonly style="background:#f5f5f5;">
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['nomor_skema']) ?>"
+                       readonly style="background:#f5f5f5;">
+            </div>
+        </div>
+        <div>
+               <div style="margin-bottom:8px;">
+                <label class="small-text">Nama Asesi</label>
+                <input type="text" class="form-control"
+                       value="<?= h($nama_asesi_db) ?>"
+                       readonly style="background:#f5f5f5;">
             </div>
         </div>
     </div>
 
-    <div style="background:#fffde7; border:1px solid #ffe082; border-radius:5px;
-                padding:10px 14px; font-size:13px; margin-bottom:14px;">
-        <b>PANDUAN ASESMEN MANDIRI</b><br>
-        <ul style="margin:6px 0 0 16px; padding:0;">
+    <div style="background:#fffde7;border:1px solid #ffe082;border-radius:5px;
+                padding:10px 14px;font-size:13px;margin-bottom:14px;">
+        <b>PANDUAN ASESMEN MANDIRI</b>
+        <ul style="margin:6px 0 0 16px;padding:0;">
             <li>Baca setiap pertanyaan di kolom sebelah kiri</li>
-            <li>Beri tanda <b>K</b> (Kompeten) atau <b>BK</b> (Belum Kompeten) pada kolom yang sesuai</li>
-            <li>Isi kolom Bukti dengan bukti relevan yang anda miliki</li>
+            <li>Kolom <b>K</b> / <b>BK</b> akan diisi oleh <b>Asesor</b> setelah asesmen</li>
+            <li>Kolom <b>Bukti</b> diambil otomatis dari APL 1</li>
         </ul>
     </div>
 
-    <div id="unit-container">
-        <div class="placeholder-box" id="unit-placeholder">
-            Pilih skema terlebih dahulu untuk menampilkan unit kompetensi
+    <?php foreach ($units as $ui => $u): ?>
+    <div class="unit-box" style="margin-bottom:18px;">
+        <div class="unit-header">
+            Unit Kompetensi <?= $ui+1 ?><br>
+            <span class="unit-sub">Kode Unit : <?= h($u['kode_unit']) ?></span><br>
+            <span class="unit-sub">Judul Unit : <?= h($u['judul_unit']) ?></span>
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="tbl-apl2">
+            <thead><tr>
+                <th style="width:45%;">Dapatkah Saya.......?</th>
+                <th style="width:6%;">K</th>
+                <th style="width:6%;">BK</th>
+                <th>Bukti yang relevan</th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($u['elemen'] as $el):
+                $nilai = $jawaban_exist[$el['id_elemen']] ?? '';
+            ?>
+            <tr class="elemen-row">
+                <td colspan="4">
+                    <?= h($el['no_elemen']) ?>. <?= h($el['nama_elemen']) ?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-size:11px;color:#555;">Kriteria Unjuk Kerja:</span>
+                    <ul class="kuk-list">
+                        <?php foreach ($el['kuk'] as $k): ?>
+                        <li><?= h($k['no_kuk']) ?> <?= h($k['kuk']) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </td>
+
+                <?php if (!$is_asesi): ?>
+                <td style="text-align:center;vertical-align:middle;">
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                        <input type="radio"
+                               name="jawaban[<?= $el['id_elemen'] ?>]"
+                               value="K"
+                               <?= $nilai === 'K' ? 'checked' : '' ?>
+                               style="accent-color:#2e7d32;width:16px;height:16px;cursor:pointer;">
+                    </label>
+                </td>
+                <td style="text-align:center;vertical-align:middle;">
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                        <input type="radio"
+                               name="jawaban[<?= $el['id_elemen'] ?>]"
+                               value="BK"
+                               <?= $nilai === 'BK' ? 'checked' : '' ?>
+                               style="accent-color:#c00;width:16px;height:16px;cursor:pointer;">
+                    </label>
+                </td>
+                <?php else: ?>
+                <td style="text-align:center;vertical-align:middle;pointer-events:none;">
+                    <input type="radio" disabled <?= $nilai === 'K' ? 'checked' : '' ?>
+                           style="accent-color:#2e7d32;width:16px;height:16px;
+                                  <?= $nilai === 'K' ? '' : 'opacity:0.3;' ?>">
+                </td>
+                <td style="text-align:center;vertical-align:middle;pointer-events:none;">
+                    <input type="radio" disabled <?= $nilai === 'BK' ? 'checked' : '' ?>
+                           style="accent-color:#c00;width:16px;height:16px;
+                                  <?= $nilai === 'BK' ? '' : 'opacity:0.3;' ?>">
+                </td>
+                <?php endif; ?>
+
+                <td>
+                    <textarea class="bukti-input" readonly
+                              style="background:#f5f5f5;cursor:default;resize:none;height:100px;"
+                    ><?= h($bukti_text) ?></textarea>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    <div class="rek-box">
+        <div class="rek-col">
+            <!-- <div class="col-title">Asesi :</div> -->
+             <div class="col-title">Ditinjau Oleh Asesor :</div>
+              <div style="font-size:13px;font-weight:bold;color:#1a237e;margin-bottom:4px;">
+                <?= h($apl1['nama_asesor'] ?? '-') ?>
+            </div>
+            <div style="font-size:12px;color:#888;margin-bottom:8px;">
+                No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
+            </div>
+            <?php if ($apl2_exist['rekomendasi']): ?>
+            <div style="margin-top:6px;font-size:13px;font-weight:bold;
+                        color:<?= $apl2_exist['rekomendasi'] === 'Dapat' ? '#2e7d32' : '#c00' ?>;">
+                Rekomendasi: <?= h($apl2_exist['rekomendasi']) ?>
+            </div>
+            <?php else: ?>
+            <div style="font-size:11px;color:#888;font-style:italic;">
+                * K/BK & Rekomendasi akan diisi Asesor setelah asesmen
+            </div>
+            <?php endif; ?>
+            <div style="font-size:13px;margin-bottom:8px;">
+                Asesmen dapat / tidak dapat dilanjutkan melalui :
+            </div>
+
+            <?php if (!$is_asesi): ?>
+            <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;">
+                <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                    <input type="radio" name="rekomendasi" value="Dapat"
+                           <?= $apl2_exist['rekomendasi'] === 'Dapat' ? 'checked' : '' ?>
+                           style="accent-color:#2e7d32;width:15px;height:15px;">
+                    <span style="color:#2e7d32;font-weight:bold;">Dapat</span>
+                </label>
+                <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                    <input type="radio" name="rekomendasi" value="Tidak Dapat"
+                           <?= $apl2_exist['rekomendasi'] === 'Tidak Dapat' ? 'checked' : '' ?>
+                           style="accent-color:#c00;width:15px;height:15px;">
+                    <span style="color:#c00;font-weight:bold;">Tidak Dapat</span>
+                </label>
+            </div>
+            <?php else: ?>
+            <div style="display:flex;gap:14px;margin-bottom:10px;pointer-events:none;opacity:0.6;">
+                <label style="font-size:13px;display:flex;align-items:center;gap:5px;">
+                    <input type="radio" disabled <?= $apl2_exist['rekomendasi'] === 'Dapat' ? 'checked' : '' ?>>
+                    Dapat
+                </label>
+                <label style="font-size:13px;display:flex;align-items:center;gap:5px;">
+                    <input type="radio" disabled <?= $apl2_exist['rekomendasi'] === 'Tidak Dapat' ? 'checked' : '' ?>>
+                    Tidak Dapat
+                </label>
+            </div>
+            <?php endif; ?>
+            
+
+            <!-- <div style="margin-bottom:8px;">
+                <label class="small-text">Nama</label>                               
+                <input type="text" class="form-control"
+                       value="<?= h($nama_asesi_db) ?>"
+                       readonly style="background:#f5f5f5;">
+            </div> -->
+        </div>
+        <div class="rek-col">
+            <!-- <div class="col-title">Ditinjau Oleh Asesor :</div>
+            <div style="font-size:13px;font-weight:bold;color:#1a237e;margin-bottom:4px;">
+                <?= h($apl1['nama_asesor'] ?? '-') ?>
+            </div>
+            <div style="font-size:12px;color:#888;margin-bottom:8px;">
+                No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
+            </div>
+            <?php if ($apl2_exist['rekomendasi']): ?>
+            <div style="margin-top:6px;font-size:13px;font-weight:bold;
+                        color:<?= $apl2_exist['rekomendasi'] === 'Dapat' ? '#2e7d32' : '#c00' ?>;">
+                Rekomendasi: <?= h($apl2_exist['rekomendasi']) ?>
+            </div>
+            <?php else: ?>
+            <div style="font-size:11px;color:#888;font-style:italic;">
+                * K/BK & Rekomendasi akan diisi Asesor setelah asesmen
+            </div>
+            <?php endif; ?> -->
         </div>
     </div>
 
-    <?php
-    $dsb          = $is_asesi ? 'disabled' : '';
-    $dsb_style    = $is_asesi ? 'pointer-events:none; opacity:0.75; background:#f5f5f5;' : '';
-    ?>
-    <div id="rek-section" style="display:none;">
-        <div class="section-title" style="margin:22px 0 10px 0;">
-            Rekomendasi &amp; Tanda Tangan
-        </div>
-        <div class="rek-box">
-            <div class="rek-col">
-                <div class="col-title">Asesi :</div>
-                <div style="font-size:13px; margin-bottom:8px;">
-                    Asesmen dapat / tidak dapat dilanjutkan melalui :
-                </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; <?= $dsb_style ?>">
-                    <label style="font-size:13px;"><input type="radio" name="rekomendasi" value="Dapat" <?= $dsb ?>> Dapat</label>
-                    <label style="font-size:13px;"><input type="radio" name="rekomendasi" value="Tidak Dapat" <?= $dsb ?>> Tidak Dapat</label>
-                </div>
-                <div style="margin-bottom:8px;">
-                    <label class="small-text">Pendekatan :</label>
-                    <input type="text" name="pendekatan" class="form-control"
-                           placeholder="misal: Observasi, Portofolio..." <?= $dsb ?>
-                           style="<?= $dsb_style ?>">
-                </div>
-                <div style="margin-bottom:8px;">
-                    <label class="small-text">Nama <span class="required">*</span></label>
-                    <input type="text" name="nama_asesi_ttd" class="form-control"
-                           placeholder="Nama Asesi" required>
-                </div>
-                <div>
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesi" class="form-control">
-                </div>
-            </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+        <?php if ($is_asesor): ?>
+        <a href="../BERANDA/UTAMA.php?page=../list/rekap_frapl2.php" class="btn-back">Kembali</a>
+        <?php endif; ?>
+        <?php if ($is_asesi): ?>
+        <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+        <?php endif; ?>
+        <?php if (!$is_asesi): ?>
+        <button type="submit" class="btn-submit">SIMPAN PENILAIAN</button>
+        <?php endif; ?>
+    </div>
 
-            <div class="rek-col">
-                <div class="col-title">Ditinjau Oleh Asesor :</div>
-                <div style="margin-bottom:6px;">
-                    <label class="small-text">Nama Asesor</label>
-                    <div style="font-size:13px; font-weight:bold; color:#1a237e;" id="asesor-nama-rek">
-                        — pilih skema dulu —
-                    </div>
-                </div>
-                <div style="margin-bottom:10px;">
-                    <label class="small-text">No. Reg</label>
-                    <div style="font-size:12px; color:#555;" id="asesor-noreg-rek">-</div>
-                </div>
-                <div style="margin-bottom:8px; <?= $dsb_style ?>">
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesor" class="form-control"
-                           <?= $dsb ?> style="<?= $dsb_style ?>">
-                </div>
+<?php if (!$is_asesi): ?>
+</form>
+<?php endif; ?>
+
+<?php elseif (!$apl2_exist): ?>
+<form method="post" autocomplete="off">
+    <input type="hidden" name="aksi" value="simpan_asesi">
+
+    <div style="border:1px solid #ddd;border-radius:5px;padding:12px 14px;background:#fafbff;margin:16px 0 10px;">
+        <div class="label" style="margin-bottom:8px;">
+            Skema Sertifikasi <span style="font-size:12px;color:#555;">(KKNI/Okupasi/Klaster)</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="flex:2;min-width:180px;">
+                <label class="small-text">Judul</label>
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['judul_skema']) ?>"
+                       readonly style="background:#f5f5f5;">
+            </div>
+            <div style="flex:1;min-width:140px;">
+                <label class="small-text">Nomor</label>
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['nomor_skema']) ?>"
+                       readonly style="background:#f5f5f5;">
             </div>
         </div>
     </div>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
-        <button type="button" class="btn-back"
-            onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
-            Kembali
-        </button>
-        <button type="submit" class="btn-submit">SIMPAN ✓</button>
+    <div style="background:#fffde7;border:1px solid #ffe082;border-radius:5px;
+                padding:10px 14px;font-size:13px;margin-bottom:14px;">
+        <b>PANDUAN ASESMEN MANDIRI</b>
+        <ul style="margin:6px 0 0 16px;padding:0;">
+            <li>Baca setiap pertanyaan di kolom sebelah kiri</li>
+            <li>Kolom <b>K</b> / <b>BK</b> akan diisi oleh <b>Asesor</b> setelah asesmen</li>
+            <li>Kolom <b>Bukti</b> diambil otomatis dari APL 1</li>
+        </ul>
+    </div>
+
+    <?php foreach ($units as $ui => $u): ?>
+    <div class="unit-box" style="margin-bottom:18px;">
+        <div class="unit-header">
+            Unit Kompetensi <?= $ui+1 ?><br>
+            <span class="unit-sub">Kode Unit : <?= h($u['kode_unit']) ?></span><br>
+            <span class="unit-sub">Judul Unit : <?= h($u['judul_unit']) ?></span>
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="tbl-apl2">
+            <thead><tr>
+                <th style="width:45%;">Dapatkah Saya.......?</th>
+                <th style="width:6%;">K</th>
+                <th style="width:6%;">BK</th>
+                <th>Bukti yang relevan</th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ($u['elemen'] as $el): ?>
+            <tr class="elemen-row">
+                <td colspan="4">
+                    <?= h($el['no_elemen']) ?>. <?= h($el['nama_elemen']) ?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span style="font-size:11px;color:#555;">Kriteria Unjuk Kerja:</span>
+                    <ul class="kuk-list">
+                        <?php foreach ($el['kuk'] as $k): ?>
+                        <li><?= h($k['no_kuk']) ?> <?= h($k['kuk']) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </td>
+                <td style="text-align:center;pointer-events:none;opacity:0.4;">
+                    <input type="radio" disabled>
+                </td>
+                <td style="text-align:center;pointer-events:none;opacity:0.4;">
+                    <input type="radio" disabled>
+                </td>
+                <td>
+                    <textarea class="bukti-input" readonly
+                              style="background:#f5f5f5;cursor:default;resize:none;"
+                    ><?= h($bukti_text) ?></textarea>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    <div class="rek-box">
+        <div class="rek-col">
+            <!-- <div class="col-title">Asesi :</div> -->
+              <div class="col-title">Ditinjau Oleh Asesor :</div>
+            <div style="font-size:13px;margin-bottom:8px;">
+                Asesmen dapat / tidak dapat dilanjutkan melalui :
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:8px;pointer-events:none;opacity:0.5;">
+                <label style="font-size:13px;"><input type="radio" disabled> Dapat</label>
+                <label style="font-size:13px;"><input type="radio" disabled> Tidak Dapat</label>
+            </div>
+            <!-- <div style="margin-bottom:8px;">
+                <label class="small-text">Nama <span class="required">*</span></label>
+                <input type="text" name="nama_asesi_ttd" class="form-control"
+                       value="<?= h($nama_asesi_db) ?>"
+                       placeholder="Nama Asesi" required>
+            </div> -->
+            <!-- <div>
+                <label class="small-text">Tanda tangan / Tanggal</label>
+                <input type="date" name="tanggal_asesi" class="form-control">
+            </div> -->
+        </div>
+        <div class="rek-col">
+            <div class="col-title">Ditinjau Oleh Asesor :</div>
+            <div style="font-size:13px;font-weight:bold;color:#1a237e;margin-bottom:4px;">
+                <?= h($apl1['nama_asesor'] ?? '-') ?>
+            </div>
+            <div style="font-size:12px;color:#888;margin-bottom:8px;">
+                No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
+            </div>
+            <div style="font-size:11px;color:#888;font-style:italic;">
+                * K/BK akan diisi Asesor setelah asesmen
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
+        <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+        <button type="submit" class="btn-submit">SIMPAN</button>
     </div>
 </form>
+
+<?php else: ?>
+<script>
+window.location.href = '../BERANDA/UTAMA.php?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $id_asesi ?>';
+</script>
+<?php endif; ?>
+
 </div>
 </body>
-</html>
+</html> 

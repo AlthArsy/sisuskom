@@ -1,4 +1,4 @@
-<?php 
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) {
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
 <style>
     .btn {display: inline-block; padding: 6px 14px; border: none;border-radius: 4px;font-size: 13px;font-weight: 500;cursor: pointer;text-decoration: none;transition: all 0.3s ease;
     }
-    
+
     .btn-primary {background-color: #007bff;color: white;
     }.btn-primary:hover {background-color: #0056b3;}
     .btn-secondary {background-color: #6c757d;color: white;}
@@ -147,10 +147,10 @@ function clearForm() {
             <p>Pencarian dan Pengelolaan Data Asesor</p>
         </div>
         <!-- Informasi user (dikomentari, bisa diaktifkan jika diperlukan) -->
-        <!-- 
+        <!--
         <div class="TBS-user-info">
             <div>
-                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
                 (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
             </div>
             <div>
@@ -162,17 +162,17 @@ function clearForm() {
             <form method="post" action="" class="search-form">
                 <div class="TBS-form-group">
                     <label for="id_asesor">ID Asesor</label>
-                    <input type="number" id="id_asesor" name="id_asesor" class="form-control" 
+                    <input type="number" id="id_asesor" name="id_asesor" class="form-control"
                            placeholder="Masukkan ID Asesor" value="<?php echo htmlspecialchars($search_criteria['id_asesor']); ?>">
                 </div>
                 <div class="TBS-form-group">
                     <label for="no_reg">No Reg</label>
-                    <input type="text" id="no_reg" name="no_reg" class="form-control" 
+                    <input type="text" id="no_reg" name="no_reg" class="form-control"
                            placeholder="Masukkan No Reg" value="<?php echo htmlspecialchars($search_criteria['no_reg']); ?>">
                 </div>
                 <div class="TBS-form-group">
                     <label for="nama_asesor">Nama Asesor</label>
-                    <input type="text" id="nama_asesor" name="nama_asesor" class="form-control" 
+                    <input type="text" id="nama_asesor" name="nama_asesor" class="form-control"
                            placeholder="Masukkan Nama" value="<?php echo htmlspecialchars($search_criteria['nama_asesor']); ?>">
                 </div>
                 <div class="form-group btn-group">
@@ -197,7 +197,7 @@ function clearForm() {
                 <div class="results-count">
                     Ditemukan: <span><?php echo count($display_asesor); ?></span> data asesor
                 </div>
-            </div> 
+            </div>
             <?php if (count($display_asesor) === 0): ?>
                 <div class="alert alert-info">
                      Tidak ditemukan data asesor yang sesuai dengan kriteria pencarian.
@@ -241,9 +241,9 @@ function clearForm() {
                                     </td>
                                     <td data-label="Aksi">
                                         <div class="TBS-action-buttons">
-                                            <a href="UTAMA.php?page=../ASESOR/edit.php&id=<?php echo $row['id_asesor']; ?>" 
+                                            <a href="UTAMA.php?page=../ASESOR/edit.php&id=<?php echo $row['id_asesor']; ?>"
                                                class="btn btn-edit btn-sm"> Edit</a>
-                                            <a href="UTAMA.php?page=../ASESOR/hapus_asesor.php&id=" onclick="return confirmDelete(<?php echo $row['id_asesor']; ?>, '<?php echo addslashes($row['nama_asesor']); ?>')" 
+                                            <a href="UTAMA.php?page=../ASESOR/hapus_asesor.php&id=" onclick="return confirmDelete(<?php echo $row['id_asesor']; ?>, '<?php echo addslashes($row['nama_asesor']); ?>')"
                                                class="btn btn-delete btn-sm"> Hapus</a>
                                         </div>
                                     </td>

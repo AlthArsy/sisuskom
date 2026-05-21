@@ -46,7 +46,7 @@
             </div>
             <div>
                 <p style="margin-top: 15px; font-size: 14px; color: #555;"><a href="login.php" style="color: #3730a3; text-decoration: none;">Kembali</a></p>
-            </div>    
+            </div>
         </form>
     </div>
 </div>

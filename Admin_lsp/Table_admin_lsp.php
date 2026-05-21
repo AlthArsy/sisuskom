@@ -1,58 +1,50 @@
-<?php 
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
-if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm' && $_SESSION['role'] !== 'Admin_lsp') {
+if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm') {
     echo "<script>alert('Akses ditolak! Silakan login terlebih dahulu.'); window.location.href='../LOGIN/login.php';</script>";
     exit;
 }
 $query_all = "SELECT * FROM tb_admin ORDER BY nik ASC";
 $result_all = mysqli_query($koneksi, $query_all);
-$all_asesor = [];
+$all_admin = [];
 while ($row = mysqli_fetch_assoc($result_all)) {
-    $all_asesor[] = $row;
+    $all_admin[] = $row;
 }
-$display_asesor = $all_asesor;
+$display_admin = $all_admin;
 $search_performed = false;
 $search_criteria = [
-    'id_asesor' => '',
-    'no_reg' => '',
-    'nama_asesor' => ''
+    'id_admin' => '',
+    'nama_admin' => ''
 ];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
-    $id_asesor = isset($_POST['id_asesor']) ? trim($_POST['id_asesor']) : '';
-    $no_reg = isset($_POST['no_reg']) ? trim($_POST['no_reg']) : '';
-    $nama_asesor = isset($_POST['nama_asesor']) ? trim($_POST['nama_asesor']) : '';
+    $id_admin = isset($_POST['id_admin']) ? trim($_POST['id_admin']) : '';
+    $nama_admin = isset($_POST['nama_admin']) ? trim($_POST['nama_admin']) : '';
     $search_criteria = [
-        'id_asesor' => $id_asesor,
-        'no_reg' => $no_reg,
-        'nama_asesor' => $nama_asesor
+        'id_admin' => $id_admin,
+        'nama_admin' => $nama_admin
     ];
     $search_performed = true;
-    $query = "SELECT * FROM tb_asesor WHERE 1=1";
+    $query = "SELECT * FROM tb_admin WHERE 1=1";
     $params = [];
     $types = "";
-    if (!empty($id_asesor)) {
-        $query .= " AND id_asesor = ?";
-        $params[] = $id_asesor;
+    if (!empty($id_admin)) {
+        $query .= " AND id_admin = ?";
+        $params[] = $id_admin;
         $types .= "i";
     }
-    if (!empty($no_reg)) {
-        $query .= " AND no_reg LIKE ?";
-        $params[] = "%$no_reg%";
+    if (!empty($nama_admin)) {
+        $query .= " AND nama_admin LIKE ?";
+        $params[] = "%$nama_admin%";
         $types .= "s";
     }
-    if (!empty($nama_asesor)) {
-        $query .= " AND nama_asesor LIKE ?";
-        $params[] = "%$nama_asesor%";
-        $types .= "s";
-    }
-    $query .= " ORDER BY no_reg ASC";
-    if (empty($id_asesor) && empty($no_reg) && empty($nama_asesor)) {
-        $display_asesor = $all_asesor;
+    $query .= " ORDER BY nik ASC";
+    if (empty($id_admin) && empty($nama_admin)) {
+        $display_admin = $all_admin;
     } else {
         $stmt = mysqli_prepare($koneksi, $query);
         if ($stmt && !empty($params)) {
@@ -61,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
         if ($stmt) {
             mysqli_stmt_execute($stmt);
             $result = mysqli_stmt_get_result($stmt);
-            $display_asesor = [];
+            $display_admin = [];
             while ($row = mysqli_fetch_assoc($result)) {
-                $display_asesor[] = $row;
+                $display_admin[] = $row;
             }
             mysqli_stmt_close($stmt);
         }
@@ -73,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
 <style>
     .btn {display: inline-block; padding: 6px 14px; border: none;border-radius: 4px;font-size: 13px;font-weight: 500;cursor: pointer;text-decoration: none;transition: all 0.3s ease;
     }
-    
+
     .btn-primary {background-color: #007bff;color: white;
     }.btn-primary:hover {background-color: #0056b3;}
     .btn-secondary {background-color: #6c757d;color: white;}
@@ -126,31 +118,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
         table td:before {content: attr(data-label);position: absolute;left: 12px;font-weight: bold;text-align: left;color: #333;}}
 </style>
 <script>
-function confirmDelete(id, nama) {
-    if (confirm("Apakah Anda yakin ingin menghapus data asesor:\n" + nama + "?")) {
-        window.location.href = "../ASESOR/hapus_asesor.php?id=" + id;
-    }
-    return false;
-}
-function clearForm() {
-    document.getElementById('id_asesor').value = '';
-    document.getElementById('no_reg').value = '';
-    document.getElementById('nama_asesor').value = '';
-    document.querySelector('.search-form').submit();
-    return false;
-}
+// function confirmDelete(id, nama) {
+//     if (confirm("Apakah Anda yakin ingin menghapus data asesor:\n" + nama + "?")) {
+//         window.location.href = "../ASESOR/hapus_asesor.php?id=" + id;
+//     }
+//     return false;
+// }
+// function clearForm() {
+//     document.getElementById('id_admin').value = '';
+//     document.getElementById('no_reg').value = '';
+//     document.getElementById('nama_admin').value = '';
+//     document.querySelector('.search-form').submit();
+//     return false;
+// }
 </script>
 <div class="content-card TBS-full-width">
     <div class="TBS-container">
         <div class="TBS-header">
-            <h1>Data Asesor</h1>
-            <p>Pencarian dan Pengelolaan Data Asesor</p>
+            <h1>Data Admin</h1>
+            <p>Pencarian dan Pengelolaan Data Admin</p>
         </div>
         <!-- Informasi user (dikomentari, bisa diaktifkan jika diperlukan) -->
-        <!-- 
+        <!--
         <div class="TBS-user-info">
             <div>
-                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
                 (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
             </div>
             <div>
@@ -161,19 +153,14 @@ function clearForm() {
         <div class="TBS-search-box">
             <form method="post" action="" class="search-form">
                 <div class="TBS-form-group">
-                    <label for="id_asesor">ID Asesor</label>
-                    <input type="number" id="id_asesor" name="id_asesor" class="form-control" 
-                           placeholder="Masukkan ID Asesor" value="<?php echo htmlspecialchars($search_criteria['id_asesor']); ?>">
+                    <label for="id_admin">ID Admin</label>
+                    <input type="number" id="id_admin" name="id_admin" class="form-control"
+                           placeholder="Masukkan ID Admin" value="<?php echo htmlspecialchars($search_criteria['id_admin']); ?>">
                 </div>
                 <div class="TBS-form-group">
-                    <label for="no_reg">No Reg</label>
-                    <input type="text" id="no_reg" name="no_reg" class="form-control" 
-                           placeholder="Masukkan No Reg" value="<?php echo htmlspecialchars($search_criteria['no_reg']); ?>">
-                </div>
-                <div class="TBS-form-group">
-                    <label for="nama_asesor">Nama Asesor</label>
-                    <input type="text" id="nama_asesor" name="nama_asesor" class="form-control" 
-                           placeholder="Masukkan Nama" value="<?php echo htmlspecialchars($search_criteria['nama_asesor']); ?>">
+                    <label for="nama_admin">Nama Admin</label>
+                    <input type="text" id="nama_admin" name="nama_admin" class="form-control"
+                           placeholder="Masukkan Nama" value="<?php echo htmlspecialchars($search_criteria['nama_admin']); ?>">
                 </div>
                 <div class="form-group btn-group">
                     <button type="submit" name="search" class="btn btn-primary">
@@ -191,59 +178,44 @@ function clearForm() {
                     <?php if ($search_performed && !empty(array_filter($search_criteria))): ?>
                         Hasil Pencarian
                     <?php else: ?>
-                        Semua Data Asesor
+                        Semua Data Admin
                     <?php endif; ?>
                 </h2>
                 <div class="results-count">
-                    Ditemukan: <span><?php echo count($display_asesor); ?></span> data asesor
+                    Ditemukan: <span><?php echo count($display_admin); ?></span> data admin
                 </div>
-            </div> 
-            <?php if (count($display_asesor) === 0): ?>
+            </div>
+            <?php if (count($display_admin) === 0): ?>
                 <div class="alert alert-info">
-                     Tidak ditemukan data asesor yang sesuai dengan kriteria pencarian.
+                     Tidak ditemukan data admin yang sesuai dengan kriteria pencarian.
                 </div>
             <?php endif; ?>
-            <?php if (count($display_asesor) > 0): ?>
+            <?php if (count($display_admin) > 0): ?>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
                                 <th width="5%">ID</th>
-                                <th width="15%">No Reg</th>
-                                <th width="20%">Nama Asesor</th>
-                                <th width="10%">Jenis Kelamin</th>
-                                <th width="30%">Alamat</th>
+                                <th width="20%">Nama Admin</th>
                                 <th width="20%">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($display_asesor as $row): ?>
+                            <?php foreach ($display_admin as $row): ?>
                                 <tr>
                                     <td data-label="ID">
                                         <span class="TBS-field-label">ID</span>
-                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['id_asesor']); ?></div>
+                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['id_admin']); ?></div>
                                     </td>
-                                    <td data-label="No Reg">
-                                        <span class="TBS-field-label">No Reg</span>
-                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['no_reg']); ?></div>
-                                    </td>
-                                    <td data-label="Nama Asesor">
-                                        <span class="TBS-field-label">Nama Asesor</span>
-                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['nama_asesor']); ?></div>
-                                    </td>
-                                    <td data-label="Jenis Kelamin">
-                                        <span class="TBS-field-label">Jenis Kelamin</span>
-                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['jenis_kelamin']); ?></div>
-                                    </td>
-                                    <td data-label="Alamat">
-                                        <span class="TBS-field-label">Alamat</span>
-                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['alamat']); ?></div>
+                                    <td data-label="Nama Admin">
+                                        <span class="TBS-field-label">Nama Admin</span>
+                                        <div class="TBS-field-value"><?php echo htmlspecialchars($row['nama_admin']); ?></div>
                                     </td>
                                     <td data-label="Aksi">
                                         <div class="TBS-action-buttons">
-                                            <a href="UTAMA.php?page=../ASESOR/edit.php&id=<?php echo $row['id_asesor']; ?>" 
+                                            <a href="UTAMA.php?page=../ADMIN/edit.php&id=<?php echo $row['id_admin']; ?>"
                                                class="btn btn-edit btn-sm"> Edit</a>
-                                            <a href="UTAMA.php?page=../ASESOR/hapus_asesor.php&id=" onclick="return confirmDelete(<?php echo $row['id_asesor']; ?>, '<?php echo addslashes($row['nama_asesor']); ?>')" 
+                                            <a href="UTAMA.php?page=../ADMIN/hapus_admin.php&id=<?php echo $row['id_admin']; ?>" onclick="return confirmDelete(<?php echo $row['id_admin']; ?>, '<?php echo addslashes($row['nama_admin']); ?>')"
                                                class="btn btn-delete btn-sm"> Hapus</a>
                                         </div>
                                     </td>

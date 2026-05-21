@@ -19,7 +19,7 @@ if ($id_asesi > 0) {
     mysqli_stmt_bind_param($stmt, "i", $id_asesi);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
-    
+
     if ($result && mysqli_num_rows($result) > 0) {
         $asesi = mysqli_fetch_assoc($result);
     } else {
@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         $errors[] = "Kode pos institusi harus berupa angka!";
     }
     if (empty($errors)) {
-        $query = "UPDATE tb_asesi SET 
+        $query = "UPDATE tb_asesi SET
                   nama_asesi = ?,
                   nik = ?,
                   jenis_kelamin = ?,
@@ -127,18 +127,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                   fax = ?,
                   email_institusi = ?
                   WHERE id_asesi = ?";
-        
+
         $stmt = mysqli_prepare($koneksi, $query);
-        mysqli_stmt_bind_param($stmt, "ssssssssssssssssssi", 
+        mysqli_stmt_bind_param($stmt, "ssssssssssssssssssi",
             $nama_asesi, $nik, $jenis_kelamin, $kebangsaan,
             $alamat_rumah, $kode_pos, $phone_rumah, $phone_kantor,
             $hp, $email, $pendidikan, $nama_institusi, $jabatan,
             $alamat_institusi, $kode_pos_institusi, $telp_institusi,
             $fax, $email_institusi, $id_asesi);
-        
+
         if (mysqli_stmt_execute($stmt)) {
             $success_message = "Data asesi berhasil diperbarui!";
-            
+
             $query = "SELECT * FROM tb_asesi WHERE id_asesi = ?";
             $stmt = mysqli_prepare($koneksi, $query);
             mysqli_stmt_bind_param($stmt, "i", $id_asesi);
@@ -216,11 +216,11 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
         <h1><i class="fas fa-user-edit"></i> Edit Data Asesi</h1>
         <p>Perbarui informasi data asesi sesuai dengan struktur database</p>
     </div>
-    
+
     <div class="user-info">
         <div>
-            <i class="fas fa-user"></i> Logged in sebagai: 
-            <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+            <i class="fas fa-user"></i> Logged in sebagai:
+            <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
             (<span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
         </div>
         <div>
@@ -231,7 +231,7 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
     </div>
     <?php if (!empty($error_message) && !isset($asesi)): ?>
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-triangle"></i> 
+            <i class="fas fa-exclamation-triangle"></i>
             <?php echo $error_message; ?>
             <br><br>
             <a href="../BERANDA/UTAMA.php?page=../ASESI/Table_asesi.php" class="btn btn-secondary btn-sm">
@@ -241,13 +241,13 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
     <?php else: ?>
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> 
+                <i class="fas fa-check-circle"></i>
                 <?php echo $success_message; ?>
             </div>
         <?php endif; ?>
         <?php if (!empty($error_message) && isset($asesi)): ?>
             <div class="alert alert-danger">
-                <i class="fas fa-exclamation-circle"></i> 
+                <i class="fas fa-exclamation-circle"></i>
                 <?php echo $error_message; ?>
             </div>
         <?php endif; ?>
@@ -256,13 +256,13 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
             <input type="hidden" name="id_asesi" value="<?php echo intval($id_asesi); ?>">
             <div class="form-section">
                 <h3><i class="fas fa-id-card section-icon"></i> Informasi Pribadi</h3>
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nama_asesi" class="required">Nama Lengkap</label>
-                            <input type="text" id="nama_asesi" name="nama_asesi" 
-                                   value="<?php echo htmlspecialchars($asesi['nama_asesi'] ?? ''); ?>" 
+                            <input type="text" id="nama_asesi" name="nama_asesi"
+                                   value="<?php echo htmlspecialchars($asesi['nama_asesi'] ?? ''); ?>"
                                    required maxlength="100">
                             <small>Maksimal 100 karakter</small>
                         </div>
@@ -270,8 +270,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nik" class="required">NIK</label>
-                            <input type="text" id="nik" name="nik" 
-                                   value="<?php echo htmlspecialchars($asesi['nik'] ?? ''); ?>" 
+                            <input type="text" id="nik" name="nik"
+                                   value="<?php echo htmlspecialchars($asesi['nik'] ?? ''); ?>"
                                    required maxlength="16" pattern="[0-9]*">
                             <small>16 digit angka</small>
                         </div>
@@ -291,8 +291,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="kebangsaan" class="required">Kebangsaan</label>
-                            <input type="text" id="kebangsaan" name="kebangsaan" 
-                                   value="<?php echo htmlspecialchars($asesi['kebangsaan'] ?? ''); ?>" 
+                            <input type="text" id="kebangsaan" name="kebangsaan"
+                                   value="<?php echo htmlspecialchars($asesi['kebangsaan'] ?? ''); ?>"
                                    required maxlength="20">
                         </div>
                     </div>
@@ -300,7 +300,7 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
             </div>
             <div class="form-section">
                 <h3><i class="fas fa-home section-icon"></i> Alamat Rumah</h3>
-                
+
                 <div class="form-group">
                     <label for="alamat_rumah" class="required">Alamat Rumah</label>
                     <textarea id="alamat_rumah" name="alamat_rumah" rows="3" required maxlength="100"><?php echo htmlspecialchars($asesi['alamat_rumah'] ?? ''); ?></textarea>
@@ -310,8 +310,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="kode_pos" class="required">Kode Pos</label>
-                            <input type="text" id="kode_pos" name="kode_pos" 
-                                   value="<?php echo htmlspecialchars($asesi['kode_pos'] ?? ''); ?>" 
+                            <input type="text" id="kode_pos" name="kode_pos"
+                                   value="<?php echo htmlspecialchars($asesi['kode_pos'] ?? ''); ?>"
                                    required maxlength="6" pattern="[0-9]*">
                             <small>6 digit angka</small>
                         </div>
@@ -320,13 +320,13 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
             </div>
             <div class="form-section">
                 <h3><i class="fas fa-phone-alt section-icon"></i> Informasi Kontak</h3>
-                
+
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="phone_rumah">Telepon Rumah</label>
-                            <input type="text" id="phone_rumah" name="phone_rumah" 
-                                   value="<?php echo htmlspecialchars($asesi['phone_rumah'] ?? ''); ?>" 
+                            <input type="text" id="phone_rumah" name="phone_rumah"
+                                   value="<?php echo htmlspecialchars($asesi['phone_rumah'] ?? ''); ?>"
                                    maxlength="15">
                             <small>Opsional</small>
                         </div>
@@ -334,8 +334,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="phone_kantor">Telepon Kantor</label>
-                            <input type="text" id="phone_kantor" name="phone_kantor" 
-                                   value="<?php echo htmlspecialchars($asesi['phone_kantor'] ?? ''); ?>" 
+                            <input type="text" id="phone_kantor" name="phone_kantor"
+                                   value="<?php echo htmlspecialchars($asesi['phone_kantor'] ?? ''); ?>"
                                    maxlength="15">
                             <small>Opsional</small>
                         </div>
@@ -343,8 +343,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="hp" class="required">No. HP/WhatsApp</label>
-                            <input type="text" id="hp" name="hp" 
-                                   value="<?php echo htmlspecialchars($asesi['hp'] ?? ''); ?>" 
+                            <input type="text" id="hp" name="hp"
+                                   value="<?php echo htmlspecialchars($asesi['hp'] ?? ''); ?>"
                                    required maxlength="15">
                         </div>
                     </div>
@@ -353,8 +353,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="email" class="required">Email Pribadi</label>
-                            <input type="email" id="email" name="email" 
-                                   value="<?php echo htmlspecialchars($asesi['email'] ?? ''); ?>" 
+                            <input type="email" id="email" name="email"
+                                   value="<?php echo htmlspecialchars($asesi['email'] ?? ''); ?>"
                                    required maxlength="50">
                             <small>Maksimal 50 karakter</small>
                         </div>
@@ -362,8 +362,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="pendidikan">Pendidikan Terakhir</label>
-                            <input type="text" id="pendidikan" name="pendidikan" 
-                                   value="<?php echo htmlspecialchars($asesi['pendidikan'] ?? ''); ?>" 
+                            <input type="text" id="pendidikan" name="pendidikan"
+                                   value="<?php echo htmlspecialchars($asesi['pendidikan'] ?? ''); ?>"
                                    maxlength="50">
                             <small>Opsional</small>
                         </div>
@@ -372,13 +372,13 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
             </div>
             <div class="form-section">
                 <h3><i class="fas fa-university section-icon"></i> Informasi Institusi</h3>
-                
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="nama_institusi" class="required">Nama Institusi</label>
-                            <input type="text" id="nama_institusi" name="nama_institusi" 
-                                   value="<?php echo htmlspecialchars($asesi['nama_institusi'] ?? ''); ?>" 
+                            <input type="text" id="nama_institusi" name="nama_institusi"
+                                   value="<?php echo htmlspecialchars($asesi['nama_institusi'] ?? ''); ?>"
                                    required maxlength="30">
                             <small>Maksimal 30 karakter</small>
                         </div>
@@ -386,8 +386,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="jabatan" class="required">Jabatan</label>
-                            <input type="text" id="jabatan" name="jabatan" 
-                                   value="<?php echo htmlspecialchars($asesi['jabatan'] ?? ''); ?>" 
+                            <input type="text" id="jabatan" name="jabatan"
+                                   value="<?php echo htmlspecialchars($asesi['jabatan'] ?? ''); ?>"
                                    required maxlength="17">
                             <small>Maksimal 17 karakter</small>
                         </div>
@@ -402,8 +402,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="kode_pos_institusi" class="required">Kode Pos Institusi</label>
-                            <input type="text" id="kode_pos_institusi" name="kode_pos_institusi" 
-                                   value="<?php echo htmlspecialchars($asesi['kode_pos_institusi'] ?? ''); ?>" 
+                            <input type="text" id="kode_pos_institusi" name="kode_pos_institusi"
+                                   value="<?php echo htmlspecialchars($asesi['kode_pos_institusi'] ?? ''); ?>"
                                    required maxlength="6" pattern="[0-9]*">
                             <small>6 digit angka</small>
                         </div>
@@ -411,8 +411,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="telp_institusi">Telepon Institusi</label>
-                            <input type="text" id="telp_institusi" name="telp_institusi" 
-                                   value="<?php echo htmlspecialchars($asesi['telp_institusi'] ?? ''); ?>" 
+                            <input type="text" id="telp_institusi" name="telp_institusi"
+                                   value="<?php echo htmlspecialchars($asesi['telp_institusi'] ?? ''); ?>"
                                    maxlength="15">
                             <small>Opsional</small>
                         </div>
@@ -422,8 +422,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="fax">Fax Institusi</label>
-                            <input type="text" id="fax" name="fax" 
-                                   value="<?php echo htmlspecialchars($asesi['fax'] ?? ''); ?>" 
+                            <input type="text" id="fax" name="fax"
+                                   value="<?php echo htmlspecialchars($asesi['fax'] ?? ''); ?>"
                                    maxlength="15">
                             <small>Opsional</small>
                         </div>
@@ -431,8 +431,8 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="email_institusi">Email Institusi</label>
-                            <input type="email" id="email_institusi" name="email_institusi" 
-                                   value="<?php echo htmlspecialchars($asesi['email_institusi'] ?? ''); ?>" 
+                            <input type="email" id="email_institusi" name="email_institusi"
+                                   value="<?php echo htmlspecialchars($asesi['email_institusi'] ?? ''); ?>"
                                    maxlength="50">
                             <small>Maksimal 50 karakter</small>
                         </div>
@@ -447,7 +447,7 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
                 </div>
                 <div>
                     <button type="submit" name="update" class="btn btn-primary">
-                        
+
                         <i class="fas fa-save"></i> Simpan Perubahan
                     </button>
                 </div>

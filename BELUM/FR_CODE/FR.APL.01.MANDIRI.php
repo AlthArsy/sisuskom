@@ -203,10 +203,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin: 4px 0 8px 0;
         }
         .ttd-preview {
-            display:none; 
-            max-width:200px; 
-            max-height:100px; 
-            margin-top:10px; 
+            display:none;
+            max-width:200px;
+            max-height:100px;
+            margin-top:10px;
             border-radius: 5px;
             box-shadow: 0 2px 10px #4c70ff18;
         }
@@ -300,7 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <td class="label" rowspan="2">Phone/E-mail</td>
                     <td rowspan="2">:</td>
                     <td>
-                        Rumah: 
+                        Rumah:
                         <input type="text" name="phone_rumah" class="form-control" placeholder="Phone Rumah">
                     </td>
                     <td>

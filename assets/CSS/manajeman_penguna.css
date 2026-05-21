@@ -58,11 +58,11 @@
     }
     .cari .Tambah {
         display: inline-block;
-        padding: 7px 18px; 
-        background: #4186e0; 
-        color: white;                 
-        text-decoration: none; 
-        border-radius: 5px; 
+        padding: 7px 18px;
+        background: #4186e0;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
         font-weight: 600;
     }
     table {
@@ -113,19 +113,32 @@
         background: #e43d3d;
         color: #fff;
     }
+    .btn-kembali {
+        display: inline-block;
+        padding: 7px 18px;
+        background: #95a5a6;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 600;
+
+    }
+    .btn-kembali:hover {
+        background: #7f8c8d;
+    }
     .message {
         padding: 15px 20px;
         margin-bottom: 20px;
         border-radius: 8px;
             font-weight: 500;
     }
-    
+
     .message.success {
         background-color: #d4edda;
         color: #155724;
         border: 1px solid #c3e6cb;
     }
-    
+
     .message.error {
         background-color: #f8d7da;
         color: #721c24;
@@ -137,25 +150,25 @@
             flex-direction: column;
             align-items: stretch;
         }
-        
+
         .cari input[type="text"],
         .cari select,
         .cari button {
             width: 100%;
         }
-        
+
         table {
             border: 0;
         }
-        
+
         table thead {
             display: none;
         }
-        
+
         table tbody {
             display: block;
         }
-        
+
         table tr {
             display: block;
             margin-bottom: 15px;
@@ -163,7 +176,7 @@
             border-radius: 8px;
             background: #fff !important;
         }
-        
+
         table td {
             display: block;
             text-align: right;
@@ -173,11 +186,11 @@
             position: relative;
             padding-left: 50%;
         }
-        
+
         table td:last-child {
             border-bottom: none;
         }
-        
+
         table td:before {
             content: attr(data-label);
             position: absolute;
@@ -186,21 +199,21 @@
             text-align: left;
             color: #24365e;
         }
-        
+
         .aksi {
             text-align: center !important;
             padding-left: 10px !important;
         }
-        
+
         .aksi:before {
             display: none;
         }
-        
+
         .aksi a {
             display: inline-block;
             margin: 5px 3px;
         }
-        
+
         .jdm {
             font-size: 1.1em;
         }

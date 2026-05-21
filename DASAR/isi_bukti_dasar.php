@@ -18,29 +18,29 @@ if (mysqli_connect_errno()) {
 }
 if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
     $query = "
-        SELECT 
+        SELECT
             tb_isi_bukti_dasar.id_isi_bd,
             tb_isi_bukti_dasar.id_bd,
             tb_bukti_dasar.bukti_dasar,
-            tb_isi_bukti_dasar.kondisi, 
+            tb_isi_bukti_dasar.kondisi,
             tb_asesi.nama_asesi
         FROM tb_isi_bukti_dasar
         LEFT JOIN tb_asesi ON tb_isi_bukti_dasar.id_asesi = tb_asesi.id_asesi
         LEFT JOIN tb_bukti_dasar ON tb_isi_bukti_dasar.id_bd = tb_bukti_dasar.id_bd
     ";
-    
+
     $query .= " GROUP BY tb_isi_bukti_dasar.id_isi_bd ORDER BY tb_isi_bukti_dasar.id_isi_bd DESC";
-    
+
     if (!empty($search)) {
         $stmt = mysqli_prepare($koneksi, $query);
-        mysqli_stmt_bind_param($stmt, "s", $search_param); 
+        mysqli_stmt_bind_param($stmt, "s", $search_param);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         mysqli_stmt_close($stmt);
     } else {
         $result = mysqli_query($koneksi, $query);
     }
-    
+
 } else if ($_SESSION['role'] === 'Asesi') {
     if (!isset($_SESSION['id_asesi'])) {
         $username = $_SESSION['username'];
@@ -57,16 +57,16 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
         }
         mysqli_stmt_close($stmt_asesor);
     }
-    
+
     $id_asesi_login = intval($_SESSION['id_asesi']);
-    
+
     if ($id_asesi_login > 0) {
         $query = "
-            SELECT 
-                tb_isi_bukti_dasar.id_isi_bd, 
-                tb_isi_bukti_dasar.id_bd, 
-                tb_bukti_dasar.bukti_dasar, 
-                tb_isi_bukti_dasar.kondisi, 
+            SELECT
+                tb_isi_bukti_dasar.id_isi_bd,
+                tb_isi_bukti_dasar.id_bd,
+                tb_bukti_dasar.bukti_dasar,
+                tb_isi_bukti_dasar.kondisi,
                 tb_asesi.nama_asesi
             FROM tb_isi_bukti_dasar
             LEFT JOIN tb_asesi ON tb_isi_bukti_dasar.id_asesi = tb_asesi.id_asesi
@@ -75,7 +75,7 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
         ";
 
         $query .= " GROUP BY tb_isi_bukti_dasar.id_isi_bd ORDER BY tb_isi_bukti_dasar.id_isi_bd DESC";
-        
+
         $stmt = mysqli_prepare($koneksi, $query);
         mysqli_stmt_bind_param($stmt, "i", $id_asesi_login);
         mysqli_stmt_execute($stmt);
@@ -93,7 +93,7 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
     <div class="header-container">
         <h2 class="jdm">Isi Bukti Dasar</h2>
     </div>
-    
+
     <form method="get" action="" class="cari">
         <?php if (isset($_GET['page'])): ?>
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
@@ -110,9 +110,9 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
             </tr>
         </thead>
             <tbody>
-            <?php if (isset($result) && mysqli_num_rows($result) > 0): 
+            <?php if (isset($result) && mysqli_num_rows($result) > 0):
                 $no = 1;
-                while ($row = mysqli_fetch_assoc($result)): 
+                while ($row = mysqli_fetch_assoc($result)):
                 //    $jumlah_unit = intval($row['jumlah_unit'] ?? 0);
                 //    $color = getUnitButtonColor($jumlah_unit);
             ?>
@@ -125,7 +125,7 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
                         <a href='UTAMA.php?page=../SKEMA/Ubah_Skema.php&id=<?= $row['id_isi_bd'] ?>' class='btn-ubah'>
                             Ubah
                         </a>
-                        <a href='../SKEMA/Hapus_Skema.php?id=<?= $row['id_isi_bd'] ?>' 
+                        <a href='../SKEMA/Hapus_Skema.php?id=<?= $row['id_isi_bd'] ?>'
                            class='btn-hapus'
                            onclick="return confirm('Yakin ingin menghapus skema ini?');">
                             Hapus

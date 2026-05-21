@@ -167,8 +167,8 @@ INSERT INTO `tb_unit_kompetensi` (`id_unit`, `id_skema`, `kode_unit`, `judul_uni
 
 --
 -- Struktur dari tabel `users`
---   
-    
+--
+
 
 CREATE TABLE `users` (
   `id_user` int(11) NOT NULL,

@@ -156,7 +156,7 @@
             background-position: right 15px center;
             padding-right: 40px;
         }
-        
+
         @media (max-width: 768px) {
             .l-container {
                 margin: 10px;

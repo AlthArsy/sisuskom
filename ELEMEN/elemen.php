@@ -16,8 +16,8 @@ $id_unit = isset($_GET['id_unit']) ? intval($_GET['id_unit']) : 0;
 
 if ($id_unit > 0) {
     $query_skema = "
-        SELECT 
-            tb_unit_kompetensi.kode_unit, 
+        SELECT
+            tb_unit_kompetensi.kode_unit,
             tb_unit_kompetensi.judul_unit,
             tb_unit_kompetensi.id_skema,
             tb_asesor.nama_asesor
@@ -33,12 +33,12 @@ if ($id_unit > 0) {
     $skema_data = mysqli_fetch_assoc($result_skema);
     mysqli_stmt_close($stmt_skema);
 
-    $query = " 
-        SELECT 
-            tb_elemen.id_elemen, 
-            tb_elemen.nama_elemen, 
-            tb_unit_kompetensi.kode_unit, 
-            tb_elemen.no_elemen, 
+    $query = "
+        SELECT
+            tb_elemen.id_elemen,
+            tb_elemen.nama_elemen,
+            tb_unit_kompetensi.kode_unit,
+            tb_elemen.no_elemen,
             tb_unit_kompetensi.judul_unit,
             COUNT(tb_kuk.id_kuk) as jumlah_kuk
         FROM tb_elemen
@@ -53,17 +53,17 @@ if ($id_unit > 0) {
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     mysqli_stmt_close($stmt);
-    
+
 } else {
     if ($_SESSION['role'] === 'Admin') {
     $query = "
-        SELECT 
-            tb_elemen.id_elemen, 
+        SELECT
+            tb_elemen.id_elemen,
             tb_unit_kompetensi.id_unit,
-            tb_unit_kompetensi.kode_unit, 
+            tb_unit_kompetensi.kode_unit,
             tb_unit_kompetensi.judul_unit,
             tb_asesor.nama_asesor,
-            tb_elemen.no_elemen, 
+            tb_elemen.no_elemen,
             tb_elemen.nama_elemen,
             COUNT(tb_kuk.id_kuk) as jumlah_kuk
         FROM tb_elemen
@@ -75,7 +75,7 @@ if ($id_unit > 0) {
         ORDER BY tb_unit_kompetensi.id_unit ASC, tb_elemen.id_elemen ASC
     ";
     $result = mysqli_query($koneksi, $query);
-        
+
     } else if ($_SESSION['role'] === 'Asesor') {
 
 
@@ -94,17 +94,17 @@ if ($id_unit > 0) {
             }
             mysqli_stmt_close($stmt_asesor);
         }
-        
+
         $id_asesor_login = intval($_SESSION['id_referensi']);
-        
+
         if ($id_asesor_login > 0) {
             $query = "
-                SELECT 
-                    tb_elemen.id_elemen, 
+                SELECT
+                    tb_elemen.id_elemen,
                     tb_unit_kompetensi.id_unit,
                     tb_unit_kompetensi.kode_unit,
-                    tb_unit_kompetensi.judul_unit, 
-                    tb_elemen.no_elemen, 
+                    tb_unit_kompetensi.judul_unit,
+                    tb_elemen.no_elemen,
                     tb_elemen.nama_elemen,
                     COUNT(tb_kuk.id_kuk) as jumlah_kuk
                 FROM tb_elemen
@@ -183,8 +183,8 @@ if (isset($result) && $result) {
         </h2>
     <?php if (isset($_SESSION['pesan'])): ?>
         <div class="message <?php echo $_SESSION['tipe']; ?>">
-            <?php 
-                echo htmlspecialchars($_SESSION['pesan']); 
+            <?php
+                echo htmlspecialchars($_SESSION['pesan']);
                 unset($_SESSION['pesan']);
                 unset($_SESSION['tipe']);
             ?>
@@ -201,7 +201,7 @@ if (isset($result) && $result) {
             <?php endif; ?>
         </div>
     </div>
-    
+
     <?php if ($id_unit > 0 && isset($skema_data)): ?>
         <div class="skema-info">
             <h3>Informasi unit</h3>
@@ -209,7 +209,7 @@ if (isset($result) && $result) {
             <p><strong>Judul Unit:</strong> <?= htmlspecialchars($skema_data['judul_unit']) ?></p>
             <p><strong>Asesor:</strong> <?= htmlspecialchars($skema_data['nama_asesor'])?></p>
         </div>
-        
+
         <table>
             <thead>
                 <tr>
@@ -222,7 +222,7 @@ if (isset($result) && $result) {
             <tbody>
            <?php if (isset($units_by_unit[$id_unit]) && count($units_by_unit[$id_unit]) > 0):
                 $no = 1;
-                foreach ($units_by_unit[$id_unit] as $row): 
+                foreach ($units_by_unit[$id_unit] as $row):
                     $jumlah_kuk = intval($row['jumlah_kuk'] ?? 0);
                     $color = getElemenButtonColor($jumlah_kuk);
                 ?>
@@ -234,24 +234,24 @@ if (isset($result) && $result) {
                             <a href="UTAMA.php?page=../ELEMEN/ubah_elemen.php&id=<?= $row['id_elemen'] ?>" class="btn-ubah">
                                 Ubah
                             </a>
-                            <a href="UTAMA.php?page=../ELEMEN/hapus_elemen.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                            <a href="UTAMA.php?page=../ELEMEN/hapus_elemen.php&id_elemen=<?= $row['id_elemen'] ?>"
                                class="btn-hapus"
                                onclick="return confirm('Yakin ingin menghapus Elemen ini?');">
                                 Hapus
                             </a>
                             <?php if ($jumlah_kuk == 0): ?>
-                                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>"
                                    class="btn-elemen-empty">
                                     Tambah KuK
                                 </a>
                             <?php else: ?>
-                                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>"
                                    class="btn-elemen-badge"
                                    style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
                                    title="Tambah KUK">
                                     <i class="fas fa-plus"></i>
                                 </a>
-                                <a href="UTAMA.php?page=../KUK/KUK.php&id_elemen=<?= $row['id_elemen'] ?>" 
+                                <a href="UTAMA.php?page=../KUK/KUK.php&id_elemen=<?= $row['id_elemen'] ?>"
                                    class="btn-lihat-elemen"
                                    title="Lihat KUK">
                                     Lihat
@@ -263,14 +263,14 @@ if (isset($result) && $result) {
             else: ?>
                 <tr>
                     <td colspan="4" style="text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;">
-                        Belum ada unit kompetensi untuk skema ini. 
+                        Belum ada unit kompetensi untuk skema ini.
                         <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $id_unit ?>" style="color:#4186e0;">Tambah Elemen</a>
                     </td>
                 </tr>
             <?php endif; ?>
             </tbody>
         </table>
-                        
+
         <?php else: ?>
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>

@@ -55,7 +55,7 @@ $result = mysqli_query($koneksi, $query);
                 <tr>
                     <td><?= htmlspecialchars($row['id_elemen']) ?></td>
                     <td>
-                        <?= htmlspecialchars($row['kode_unit']) ?> - 
+                        <?= htmlspecialchars($row['kode_unit']) ?> -
                         <?= htmlspecialchars($row['judul_unit']) ?>
                     </td>
                     <td><?= htmlspecialchars($row['no_elemen']) ?></td>

@@ -15,8 +15,12 @@ function renderAPL2Units(units, skema) {
 
     container.innerHTML = '';
 
+    var buktiDefault = (typeof BUKTI_PREFILL !== 'undefined') ? BUKTI_PREFILL : '';
+    var kbDisabled   = (typeof IS_ASESI !== 'undefined' && IS_ASESI) ? 'disabled' : '';
+    var kbStyle      = kbDisabled ? 'pointer-events:none;opacity:0.7;' : '';
+
     units.forEach(function (unit, ui) {
-        var box  = document.createElement('div');
+        var box = document.createElement('div');
         box.className = 'unit-box';
 
         var html = '<div class="unit-header">' +
@@ -27,17 +31,17 @@ function renderAPL2Units(units, skema) {
 
         html += '<div style="overflow-x:auto;"><table class="tbl-apl2">' +
             '<thead><tr>' +
-            '<th style="width:40%;">Dapatkah Saya.........................?</th>' +
-            '<th style="width:6%;">K</th>' +
-            '<th style="width:6%;">BK</th>' +
+            '<th style="width:38%;">Dapatkah Saya.......?</th>' +
+            '<th style="width:7%;">K</th>' +
+            '<th style="width:7%;">BK</th>' +
             '<th>Bukti yang relevan</th>' +
             '</tr></thead><tbody>';
 
         if (unit.elemen && unit.elemen.length > 0) {
             unit.elemen.forEach(function (el) {
                 html += '<tr class="elemen-row">' +
-                    '<td colspan="4">' + escHtml(el.no_elemen) + '. Elemen: ' +
-                    escHtml(el.nama_elemen) + '</td></tr>';
+                    '<td colspan="4">' + escHtml(el.no_elemen) +
+                    '. Elemen: ' + escHtml(el.nama_elemen) + '</td></tr>';
 
                 html += '<tr>' +
                     '<td><span style="font-size:11px;color:#555;">Kriteria Unjuk Kerja:</span>' +
@@ -45,16 +49,25 @@ function renderAPL2Units(units, skema) {
                 (el.kuk || []).forEach(function (k) {
                     html += '<li>' + escHtml(k.no_kuk) + ' ' + escHtml(k.kuk) + '</li>';
                 });
-                html += '</ul></td>' +
-                    '<td style="text-align:center;">' +
-                    '<input type="radio" name="jawaban[' + el.id_elemen + ']" value="K"></td>' +
-                    '<td style="text-align:center;">' +
-                    '<input type="radio" name="jawaban[' + el.id_elemen + ']" value="BK"></td>' +
-                    '<td><textarea class="bukti-input" name="bukti[' + el.id_elemen + ']"' +
-                    ' placeholder="Tuliskan bukti relevan..."></textarea></td></tr>';
+                html += '</ul></td>';
+
+                html += '<td style="text-align:center; ' + kbStyle + '">' +
+                    '<input type="radio" name="jawaban[' + el.id_elemen + ']" value="K"' +
+                    (kbDisabled ? ' disabled' : '') + '></td>';
+
+                html += '<td style="text-align:center; ' + kbStyle + '">' +
+                    '<input type="radio" name="jawaban[' + el.id_elemen + ']" value="BK"' +
+                    (kbDisabled ? ' disabled' : '') + '></td>';
+
+                html += '<td>' +
+                    '<textarea class="bukti-input" name="bukti[' + el.id_elemen + ']"' +
+                    ' placeholder="Tuliskan bukti relevan...">' +
+                    escHtml(buktiDefault) +
+                    '</textarea></td></tr>';
             });
         } else {
-            html += '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px;">Tidak ada elemen</td></tr>';
+            html += '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px;">' +
+                    'Tidak ada elemen</td></tr>';
         }
 
         html += '</tbody></table></div>';

@@ -50,7 +50,7 @@
         <div class="header">
             <h1>FR. APL-02. ASESMEN MANDIRI</h1>
         </div>
-        
+
         <!-- Informasi Skema Sertifikasi -->
         <table class="info-table" border="1">
             <tr>
@@ -179,7 +179,7 @@
                     <td>Menggunakan Spesifikasi Program</td>
                 </tr>
             </table>
-            
+
             <table class="competency-table" border="1">
                 <thead>
                     <tr>
@@ -240,7 +240,7 @@
             </table>
         </div>
 
-    
+
 </body>
 </html>
 

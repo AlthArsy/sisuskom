@@ -1,4 +1,4 @@
-<?php 
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -32,42 +32,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     $id_asesi = isset($_POST['id_asesi']) ? trim($_POST['id_asesi']) : '';
     $nama_asesi = isset($_POST['nama_asesi']) ? trim($_POST['nama_asesi']) : '';
     $nik = isset($_POST['nik']) ? trim($_POST['nik']) : '';
-    
+
     $search_criteria = [
         'id_asesi' => $id_asesi,
         'nama_asesi' => $nama_asesi,
         'nik' => $nik
     ];
-    
+
     $search_performed = true;
-    
+
     if (empty($id_asesi) && empty($nama_asesi) && empty($nik)) {
         $display_asesi = $all_asesi;
     } else {
         $query = "SELECT * FROM tb_asesi WHERE 1=1";
         $params = [];
         $types = "";
-        
+
         if (!empty($id_asesi)) {
             $query .= " AND id_asesi = ?";
             $params[] = $id_asesi;
             $types .= "i";
         }
-        
+
         if (!empty($nama_asesi)) {
             $query .= " AND nama_asesi LIKE ?";
             $params[] = "%$nama_asesi%";
             $types .= "s";
         }
-        
+
         if (!empty($nik)) {
             $query .= " AND nik LIKE ?";
             $params[] = "%$nik%";
             $types .= "s";
         }
-        
+
         $query .= " ORDER BY nama_asesi ASC";
-        
+
         $stmt = mysqli_prepare($koneksi, $query);
         if ($stmt && !empty($params)) {
             mysqli_stmt_bind_param($stmt, $types, ...$params);
@@ -164,22 +164,22 @@ function clearForm() {
             <p>Pencarian dan Pengelolaan Data Asesi</p>
         </div>
 
-    
+
         <div class="TBS-search-box">
             <form method="post" action="" class="search-form">
                 <div class="TBS-form-group">
                     <label for="id_asesi">ID Asesi</label>
-                    <input type="number" id="id_asesi" name="id_asesi" class="form-control" 
+                    <input type="number" id="id_asesi" name="id_asesi" class="form-control"
                            placeholder="Masukkan ID Asesi" value="<?php echo htmlspecialchars($search_criteria['id_asesi']); ?>">
                 </div>
                 <div class="TBS-form-group">
                     <label for="nama_asesi">Nama Asesi</label>
-                    <input type="text" id="nama_asesi" name="nama_asesi" class="form-control" 
+                    <input type="text" id="nama_asesi" name="nama_asesi" class="form-control"
                            placeholder="Masukkan nama asesi" value="<?php echo htmlspecialchars($search_criteria['nama_asesi']); ?>">
                 </div>
                 <div class="TBS-form-group">
                     <label for="nik">NIK</label>
-                    <input type="text" id="nik" name="nik" class="form-control" 
+                    <input type="text" id="nik" name="nik" class="form-control"
                            placeholder="Masukkan NIK" value="<?php echo htmlspecialchars($search_criteria['nik']); ?>">
                 </div>
                 <div class="form-group btn-group">
@@ -193,7 +193,7 @@ function clearForm() {
             </form>
         </div>
 
-        
+
         <div class="TBS-results-section">
             <div class="TBS-results-header">
                 <h2>
@@ -207,13 +207,13 @@ function clearForm() {
                     Ditemukan: <span><?php echo count($display_asesi); ?></span> data asesi
                 </div>
             </div>
-                    
+
             <?php if (count($display_asesi) === 0): ?>
                 <div class="alert alert-info">
                      Tidak ditemukan data asesi yang sesuai dengan kriteria pencarian.
                 </div>
             <?php endif; ?>
-                    
+
             <?php if (count($display_asesi) > 0): ?>
                 <div class="table-container">
                     <table>
@@ -262,11 +262,11 @@ function clearForm() {
                                     </td>
                                     <td data-label="Aksi">
                                         <div class="TBS-action-buttons">
-                                            <a href="UTAMA.php?page=../ASESI/detail_asesi.php&id=<?php echo $row['id_asesi']; ?>" 
+                                            <a href="UTAMA.php?page=../ASESI/detail_asesi.php&id=<?php echo $row['id_asesi']; ?>"
                                                class="btn btn-view btn-sm"> Detail</a>
-                                            <a href="UTAMA.php?page=../ASESI/edit.php&id=<?php echo $row['id_asesi']; ?>" 
+                                            <a href="UTAMA.php?page=../ASESI/edit.php&id=<?php echo $row['id_asesi']; ?>"
                                                class="btn btn-edit btn-sm"> Edit</a>
-                                            <a href="UTAMA.php?page=../ASESI/hapus_asesi.php&id=" onclick="return confirmDelete(<?php echo $row['id_asesi']; ?>, '<?php echo addslashes($row['nama_asesi']); ?>')" 
+                                            <a href="UTAMA.php?page=../ASESI/hapus_asesi.php&id=" onclick="return confirmDelete(<?php echo $row['id_asesi']; ?>, '<?php echo addslashes($row['nama_asesi']); ?>')"
                                                class="btn btn-delete btn-sm"> Hapus</a>
                                         </div>
                                     </td>

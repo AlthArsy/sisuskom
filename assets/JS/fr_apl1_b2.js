@@ -1,5 +1,6 @@
 function onSkemaSelected(s, res) {
     loadUnitTable(res.units, res.skema);
+    loadBuktiTable(s.id_skema);
     scheduleQR();
 }
 
@@ -35,6 +36,42 @@ function loadUnitTable(units, skema) {
     if (wrap) wrap.style.display = 'block';
 }
 
+function loadBuktiTable(idSkema) {
+    fetch('../FR_APL/ambil_skema.php?action=bukti&id_skema=' + idSkema)
+        .then(r => r.json())
+        .then(res => {
+            if (res.status !== 'ok') return;
+            var tbodyBd = document.querySelector('#tbl-bukti-dasar tbody');
+            if (tbodyBd) {
+                tbodyBd.innerHTML = '';
+                res.bukti_dasar.forEach(function (bd, i) {
+                    tbodyBd.innerHTML +=
+                        '<tr>' +
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td style="text-align:left;">' + escHtml(bd.bukti_dasar) + '</td>' +
+                        '<td><input type="radio" name="kondisi_bd['+bd.id_bd+']" value="Memenuhi Syarat"></td>' +
+                        '<td><input type="radio" name="kondisi_bd['+bd.id_bd+']" value="Tidak Memenuhi Syarat"></td>' +
+                        '<td><input type="radio" name="kondisi_bd['+bd.id_bd+']" value="Tidak Ada"></td>' +
+                        '</tr>';
+                });
+            }
+            var tbodyBa = document.querySelector('#tbl-bukti-adm tbody');
+            if (tbodyBa) {
+                tbodyBa.innerHTML = '';
+                res.bukti_adm.forEach(function (ba, i) {
+                    tbodyBa.innerHTML +=
+                        '<tr>' +
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td style="text-align:left;">' + escHtml(ba.bukti_adm) + '</td>' +
+                        '<td><input type="radio" name="kondisi_ba['+ba.id_ba+']" value="Memenuhi Syarat"></td>' +
+                        '<td><input type="radio" name="kondisi_ba['+ba.id_ba+']" value="Tidak Memenuhi Syarat"></td>' +
+                        '<td><input type="radio" name="kondisi_ba['+ba.id_ba+']" value="Tidak Ada"></td>' +
+                        '</tr>';
+                });
+            }
+        });
+}
+
 var qrTimer = null;
 
 function scheduleQR() {
@@ -43,21 +80,21 @@ function scheduleQR() {
 }
 
 function buildQRContent() {
-    var idAsesi     = getVal('id_asesi')        || '-';
+    var idAsesi = getVal('id_asesi') || '-';
     var idSkema     = getVal('id_skema_hidden') || '-';
-    var nama        = getVal('nama_pemohon')    || '';
-    var tanggal     = getVal('tanggal_pemohon') || '';
-    var skema       = getVal('judul_skema')     || '';
-    var adminLsp    = (typeof NAMA_ADMIN_LSP !== 'undefined') ? NAMA_ADMIN_LSP : '-';
-    var ts          = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    var nama = getVal('nama_pemohon') || '';
+    var tanggal = getVal('tanggal_pemohon') || '';
+    var skema = getVal('judul_skema') || '';
+    var adminLsp = (typeof NAMA_ADMIN_LSP !== 'undefined') ? NAMA_ADMIN_LSP : '-';
+    var ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return 'LSP MUDIKAL | APL1B2' +
-           ' | ID_ASESI:'  + idAsesi  +
-           ' | ID_SKEMA:'  + idSkema  +
-           ' | NAMA:'      + nama     +
-           ' | SKEMA:'     + skema    +
+           ' | ID_ASESI:' + idAsesi +
+           ' | ID_SKEMA:' + idSkema +
+           ' | NAMA:' + nama +
+           ' | SKEMA:' + skema +
            ' | ADMIN_LSP:' + adminLsp +
-           ' | TGL:'       + tanggal  +
-           ' | GEN:'       + ts;
+           ' | TGL:' + tanggal +
+           ' | GEN:' + ts;
 }
 
 function doGenerateQR() {

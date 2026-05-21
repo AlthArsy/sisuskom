@@ -22,24 +22,24 @@ if (isset($_GET['all']) && $_GET['all'] == '1') {
         echo '</body></html>';
         exit;
     }
-    
+
     // mysqli_begin_transaction($koneksi);
     // try {
-      
+
         // $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi IS NOT NULL");
         // mysqli_stmt_execute($stmt);
         // mysqli_stmt_close($stmt);
-        
-     
+
+
     //     $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor IS NOT NULL");
     //     mysqli_stmt_execute($stmt);
     //     mysqli_stmt_close($stmt);
-        
-       
+
+
     //     $stmt2 = mysqli_prepare($koneksi, "DELETE FROM tb_asesor");
     //     mysqli_stmt_execute($stmt2);
     //     mysqli_stmt_close($stmt2);
-        
+
     //     mysqli_commit($koneksi);
     //     header("Location:../BERANDA/UTAMA.php?page=../ASESOR/Table_asesor.php");
     //     exit;
@@ -56,18 +56,18 @@ if ($id <= 0) {
 
 mysqli_begin_transaction($koneksi);
 try {
-  
+
     // $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi = ?");
     // mysqli_stmt_bind_param($stmt, "i", $id);
     // mysqli_stmt_execute($stmt);
     // mysqli_stmt_close($stmt);
-    
-    
+
+
     $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
-    
+
 
     $stmt = mysqli_prepare($koneksi, "DELETE FROM tb_asesor WHERE id_asesor = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
@@ -75,7 +75,7 @@ try {
         throw new Exception(mysqli_error($koneksi));
     }
     mysqli_stmt_close($stmt);
-    
+
     mysqli_commit($koneksi);
     header("Location: ../BERANDA/UTAMA.php?page=../ASESOR/Table_asesor.php");
     exit;

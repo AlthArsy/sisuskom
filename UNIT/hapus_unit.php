@@ -16,7 +16,7 @@ $id_skema = 0;
 
 if ($id > 0) {
     mysqli_begin_transaction($koneksi);
-    
+
     try {
 
         $query_skema = "SELECT id_skema From tb_unit_kompetensi WHERE id_unit = ?";
@@ -35,30 +35,30 @@ if ($id > 0) {
         mysqli_stmt_bind_param($stmt_units, 'i', $id);
         mysqli_stmt_execute($stmt_units);
         $result_units = mysqli_stmt_get_result($stmt_units);
-        
+
         $elemen_ids = [];
         while ($row = mysqli_fetch_assoc($result_units)) {
             $elemen_ids[] = $row['id_elemen'];
         }
         mysqli_stmt_close($stmt_units);
-        
+
         $total_elemen = count($elemen_ids);
         $total_kuk = 0;
-        
+
         if ($total_elemen > 0) {
             $elemen_ids_str = implode(',', $elemen_ids);
-            
+
             $query_kuk = "SELECT id_elemen FROM tb_kuk WHERE id_kuk IN ($elemen_ids_str)";
             $result_kuk = mysqli_query($koneksi, $query_kuk);
-            
+
             $kuk_ids = [];
             while ($row = mysqli_fetch_assoc($result_kuk)) {
                 $kuk_ids[] = $row['id_kuk'];
             }
-                  
+
             $query_hapus_kuk = "DELETE FROM tb_kuk WHERE id_elemen IN ($elemen_ids_str)";
             mysqli_query($koneksi, $query_hapus_kuk);
-            
+
 
             $query_hapus_elemen = "DELETE FROM tb_elemen WHERE id_unit = ?";
             $stmt_hapus_elemen = mysqli_prepare($koneksi, $query_hapus_elemen);
@@ -66,24 +66,24 @@ if ($id > 0) {
             mysqli_stmt_execute($stmt_hapus_elemen);
             mysqli_stmt_close($stmt_hapus_elemen);
         }
-        
+
         $query_hapus_unit = "DELETE FROM tb_unit_kompetensi WHERE id_unit = ?";
         $stmt_hapus_unit = mysqli_prepare($koneksi, $query_hapus_unit);
         mysqli_stmt_bind_param($stmt_hapus_unit, 'i', $id);
         mysqli_stmt_execute($stmt_hapus_unit);
         mysqli_stmt_close($stmt_hapus_unit);
-        
+
         mysqli_commit($koneksi);
-        
+
         $_SESSION['pesan'] = "Unit Berhasil Dihapus Beserta Elemen Dan Kuk";
         $_SESSION['tipe'] = "success";
-        
+
     } catch (Exception $e) {
         mysqli_rollback($koneksi);
         $_SESSION['pesan'] = "Gagal menghapus Unit: " . $e->getMessage();
         $_SESSION['tipe'] = "error";
     }
-    
+
 } else {
     $_SESSION['pesan'] = "ID Unit tidak valid!";
     $_SESSION['tipe'] = "error";

@@ -19,6 +19,18 @@ function sudahIsi($koneksi, $tabel, $kolom_id, $id) {
     return $r && $r['total'] > 0;
 }
 
+// function sudahIsiAk01($koneksi, $id_asesi) {
+//     $id_asesi = intval($id_asesi);
+//     $r = mysqli_fetch_assoc(mysqli_query($koneksi,
+//         "SELECT COUNT(*) AS total FROM tb_ak01 k
+//          WHERE k.id_asesi = (
+//              SELECT a.id_apl1 FROM tb_apl1 a
+//              WHERE a.id_asesi = '$id_asesi'
+//              ORDER BY a.id_apl1 ASC LIMIT 1
+//          ) LIMIT 1"));
+//     return $r && (int) $r['total'] > 0;
+// }
+
 $forms = [
     [
         'label'  => 'FR APL 1',
@@ -39,7 +51,7 @@ $forms = [
         'sub'    => 'Persetujuan Asesmen dan Kerahasiaan',
         'isi'    => "../FR_APL/FR_AK01.php?id_asesi=$id_asesi",
         'lihat'  => "../FR_APL/FR_AK01.php?id_asesi=$id_asesi&view=1",
-        'done'   => sudahIsi($koneksi, 'tb_ak01', 'id_asesi', $id_asesi),
+        'done' => sudahIsi($koneksi, 'tb_ak01', 'id_asesi', $id_asesi),
     ],
     [
         'label'  => 'FR IA 1',

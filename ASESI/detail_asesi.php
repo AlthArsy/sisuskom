@@ -21,16 +21,16 @@ $success = '';
 
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $id_asesi = intval($_GET['id']);
-    
-    
+
+
     $query = "SELECT * FROM tb_asesi WHERE id_asesi = ?";
     $stmt = mysqli_prepare($koneksi, $query);
-    
+
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $id_asesi);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        
+
         if ($result && mysqli_num_rows($result) > 0) {
             $asesi_data = mysqli_fetch_assoc($result);
         } else {
@@ -70,7 +70,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         .info-item {display: flex;flex-direction: column;}
         .info-label {font-weight: 600;color: #555;margin-bottom: 5px;font-size: 0.95em;}
         .info-value {padding: 10px 15px;background-color: #f8f9fa;border-radius: 6px;border: 1px solid #e9ecef;font-size: 1.05em;color: #333;min-height: 45px;display: flex;align-items: center;}
-        .photo-section {text-align: center;padding: 20px;border: 2px dashed #dee2e6;border-radius: 10px;background-color: #fafafa;} 
+        .photo-section {text-align: center;padding: 20px;border: 2px dashed #dee2e6;border-radius: 10px;background-color: #fafafa;}
         .photo-placeholder {width: 200px;height: 200px;margin: 0 auto 15px;border-radius: 10px;overflow: hidden;border: 3px solid #e9ecef;}
         .photo-placeholder img {width: 100%;height: 100%;object-fit: cover;}
         .no-photo {width: 100%;height: 100%;display: flex;align-items: center;justify-content: center;background-color: #e9ecef;color: #6c757d;font-size: 0.9em;}
@@ -106,10 +106,10 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
             <h1>Detail Data Asesi</h1>
             <p>Informasi lengkap data asesi</p>
         </div>
-        
+
         <div class="user-info">
             <div>
-                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
                 (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
             </div>
             <div>
@@ -161,7 +161,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                             <div class="info-label">Email</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['email'] ?? 'Tidak tercantum'); ?></div>
                         </div>
-                        
+
                         <div class="info-item">
                             <div class="info-label">No. Telepon rumah</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['phone_rumah'] ?? 'Tidak tercantum'); ?></div>
@@ -176,12 +176,12 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                             <div class="info-label">No. hp</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['hp'] ?? 'Tidak tercantum'); ?></div>
                         </div>
-                        
+
                         <div class="info-item">
                             <div class="info-label">kode pos</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['kode_pos'] ?? 'Tidak tercantum'); ?></div>
                         </div>
-                        
+
                         <div class="info-item">
                             <div class="info-label">kebangsaan</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['kebangsaan'] ?? 'Tidak tercantum'); ?></div>
@@ -206,7 +206,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                             <div class="info-label">fax</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['fax'] ?? 'Tidak tercantum'); ?></div>
                         </div>
-                        
+
                         <div class="info-item">
                             <div class="info-label">Email Institusi</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['email_institusi'] ?? 'Tidak tercantum'); ?></div>
@@ -216,14 +216,14 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                 <div class="detail-section">
                     <h2 class="section-title">Informasi Tambahan</h2>
                     <div class="info-grid">
-                        
+
                         <?php if (isset($asesi_data['jabatan'])): ?>
                         <div class="info-item">
                             <div class="info-label">Jabatan</div>
                             <div class="info-value"><?php echo htmlspecialchars($asesi_data['jabatan']); ?></div>
                         </div>
                         <?php endif; ?>
-                        
+
                         <?php if (isset($asesi_data['skema_sertifikasi'])): ?>
                         <div class="info-item">
                             <div class="info-label">Skema Sertifikasi</div>
@@ -233,7 +233,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                     </div>
                 </div>
                 <div class="action-buttons">
-                    <a href="UTAMA.php?page=../ASESI/edit.php&id=<?php echo $asesi_data['id_asesi']; ?>" 
+                    <a href="UTAMA.php?page=../ASESI/edit.php&id=<?php echo $asesi_data['id_asesi']; ?>"
                        class="btn btn-edit">
                          Edit Data
                     </a>
@@ -245,7 +245,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
             </div>
         <?php endif; ?>
     </div>
-    
+
     <!-- <script>
         // Tambahkan efek hover pada info-value
         document.querySelectorAll('.info-value').forEach(item => {
@@ -253,13 +253,13 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                 this.style.backgroundColor = '#e9ecef';
                 this.style.borderColor = '#007bff';
             });
-            
+
             item.addEventListener('mouseleave', function() {
                 this.style.backgroundColor = '#f8f9fa';
                 this.style.borderColor = '#e9ecef';
             });
         });
-        
+
         // Auto-hide alert setelah 5 detik
         setTimeout(function() {
             const alerts = document.querySelectorAll('.alert');

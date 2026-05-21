@@ -132,7 +132,7 @@
             box-shadow: 0 6px 18px 0 rgba(60,150,90,0.17);
             outline: none;
             transform: translateY(-2px) scale(1.025,1.04);
-        }   
+        }
 
     </style>
 </head>

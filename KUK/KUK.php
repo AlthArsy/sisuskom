@@ -16,8 +16,8 @@ $id_elemen = isset($_GET['id_elemen']) ? intval($_GET['id_elemen']) : 0;
 
 if ($id_elemen > 0) {
     $query_skema = "
-        SELECT 
-            tb_elemen.no_elemen, 
+        SELECT
+            tb_elemen.no_elemen,
             tb_elemen.nama_elemen,
             tb_elemen.id_unit,
             tb_asesor.nama_asesor
@@ -33,13 +33,13 @@ if ($id_elemen > 0) {
     $result_skema = mysqli_stmt_get_result($stmt_skema);
     $skema_data = mysqli_fetch_assoc($result_skema);
     mysqli_stmt_close($stmt_skema);
-    
-    $query = " 
-        SELECT 
-            tb_kuk.id_kuk, 
-            tb_kuk.no_kuk, 
+
+    $query = "
+        SELECT
+            tb_kuk.id_kuk,
+            tb_kuk.no_kuk,
             tb_kuk.kuk,
-            tb_elemen.no_elemen, 
+            tb_elemen.no_elemen,
             tb_elemen.nama_elemen
         FROM tb_kuk
         LEFT JOIN tb_elemen ON tb_kuk.id_elemen = tb_elemen.id_elemen
@@ -51,17 +51,17 @@ if ($id_elemen > 0) {
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     mysqli_stmt_close($stmt);
-    
+
 } else {
     if ($_SESSION['role'] === 'Admin') {
     $query = "
-        SELECT 
-            tb_kuk.id_kuk, 
+        SELECT
+            tb_kuk.id_kuk,
             tb_elemen.id_elemen,
-            tb_elemen.no_elemen, 
+            tb_elemen.no_elemen,
             tb_elemen.nama_elemen,
             tb_asesor.nama_asesor,
-            tb_kuk.no_kuk, 
+            tb_kuk.no_kuk,
             tb_kuk.kuk
         FROM tb_kuk
         LEFT JOIN tb_elemen ON tb_kuk.id_elemen = tb_elemen.id_elemen
@@ -71,7 +71,7 @@ if ($id_elemen > 0) {
         ORDER BY tb_elemen.id_elemen ASC, tb_kuk.id_kuk ASC
     ";
     $result = mysqli_query($koneksi, $query);
-        
+
     } else if ($_SESSION['role'] === 'Asesor') {
 
 
@@ -90,17 +90,17 @@ if ($id_elemen > 0) {
             }
             mysqli_stmt_close($stmt_asesor);
         }
-        
+
         $id_asesor_login = intval($_SESSION['id_referensi']);
-        
+
         if ($id_asesor_login > 0) {
             $query = "
-                SELECT 
-                    tb_kuk.id_kuk, 
+                SELECT
+                    tb_kuk.id_kuk,
                     tb_elemen.id_elemen,
-                    tb_elemen.no_elemen, 
+                    tb_elemen.no_elemen,
                     tb_elemen.nama_elemen,
-                    tb_kuk.no_kuk, 
+                    tb_kuk.no_kuk,
                     tb_kuk.kuk
                 FROM tb_kuk
                 LEFT JOIN tb_elemen ON tb_kuk.id_elemen = tb_elemen.id_elemen
@@ -158,8 +158,8 @@ if (isset($result) && $result) {
         </h2>
     <?php if (isset($_SESSION['pesan'])): ?>
         <div class="message <?php echo $_SESSION['tipe']; ?>">
-            <?php 
-                echo htmlspecialchars($_SESSION['pesan']); 
+            <?php
+                echo htmlspecialchars($_SESSION['pesan']);
                 unset($_SESSION['pesan']);
                 unset($_SESSION['tipe']);
             ?>
@@ -176,7 +176,7 @@ if (isset($result) && $result) {
             <?php endif; ?>
         </div>
     </div>
-    
+
     <?php if ($id_elemen > 0 && isset($skema_data)): ?>
         <div class="skema-info">
             <h3>Informasi Elemen</h3>
@@ -184,7 +184,7 @@ if (isset($result) && $result) {
             <p><strong>Nama Elemen:</strong> <?= htmlspecialchars($skema_data['nama_elemen']) ?></p>
             <p><strong>Asesor:</strong> <?= htmlspecialchars($skema_data['nama_asesor'])?></p>
         </div>
-        
+
         <table>
             <thead>
                 <tr>
@@ -206,7 +206,7 @@ if (isset($result) && $result) {
                             <a href="UTAMA.php?page=../KUK/ubah_kuk.php&id=<?= $row['id_kuk'] ?>" class="btn-ubah">
                               Ubah
                             </a>
-                            <a href="UTAMA.php?page=../KUK/hapus_kuk.php&id_kuk=<?= $row['id_kuk'] ?>" 
+                            <a href="UTAMA.php?page=../KUK/hapus_kuk.php&id_kuk=<?= $row['id_kuk'] ?>"
                               class="btn-hapus"
                               onclick="return confirm('Yakin ingin menghapus KUK ini?');">
                               Hapus
@@ -217,14 +217,14 @@ if (isset($result) && $result) {
             else: ?>
                 <tr>
                     <td colspan="4" style="text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;">
-                        Belum ada KUK untuk elemen ini. 
+                        Belum ada KUK untuk elemen ini.
                         <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $id_elemen ?>" style="color:#4186e0;">Tambah KUK</a>
                     </td>
                 </tr>
             <?php endif; ?>
             </tbody>
         </table>
-        
+
         <?php else: ?>
             <div class="empty-state">
                 <i class="fas fa-inbox"></i>

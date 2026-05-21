@@ -1,0 +1,11 @@
+# Konfigurasi lokal
+config.php
+.env
+
+# Cache & log
+*.log
+/cache/
+
+# OS files
+.DS_Store
+Thumbs.db

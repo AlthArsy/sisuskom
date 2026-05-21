@@ -18,14 +18,14 @@ if (mysqli_connect_errno()) {
 }
 
 $message = '';
-$message_type = ''; 
+$message_type = '';
 $elemen_data = [];
 
 if (isset($_GET['id'])) {
     $id_elemen = intval($_GET['id']);
-    
-    $sql = "SELECT 
-                el.*, 
+
+    $sql = "SELECT
+                el.*,
                 uk.kode_unit,
                 uk.judul_unit,
                 uk.id_skema,
@@ -34,20 +34,20 @@ if (isset($_GET['id'])) {
             LEFT JOIN tb_unit_kompetensi uk ON el.id_unit = uk.id_unit
             LEFT JOIN tb_skema s ON uk.id_skema = s.id_skema
             WHERE el.id_elemen = ?";
-    
+
     $stmt = mysqli_prepare($koneksi, $sql);
-    
+
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $id_elemen);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        
+
         if ($result && mysqli_num_rows($result) > 0) {
             $elemen_data = mysqli_fetch_assoc($result);
-            
+
             if ($_SESSION['role'] === 'Asesor') {
                 $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
-                
+
                 if ($elemen_data['id_asesor'] != $id_asesor_login) {
                     $message = "Anda tidak memiliki akses untuk mengubah elemen ini.";
                     $message_type = 'error';
@@ -70,39 +70,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $id_unit = intval($_POST['id_elemen']);
     $no_elemen = mysqli_real_escape_string($koneksi, trim($_POST['no_elemen']));
     $nama_elemen = mysqli_real_escape_string($koneksi, trim($_POST['nama_elemen']));
-    
+
     $errors = [];
-    
+
     if (empty($no_elemen)) {
         $errors[] = "No elemen harus diisi";
     }
-    
+
     if (empty($nama_elemen)) {
         $errors[] = "Nama Elemen harus diisi";
     }
-    
+
     $check_sql = "SELECT id_elemen FROM tb_elemen WHERE no_elemen = ? AND id_unit = ? AND id_elemen != ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
     mysqli_stmt_bind_param($check_stmt, "sii", $no_elemen, $id_unit, $id_elemen);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
-    
+
     if (mysqli_stmt_num_rows($check_stmt) > 0) {
         $errors[] = "No Elemen sudah digunakan";
     }
     mysqli_stmt_close($check_stmt);
-    
+
     if (empty($errors)) {
         $update_sql = "UPDATE tb_elemen SET no_elemen = ?, nama_elemen = ? WHERE id_elemen = ?";
         $update_stmt = mysqli_prepare($koneksi, $update_sql);
-        
+
         if ($update_stmt) {
             mysqli_stmt_bind_param($update_stmt, "ssi", $no_elemen, $nama_elemen, $id_elemen);
-            
+
             if (mysqli_stmt_execute($update_stmt)) {
                 $_SESSION['pesan'] = "Data elemen berhasil diperbarui!";
                 $_SESSION['tipe'] = 'success';
-                
+
                 $id_unit = intval($_POST['id_unit']);
                 header("Location: UTAMA.php?page=../ELEMEN/elemen.php&id_unit=" . $id_unit);
                 exit();
@@ -126,19 +126,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         <h1>Ubah Elemen</h1>
         <p>Perbarui informasi Elemen</p>
     </div>
-    
+
     <div class="user-info">
-        Logged in sebagai: 
-        <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+        Logged in sebagai:
+        <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
         (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
     </div>
-    
+
     <?php if (!empty($message)): ?>
         <div class="message <?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
     <?php endif; ?>
-    
+
     <?php if (!empty($elemen_data)): ?>
         <div class="form-container">
             <div class="skema-info-box">
@@ -146,35 +146,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 <p><strong>Kode Unit :</strong> <?php echo htmlspecialchars($elemen_data['kode_unit']); ?></p>
                 <p><strong>Judul Unit:</strong> <?php echo htmlspecialchars($elemen_data['judul_unit']); ?></p>
             </div>
-            
+
             <form method="post" action="" id="editElemenForm">
                 <input type="hidden" name="id_elemen" value="<?php echo $elemen_data['id_elemen']; ?>">
                 <input type="hidden" name="id_unit" value="<?php echo $elemen_data['id_unit']; ?>">
-                
+
                 <div class="form-group">
                     <label for="no_elemen" class="required">
                         No Elemen
                     </label>
-                    <input type="text" 
-                           id="no_elemen" 
-                           name="no_elemen" 
-                           class="form-control" 
+                    <input type="text"
+                           id="no_elemen"
+                           name="no_elemen"
+                           class="form-control"
                            value="<?php echo htmlspecialchars($elemen_data['no_elemen']); ?>"
                            required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="nama_elemen" class="required">
                         Nama Elemen
                     </label>
-                    <textarea 
-                        id="nama_elemen" 
-                        name="nama_elemen" 
-                        class="form-control" 
+                    <textarea
+                        id="nama_elemen"
+                        name="nama_elemen"
+                        class="form-control"
                         required
                         rows="3"><?php echo htmlspecialchars($elemen_data['nama_elemen']); ?></textarea>
                 </div>
-                
+
                 <div class="button-group">
                     <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?php echo $elemen_data['id_unit']; ?>" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Batal
@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         </div>
     <?php elseif (empty($message)): ?>
         <div class="message error">
-            <i class="fas fa-exclamation-triangle"></i> 
+            <i class="fas fa-exclamation-triangle"></i>
             Data Elemen tidak ditemukan. Silakan pilih Elemen yang valid.
             <br><br>
             <!-- <a href="../BERANDA/UTAMA.php?page=../" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
@@ -233,21 +233,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             setTimeout(() => message.remove(), 500);
         });
     }, 5000);
-    
+
     document.getElementById('editElemenForm')?.addEventListener('submit', function(e) {
         const no_elemen = document.getElementById('no_elemen').value.trim();
         const nama_elemen = document.getElementById('nama_elemen').value.trim();
-        
+
         let errors = [];
-        
+
         if (!no_elemen) {
             errors.push('No Elemen harus diisi');
         }
-        
+
         if (!nama_elemen) {
             errors.push('Nama Elemen harus diisi');
         }
-        
+
         if (errors.length > 0) {
             e.preventDefault();
             alert('Harap perbaiki kesalahan berikut:\n\n' + errors.join('\n'));

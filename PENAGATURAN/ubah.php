@@ -18,21 +18,21 @@ if (mysqli_connect_errno()) {
 }
 
 $message = '';
-$message_type = ''; 
+$message_type = '';
 $user_data = [];
 
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
-    
+
     $sql = "SELECT * FROM users WHERE id_user = ?";
     $stmt = mysqli_prepare($koneksi, $sql);
-    
+
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $id);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        
+
         if ($result && mysqli_num_rows($result) > 0) {
             $user_data = mysqli_fetch_assoc($result);
         } else {
@@ -51,55 +51,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $username = mysqli_real_escape_string($koneksi, $_POST['username']);
     $password = mysqli_real_escape_string($koneksi, $_POST['password']);
     $role = mysqli_real_escape_string($koneksi, $_POST['role']);
-    
-  
+
+
     $errors = [];
-    
+
     if (empty($username)) {
         $errors[] = "Username harus diisi";
     }
-    
+
     if (empty($password)) {
         $errors[] = "Password harus diisi";
     }
-    
+
     if (empty($role)) {
         $errors[] = "Role harus dipilih";
     }
-    
+
     // Cek jika username sudah digunakan(kecuali yang lagi ngubah)
     $check_sql = "SELECT id_user FROM users WHERE username = ? AND id_user != ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
     mysqli_stmt_bind_param($check_stmt, "si", $username, $id);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
-    
+
     if (mysqli_stmt_num_rows($check_stmt) > 0) {
         $errors[] = "Username sudah digunakan oleh user lain";
     }
     mysqli_stmt_close($check_stmt);
-    
-    
+
+
     if (empty($errors)) {
-        
+
         if (!empty($password) && $password !== $user_data['password']) {
-            
-            $password_hashed = $password; 
+
+            $password_hashed = $password;
         } else {
             $password_hashed = $password;
         }
-        
+
         $update_sql = "UPDATE users SET username = ?, password = ?, role = ? WHERE id_user = ?";
         $update_stmt = mysqli_prepare($koneksi, $update_sql);
-        
+
         if ($update_stmt) {
             mysqli_stmt_bind_param($update_stmt, "sssi", $username, $password_hashed, $role, $id);
-            
+
             if (mysqli_stmt_execute($update_stmt)) {
                 $message = "Data user berhasil diperbarui!";
                 $message_type = 'success';
-                
-                
+
+
                 $user_data['username'] = $username;
                 $user_data['password'] = $password;
                 $user_data['role'] = $role;
@@ -127,49 +127,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 <p>Perbarui informasi user sesuai kebutuhan</p>
             </div>
         </div>
-        
+
         <div class="user-info">
-            <i class="fas fa-user-circle"></i> Logged in sebagai: 
-            <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span> 
+            <i class="fas fa-user-circle"></i> Logged in sebagai:
+            <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
             (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
         </div>
-        
+
         <?php if (!empty($message)): ?>
             <div class="message <?php echo $message_type; ?>">
                 <?php echo $message; ?>
             </div>
         <?php endif; ?>
-        
+
         <?php if (!empty($user_data)): ?>
             <div class="form-container">
                 <form method="post" action="" id="editUserForm">
                     <input type="hidden" name="id_user" value="<?php echo $user_data['id_user']; ?>">
-                    
+
                     <div class="form-group">
                         <label for="username" class="required">
                             <i class="fas fa-user"></i> Username
                         </label>
-                        <input type="text" 
-                               id="username" 
-                               name="username" 
+                        <input type="text"
+                               id="username"
+                               name="username"
                                value="<?php echo htmlspecialchars($user_data['username']); ?>"
                                required
                                maxlength="50">
                         <span class="form-hint">Username unik untuk login sistem</span>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="password" class="required">
                             <i class="fas fa-lock"></i> Password
                         </label>
-                        <input type="text" 
-                               id="password" 
-                               name="password" 
+                        <input type="text"
+                               id="password"
+                               name="password"
                                value="<?php echo htmlspecialchars($user_data['password']); ?>"
                                required>
                         <span class="form-hint">Password untuk login user</span>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="role" class="required">
                             <i class="fas fa-user-tag"></i> Role
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                         </select>
                         <span class="form-hint">Hak akses user dalam sistem</span>
                     </div>
-                    
+
                     <div class="btn-container">
                         <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Batal
@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             </div>
         <?php elseif (empty($message)): ?>
             <!-- <div class="message error" style="margin: 30px;">
-                <i class="fas fa-exclamation-triangle"></i> 
+                <i class="fas fa-exclamation-triangle"></i>
                 Data user tidak ditemukan. Silakan pilih user yang valid.
                 <br><br>
                 <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary" style="margin-top: 10px;">
@@ -204,9 +204,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             </div> -->
         <?php endif; ?>
     </div>
-    
+
     <script>
-       
+
         setTimeout(function() {
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
@@ -215,27 +215,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 setTimeout(() => message.remove(), 500);
             });
         }, 5000);
-        
-     
+
+
         document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const role = document.getElementById('role').value;
-            
+
             let errors = [];
-            
+
             if (!username) {
                 errors.push('Username harus diisi');
             }
-            
+
             if (!password) {
                 errors.push('Password harus diisi');
             }
-            
+
             if (!role) {
                 errors.push('Role harus dipilih');
             }
-            
+
             if (errors.length > 0) {
                 e.preventDefault();
                 alert('Harap perbaiki kesalahan berikut:\n\n' + errors.join('\n'));

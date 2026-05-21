@@ -49,7 +49,7 @@
             </div>
             <div>
                 <p style="margin-top: 15px; font-size: 14px; color: #555; text-align: center;">LOGIN SEBAGAI<a href="login_admin.php" style="color: #3730a3; text-decoration: none;"> ADMIN</a></p>
-            </div>    
+            </div>
         </form>
     </div>
 </div>

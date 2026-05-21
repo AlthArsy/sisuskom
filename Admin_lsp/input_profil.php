@@ -108,11 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="form-container">
         <h2>Input Profil Admin</h2>
-        
+
         <div class="info-box">
             <strong>Informasi:</strong> Anda harus melengkapi profil ini sebelum dapat mengakses halaman lainnya.
         </div>
-        
+
         <form method="post" autocomplete="off">
             <div class="form-group">
                 <label for="nik">No NIK:<span class="required">*</span></label>

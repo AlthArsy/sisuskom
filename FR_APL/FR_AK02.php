@@ -12,101 +12,246 @@ if (!isset($_SESSION['username'])) {
 $id_asesi = isset($_GET['id_asesi'])
     ? intval($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
-
-$role     = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$role     = $_SESSION['role'] ?? '';
 $is_asesi = ($role === 'Asesi');
+
+$flash_msg  = $_SESSION['flash_ak02'] ?? '';
+$flash_type = '';
+if ($flash_msg) {
+    [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
+    unset($_SESSION['flash_ak02']);
+}
+
+
+
+$id_apl1_db     = 0;   
+$id_skema_db    = 0;
+$judul_skema_db = '';
+$nomor_skema_db = '';
+
+if ($id_asesi) {
+    $q = mysqli_query($koneksi,
+        "SELECT a.id_apl1, a.id_skema, s.judul_skema, s.nomor_skema
+         FROM tb_apl1 a
+         JOIN tb_skema s ON a.id_skema = s.id_skema
+         WHERE a.id_asesi = '$id_asesi'
+         ORDER BY a.id_apl1 DESC
+         LIMIT 1");
+    if ($q && mysqli_num_rows($q) > 0) {
+        $row            = mysqli_fetch_assoc($q);
+        $id_apl1_db     = intval($row['id_apl1']);
+        $id_skema_db    = intval($row['id_skema']);
+        $judul_skema_db = $row['judul_skema'] ?? '';
+        $nomor_skema_db = $row['nomor_skema']  ?? '';
+    }
+}
 
 $nama_asesi_db = '';
 if ($id_asesi) {
-    $r = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT nama_asesi FROM tb_asesi WHERE id_asesi='$id_asesi' LIMIT 1"));
-    $nama_asesi_db = $r['nama_asesi'] ?? '';
+    $rn = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT nama_asesi FROM tb_asesi WHERE id_asesi = '$id_asesi' LIMIT 1"));
+    $nama_asesi_db = $rn['nama_asesi'] ?? '';
 }
 
+$hari_tanggal_db = '';
+$tuk_db = '';
+if ($id_asesi && $id_skema_db) {
+    $qak1 = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT tuk, hari_tanggal, id_ak01 FROM tb_ak01
+         WHERE id_asesi = '$id_asesi' AND id_apl1 = '$id_apl1_db'
+         ORDER BY id_ak01 DESC
+         LIMIT 1"));
+    $tuk_db = $qak1['tuk'] ?? '';
+    $hari_tanggal_db = $qak1['hari_tanggal'] ?? '';
+    $id_ak01_db = intval($qak1['id_ak01'] ?? 0);
+}
+
+$tgl_selesai_db = '';
+if ($id_asesi && $id_skema_db) {
+    $qak1 = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT tgl_selesai,  id_ak03 FROM tb_ak03
+         WHERE id_asesi = '$id_asesi' AND id_apl1 = '$id_apl1_db'
+         ORDER BY id_ak03 DESC
+         LIMIT 1"));
+    $tgl_selesai_db = $qak1['tgl_selesai'] ?? '';
+}
+$id_skema = $id_skema_db;
+$data_ak02_saved   = null;
+$detail_ak02_saved = [];
+
+if ($id_asesi && $id_apl1_db) {
+    $cek = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT * FROM tb_ak02
+         WHERE id_asesi = '$id_asesi' AND id_apl1 = '$id_apl1_db'
+         ORDER BY id_ak02 DESC LIMIT 1"));
+    if ($cek) {
+        $data_ak02_saved = $cek;
+        $res_detail = mysqli_query($koneksi,
+            "SELECT * FROM detail_ak02 WHERE id_ak02 = '{$cek['id_ak02']}'");
+        while ($d = mysqli_fetch_assoc($res_detail)) {
+            $detail_ak02_saved[] = $d;
+        }
+    }
+}
+
+$mode = 'create';
+$id_skema = $id_skema_db;
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view','create','edit'])) {
+    $mode = $_GET['mode'];
+} elseif ($data_ak02_saved) {
+    $chk_rek = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT rekomendasi FROM tb_ak02
+         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
+         LIMIT 1"));
+    $mode = ($chk_rek && $chk_rek['rekomendasi']) ? 'view' : 'edit';
+}
+
+$id_asesor_db   = 0;
+$nama_asesor_db = '';
+$noreg_asesor_db = '';
+if ($id_skema_db) {
+    $qas = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT ar.id_asesor, ar.nama_asesor, ar.no_reg
+         FROM tb_skema sk
+         JOIN tb_asesor ar ON sk.id_asesor = ar.id_asesor
+         WHERE sk.id_skema = '$id_skema_db'
+         LIMIT 1"));
+    if ($qas) {
+        $id_asesor_db    = intval($qas['id_asesor']);
+        $nama_asesor_db  = $qas['nama_asesor'] ?? '';
+        $noreg_asesor_db = $qas['no_reg']       ?? '';
+    }
+}
+
+$list_unit = [];
+if ($id_skema_db) {
+    $qu = mysqli_query($koneksi,
+        "SELECT id_unit, judul_unit
+        FROM tb_unit_kompetensi
+        WHERE id_skema = '$id_skema_db'
+        ORDER BY id_unit ASC");
+    while ($u = mysqli_fetch_assoc($qu)) {
+        $list_unit[] = $u;
+    }
+}
+
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_skema = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
-    $tuk = isset($_POST['tuk']) ? trim($_POST['tuk']) : '';
-    $tgl_mulai = isset($_POST['tgl_mulai']) ? trim($_POST['tgl_mulai']) : '';
-    $tgl_selesai = isset($_POST['tgl_selesai']) ? trim($_POST['tgl_selesai']) : '';
+    $p_id_skema = $id_skema_db;
+    $p_id_apl1  = $id_apl1_db;
     $rekomendasi = isset($_POST['rekomendasi']) ? trim($_POST['rekomendasi']) : '';
     $tindak_lanjut = isset($_POST['tindak_lanjut']) ? trim($_POST['tindak_lanjut']) : '';
     $komentar_asesor  = isset($_POST['komentar_asesor']) ? trim($_POST['komentar_asesor']) : '';
-    $nama_asesi = isset($_POST['nama_asesi']) ? trim($_POST['nama_asesi']) : '';
-    $tanggal_asesi = isset($_POST['tanggal_asesi']) ? trim($_POST['tanggal_asesi']) : '';
-    $ttd_asesi_qr = isset($_POST['ttd_asesi_qr']) ? trim($_POST['ttd_asesi_qr']) : '';
-    $nama_asesor = isset($_POST['nama_asesor']) ? trim($_POST['nama_asesor']) : '';
-    $no_reg_asesor = isset($_POST['no_reg_asesor']) ? trim($_POST['no_reg_asesor']) : '';
-    $tanggal_asesor = isset($_POST['tanggal_asesor']) ? trim($_POST['tanggal_asesor']) : '';
-    $ttd_asesor_qr = isset($_POST['ttd_asesor_qr']) ? trim($_POST['ttd_asesor_qr']) : '';
-    $metode = isset($_POST['metode']) ? $_POST['metode'] : [];
 
-    if ($id_skema && $tuk && $id_asesi) {
-        $e = fn($v) => mysqli_real_escape_string($koneksi, $v);
+    if (!$p_id_skema || !$id_asesi) {
+        $_SESSION['flash_ak02'] = 'error|Data tidak lengkap – skema tidak ditemukan.';
+        header("Location: FR_AK02.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        exit;
+    }
+    if (!$p_id_apl1) {
+        $_SESSION['flash_ak02'] = 'error|APL-01 untuk asesi + skema ini belum ditemukan.';
+        header("Location: FR_AK02.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        exit;
+    } else {
+        $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
 
         $sql = "INSERT INTO tb_ak02
-            (id_asesi, id_skema, tuk, tgl_mulai, tgl_selesai,
-             rekomendasi, tindak_lanjut, komentar_asesor,
-             nama_asesi, tanggal_asesi, ttd_asesi_qr,
-             nama_asesor, no_reg_asesor, tanggal_asesor, ttd_asesor_qr)
+            (id_asesi, id_asesor, id_apl1, id_ak01,
+             rekomendasi, tindak_lanjut, komentar_asesor)
             VALUES (
-                '$id_asesi','$id_skema','{$e($tuk)}',
-                " . ($tgl_mulai ? "'{$e($tgl_mulai)}'" : "NULL") . ",
-                " . ($tgl_selesai ? "'{$e($tgl_selesai)}'" : "NULL") . ",
+                '$id_asesi','$id_asesor_db','$id_apl1_db','$id_ak01_db',
                 " . ($rekomendasi ? "'{$e($rekomendasi)}'" : "NULL") . ",
                 " . ($tindak_lanjut ? "'{$e($tindak_lanjut)}'"  : "NULL") . ",
-                " . ($komentar_asesor? "'{$e($komentar_asesor)}'" : "NULL") . ",
-                '{$e($nama_asesi)}',
-                " . ($tanggal_asesi  ? "'{$e($tanggal_asesi)}'"  : "NULL") . ",
-                '{$e($ttd_asesi_qr)}',
-                '{$e($nama_asesor)}','{$e($no_reg_asesor)}',
-                " . ($tanggal_asesor ? "'{$e($tanggal_asesor)}'" : "NULL") . ",
-                '{$e($ttd_asesor_qr)}'
+                " . ($komentar_asesor? "'{$e($komentar_asesor)}'" : "NULL") . "
             )";
         $res = mysqli_query($koneksi, $sql);
 
         if (!$res) {
-            echo "<script>alert('Gagal simpan!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
+            $pesan      = 'Gagal menyimpan header: ' . mysqli_error($koneksi);
+            $pesan_type = 'error';
+} else {
+    $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
+
+    // ── Hapus data lama dulu (seperti pola FR_IA1) ──
+    $old = mysqli_query($koneksi,
+        "SELECT id_ak02 FROM tb_ak02
+         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'");
+    $old_ids = [];
+    while ($o = mysqli_fetch_assoc($old)) $old_ids[] = intval($o['id_ak02']);
+    if ($old_ids) {
+        $ids_str = implode(',', $old_ids);
+        mysqli_query($koneksi, "DELETE FROM detail_ak02 WHERE id_ak02 IN ($ids_str)");
+        mysqli_query($koneksi, "DELETE FROM tb_ak02 WHERE id_ak02 IN ($ids_str)");
+    }
+
+    // ── Insert header baru ──
+    $sql = "INSERT INTO tb_ak02
+        (id_asesi, id_asesor, id_apl1, id_ak01,
+         rekomendasi, tindak_lanjut, komentar_asesor)
+        VALUES (
+            '$id_asesi','$id_asesor_db','$id_apl1_db','$id_ak01_db',
+            " . ($rekomendasi    ? "'{$e($rekomendasi)}'"    : "NULL") . ",
+            " . ($tindak_lanjut  ? "'{$e($tindak_lanjut)}'"  : "NULL") . ",
+            " . ($komentar_asesor? "'{$e($komentar_asesor)}'" : "NULL") . "
+        )";
+    $res = mysqli_query($koneksi, $sql);
+
+    if (!$res) {
+        $pesan      = 'Gagal menyimpan: ' . mysqli_error($koneksi);
+        $pesan_type = 'error';
         } else {
-            $id_ak02 = mysqli_insert_id($koneksi);
-
-            foreach ($metode as $id_unit => $m) {
-                $id_unit_i = intval($id_unit);
-                $obs  = isset($m['obs_demonstrasi']) ? 1 : 0;
-                $port = isset($m['portofolio']) ? 1 : 0;
-                $pp3  = isset($m['pernyataan_pihak3']) ? 1 : 0;
-                $pww  = isset($m['pertanyaan_wawancara']) ? 1 : 0;
-                $pls  = isset($m['pertanyaan_lisan']) ? 1 : 0;
-                $ptr  = isset($m['pertanyaan_tertulis']) ? 1 : 0;
-                $prk  = isset($m['proyek_kerja']) ?1 : 0;
-                $lain = isset($m['lainnya']) ? mysqli_real_escape_string($koneksi, $m['lainnya']) : '';
-
-                mysqli_query($koneksi,
-                    "INSERT INTO tb_ak02_metode
-                     (id_ak02, id_unit, obs_demonstrasi, portofolio, pernyataan_pihak3,
-                      pertanyaan_wawancara, pertanyaan_lisan, pertanyaan_tertulis,
-                      proyek_kerja, lainnya)
-                     VALUES ('$id_ak02','$id_unit_i','$obs','$port','$pp3',
-                             '$pww','$pls','$ptr','$prk',
-                             " . ($lain ? "'$lain'" : "NULL") . ")");
+                $id_ak02      = mysqli_insert_id($koneksi);
+                $gagal_detail = false;
+        
+                foreach (($_POST['metode'] ?? []) as $id_unit => $m) {
+                    $id_unit_i = intval($id_unit);
+                    $obs  = isset($m['obs_demonstrasi'])  ? 1 : 0;
+                    $port = isset($m['portofolio'])        ? 1 : 0;
+                    $pp3  = isset($m['pyt_pihak_ketiga'])  ? 1 : 0;
+                    $pww  = isset($m['pyt_wawancara'])     ? 1 : 0;
+                    $pls  = isset($m['pyt_lisan'])         ? 1 : 0;
+                    $ptr  = isset($m['pyt_pertulis'])      ? 1 : 0;
+                    $prk  = isset($m['proyek_kerja'])      ? 1 : 0;
+                    $lain = isset($m['lainnya'])
+                            ? mysqli_real_escape_string($koneksi, $m['lainnya']) : '';
+        
+                    $ins = mysqli_query($koneksi,
+                        "INSERT INTO detail_ak02
+                         (id_ak02, id_skema, id_unit, obs_demonstrasi, portofolio,
+                          pyt_pihak_ketiga, pyt_wawancara, pyt_lisan, pyt_pertulis,
+                          proyek_kerja, lainnya)
+                         VALUES ('$id_ak02','$id_skema_db','$id_unit_i',
+                                 '$obs','$port','$pp3','$pww','$pls','$ptr','$prk',
+                                 " . ($lain ? "'$lain'" : "NULL") . ")");
+                    if (!$ins) $gagal_detail = true;
+                }
+        
+                $_SESSION['flash_ak02'] = $gagal_detail
+                    ? 'warning|Header tersimpan, sebagian detail gagal.'
+                    : 'success|FR.AK.02 berhasil disimpan!';
+                header("Location: FR_AK02.php?id_asesi=$id_asesi&mode=view");
+                exit;
             }
-
-            echo "<script>alert('FR.AK.02 berhasil disimpan!');
-                          window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
-            exit;
         }
-    } else {
-        echo "<script>alert('Pilih skema dan TUK terlebih dahulu!');</script>";
     }
 }
+function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 
-$dsb       = $is_asesi ? 'disabled' : '';
-$dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' : '';
+
+$role = $_SESSION['role'] ?? '';
+$is_asesi       = ($role === 'Asesi');
+$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+
+$dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
+$dsb_untuk_asesor = $is_asesor ? '' : 'disabled';
+$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb              = $dsb_untuk_asesor;  
+$lock_asesi       = $dsb_untuk_asesi;    
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FR.AK.02 Rekaman Asesmen</title>
     <link rel="stylesheet" href="../assets/CSS/CSS_APL/FR_APL1_B2.css">
     <style>
@@ -174,6 +319,15 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
             text-align:center; padding:24px; color:#aaa;
             font-size:13px; border:1px dashed #ccc; border-radius:5px; margin:10px 0;
         }
+        .field-readonly {
+            padding: 6px 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: #f5f5f5;
+            font-size: 14px;
+            color: #090a10;
+        }
+        .field-readonly.empty { color: #999; font-style: italic; }
         @media(max-width:768px){
             .form-box { margin:6vw auto; padding:14px 4vw; }
             .ttd-box { flex-direction:column; }
@@ -186,10 +340,6 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
 <form method="post" autocomplete="off" id="mainForm">
     <input type="hidden" name="id_asesi"      value="<?php echo $id_asesi; ?>">
     <input type="hidden" name="id_skema"      id="id_skema_hidden">
-    <input type="hidden" name="nama_asesor"   id="nama_asesor_hidden">
-    <input type="hidden" name="no_reg_asesor" id="no_reg_asesor_hidden">
-    <input type="hidden" name="ttd_asesi_qr"  id="ttd_asesi_qr_input">
-    <input type="hidden" name="ttd_asesor_qr" id="ttd_asesor_qr_input">
 
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
         FR.AK.02. REKAMAN ASESMEN KOMPETENSI
@@ -197,86 +347,153 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
     <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff; margin:16px 0 14px;">
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <div style="flex:2; min-width:180px;">
-                <label class="small-text">Skema Sertifikasi – Judul <span class="required">*</span></label>
-                <div class="skema-wrap">
-                    <input type="text" id="judul_skema" class="form-control"
-                           placeholder="Ketik judul skema..." autocomplete="off"
-                           oninput="searchSkema(this.value)" required>
-                    <div class="skema-dropdown" id="skema-dropdown"></div>
+                <label class="small-text">Skema Sertifikasi – Judul</label>
+                <div class="field-readonly <?= $judul_skema_db ? '' : 'empty' ?>">
+                    <?= $judul_skema_db
+                        ? htmlspecialchars($judul_skema_db)
+                        : '— APL-1 belum diisi —' ?>
                 </div>
-                <div class="skema-selected-badge" id="skema-badge"></div>
             </div>
             <div style="flex:1; min-width:120px;">
-                <label class="small-text">Nomor</label>
-                <input type="text" id="nomor_skema" class="form-control"
-                       placeholder="Otomatis" readonly style="background:#f5f5f5;">
+                <label class="small-text">Nomor Skema</label>
+                <div class="field-readonly <?= $nomor_skema_db ? '' : 'empty' ?>">
+                    <?= $nomor_skema_db
+                        ? htmlspecialchars($nomor_skema_db)
+                        : '—' ?>
+                </div>
             </div>
             <div style="flex:1; min-width:140px;">
-                <label class="small-text">TUK <span class="required">*</span></label>
-                <select name="tuk" class="form-control" required <?= $dsb ?> style="<?= $dsb_style ?>">
-                    <option value="">-- Pilih --</option>
-                    <option value="Sewaktu">Sewaktu</option>
-                    <option value="Tempat Kerja">Tempat Kerja</option>
-                    <option value="Mandiri">Mandiri</option>
-                </select>
+                <label class="small-text">TUK
+                </label>
+                <div class="field-readonly <?= $tuk_db ? '' : 'empty' ?>">
+                    <?= $tuk_db
+                        ? htmlspecialchars($tuk_db)
+                        : '— AK-01 belum diisi —' ?>
+                </div>
             </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
             <div style="flex:2; min-width:180px;">
                 <label class="small-text">Nama Asesor</label>
-                <div id="asesor-nama"
-                     style="padding:5px 8px; border:1px solid #e0e0e0; border-radius:4px;
-                            background:#f5f5f5; font-size:14px; color:#1a237e; min-height:32px;">
-                    — pilih skema dulu —
+                <div style="flex:2; min-width:180px;">
+                    <div class="field-readonly <?= $nama_asesor_db ? '' : 'empty' ?>">
+                        <?= $nama_asesor_db
+                            ? htmlspecialchars($nama_asesor_db)
+                            : '— tidak ditemukan —' ?>
+                    </div>
+                    <!-- <div style="font-size:11px; color:#888; margin-top:4px;">
+                        <php if ($noreg_asesor_db): ?>
+                            <span style="font-size:11px; color:#666;" id="asesor-ttd-noreg">
+                                &nbsp;No.Reg: <= htmlspecialchars($noreg_asesor_db) ?>
+                            </span>
+                        <php endif; ?>
+                    </div> -->
                 </div>
             </div>
             <div style="flex:2; min-width:180px;">
-                <label class="small-text">Nama Asesi</label>
-                <input type="text" name="nama_asesi" id="nama_asesi" class="form-control"
-                       value="<?php echo htmlspecialchars($nama_asesi_db); ?>"
-                       placeholder="Nama Asesi" oninput="scheduleQRAsesi()">
+                  <label class="small-text">Nama Asesi</label>
+                <div class="field-readonly <?= $nama_asesi_db ? '' : 'empty' ?>">
+                    <?= $nama_asesi_db ? h($nama_asesi_db) : '— tidak ditemukan —' ?>
+                </div>
             </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
             <div style="flex:1; min-width:140px;">
                 <label class="small-text">Tanggal Mulai</label>
-                <input type="date" name="tgl_mulai" class="form-control"
-                       <?= $dsb ?> style="<?= $dsb_style ?>">
+                <div class="field-readonly <?= $hari_tanggal_db ? '' : 'empty' ?>">
+                    <?= $hari_tanggal_db ? htmlspecialchars($hari_tanggal_db) : '— AK-01 belum diisi —' ?>
+                </div>
             </div>
             <div style="flex:1; min-width:140px;">
                 <label class="small-text">Tanggal Selesai</label>
-                <input type="date" name="tgl_selesai" class="form-control"
-                       <?= $dsb ?> style="<?= $dsb_style ?>">
+                <div class="field-readonly <?= $tgl_selesai_db ? '' : 'empty' ?>">
+                    <?= $tgl_selesai_db
+                        ? htmlspecialchars($tgl_selesai_db)
+                        : '— AK-03 belum diisi —' ?>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="section-title" style="margin:16px 0 8px;">
-        Unit Kompetensi &amp; Metode Asesmen
-    </div>
-    <div class="placeholder-box" id="unit-placeholder">
-        Pilih skema untuk menampilkan unit kompetensi
-    </div>
-    <div id="tabel-metode-wrap" style="display:none; overflow-x:auto;">
-        <table class="tbl-ak02" id="tabel-metode">
-            <thead>
-                <tr>
-                    <th class="th-unit">Unit Kompetensi</th>
-                    <th>Observasi Demonstrasi</th>
-                    <th>Portofolio</th>
-                    <th>Pernyataan Pihak Ketiga</th>
-                    <th>Pertanyaan Wawancara</th>
-                    <th>Pertanyaan Lisan</th>
-                    <th>Pertanyaan Tertulis</th>
-                    <th>Proyek Kerja</th>
-                    <th class="th-unit">Lainnya</th>
-                </tr>
-            </thead>
-            <tbody id="unit-tbody"></tbody>
-        </table>
-    </div>
+    Unit Kompetensi &amp; Metode Asesmen
+</div>
 
-    <div id="hasil-section" style="display:none;">
+<?php if (empty($list_unit)): ?>
+    <div class="placeholder-box">
+        Unit kompetensi tidak ditemukan untuk skema ini.
+    </div>
+<?php else: ?>
+<div style="overflow-x:auto;">
+    <table class="tbl-ak02">
+        <thead>
+            <tr>
+                <th class="th-unit">Unit Kompetensi</th>
+                <th>Observasi Demonstrasi</th>
+                <th>Portofolio</th>
+                <th>Pernyataan Pihak Ketiga</th>
+                <th>Pertanyaan Wawancara</th>
+                <th>Pertanyaan Lisan</th>
+                <th>Pertanyaan Tertulis</th>
+                <th>Proyek Kerja</th>
+                <th class="th-unit">Lainnya</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($list_unit as $unit):
+                $uid = $unit['id_unit'];
+                $saved = [];
+                foreach ($detail_ak02_saved as $ds) {
+                    if ($ds['id_unit'] == $uid) { $saved = $ds; break; }
+                }
+            ?>
+            <tr>
+                <td>
+                    <?= htmlspecialchars($unit['judul_unit']) ?>
+                    <input type="hidden" name="metode[<?= $uid ?>][id_unit]" value="<?= $uid ?>" <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][obs_demonstrasi]"
+                           <?= !empty($saved['obs_demonstrasi']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][portofolio]"
+                           <?= !empty($saved['portofolio']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][pyt_pihak_ketiga]"
+                           <?= !empty($saved['pyt_pihak_ketiga']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][pyt_wawancara]"
+                           <?= !empty($saved['pyt_wawancara']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][pyt_lisan]"
+                           <?= !empty($saved['pyt_lisan']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][pyt_pertulis]"
+                           <?= !empty($saved['pyt_pertulis']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td>
+                    <input type="checkbox" name="metode[<?= $uid ?>][proyek_kerja]"
+                           <?= !empty($saved['proyek_kerja']) ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>>
+                </td>
+                <td class="lainnya-cell">
+                    <input type="text" name="metode[<?= $uid ?>][lainnya]"
+                           value="<?= htmlspecialchars($saved['lainnya'] ?? '') ?>"
+                           placeholder="Lainnya..." <?= $dsb_untuk_asesor ?>>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    
+</div>
+<?php endif; ?>
+
+    <div id="hasil-section">
         <div class="section-title" style="margin:20px 0 8px;">Hasil Asesmen</div>
         <div class="hasil-box">
             <div style="margin-bottom:12px;">
@@ -285,10 +502,10 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
                 </label>
                 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; <?= $dsb_style ?>">
                     <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Kompeten" <?= $dsb ?>> <b>Kompeten</b>
+                        <input type="radio" name="rekomendasi" value="Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>> <b>Kompeten</b>
                     </label>
                     <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Belum Kompeten" <?= $dsb ?>> <b>Belum Kompeten</b>
+                        <input type="radio" name="rekomendasi" value="Belum Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Belum Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>> <b>Belum Kompeten</b>
                     </label>
                 </div>
             </div>
@@ -296,16 +513,15 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
                 <label class="small-text">Tindak lanjut yang dibutuhkan :</label>
                 <textarea name="tindak_lanjut" class="form-control" rows="3"
                           placeholder="Masukkan pekerjaan tambahan dan asesmen yang diperlukan..."
-                          <?= $dsb ?> style="<?= $dsb_style ?>"></textarea>
+                          <?= $dsb_untuk_asesor ?> style="<?= $dsb_style ?>"><?= htmlspecialchars($data_ak02_saved['tindak_lanjut'] ?? '') ?></textarea>
             </div>
             <div>
                 <label class="small-text">Komentar / Observasi oleh Asesor :</label>
                 <textarea name="komentar_asesor" class="form-control" rows="3"
-                          placeholder="Komentar asesor..."
-                          <?= $dsb ?> style="<?= $dsb_style ?>"></textarea>
+                          placeholder="Komentar asesor..." 
+                          <?= $dsb_untuk_asesor ?> style="<?= $dsb_style ?>"><?= htmlspecialchars($data_ak02_saved['komentar_asesor'] ?? '') ?></textarea>
             </div>
         </div>
-
         <div class="ttd-box">
             <div class="ttd-col">
                 <div class="col-title">Asesi</div>
@@ -315,12 +531,12 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
                         <?php echo htmlspecialchars($nama_asesi_db); ?>
                     </span>
                 </div>
-                <div style="margin-bottom:8px;">
+                <!-- <div style="margin-bottom:8px;">
                     <label class="small-text">Tanda tangan / Tanggal</label>
                     <input type="date" name="tanggal_asesi" id="tanggal_asesi"
                            class="form-control" onchange="scheduleQRAsesi()">
-                </div>
-                <div class="qr-box">
+                </div> -->
+                <!-- <div class="qr-box">
                     <div class="qr-title">QR Tanda Tangan Asesi</div>
                     <div class="qr-canvas-wrap" id="qr-asesi-canvas">
                         <div class="qr-ph-sm" id="qr-asesi-ph">
@@ -329,24 +545,31 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
                     </div>
                     <div id="qr-asesi-badge" class="qr-badge">QR Siap</div><br>
                     <button type="button" id="btn-dl-asesi" class="btn-dl-qr"
-                            onclick="dlQRAsesi()">⬇ Download</button>
-                </div>
+                            onclick="dlQRAsesi()">Download</button>
+                </div> -->
             </div>
 
             <div class="ttd-col">
                 <div class="col-title">Asesor</div>
                 <div style="font-size:13px; margin-bottom:2px;">
-                    <b>Nama :</b> <span id="asesor-ttd-nama" style="color:#1a237e;">— pilih skema —</span>
-                </div>
-                <div style="font-size:11px; color:#888; margin-bottom:8px;">
-                    No. Reg: <span id="asesor-ttd-noreg">-</span>
-                </div>
-                <div style="margin-bottom:8px; <?= $dsb_style ?>">
+                    <b>Nama :</b>
+                        <?= $nama_asesor_db
+                            ? htmlspecialchars($nama_asesor_db)
+                            : '— tidak ditemukan —' ?>
+                    </div>
+                    <div style="font-size:11px; color:#888; margin-top:4px;">
+                        <?php if ($noreg_asesor_db): ?>
+                            <span style="font-size:11px; color:#666;" id="asesor-ttd-noreg">
+                                &nbsp;No.Reg: <?= htmlspecialchars($noreg_asesor_db) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                <!-- <div style="margin-bottom:8px; <= $dsb_style ?>">
                     <label class="small-text">Tanda tangan / Tanggal</label>
                     <input type="date" name="tanggal_asesor" id="tanggal_asesor"
                            class="form-control" onchange="scheduleQRAsesor()"
-                           <?= $dsb ?> style="<?= $dsb_style ?>">
-                </div>
+                           <= $dsb ?> style="<= $dsb_style ?>">
+                </div> -->
                 <!-- <div class="qr-box" style="< $dsb_style ">
                     <div class="qr-title">QR Tanda Tangan Asesor</div>
                     <div class="qr-canvas-wrap" id="qr-asesor-canvas">
@@ -362,23 +585,21 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
         </div>
     </div>
 
-    <!-- Tombol -->
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <button type="button" class="btn-back"
             onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
              Kembali
         </button>
-        <button type="submit" class="btn-submit" onclick="return prepareQR()">SIMPAN ✓</button>
+    <?php if ($mode === 'view' && !$is_asesi): ?>
+        <button type="submit" class="btn-submit"
+                >
+            UPDATE
+        </button>
+    <?php elseif ($mode !== 'view'): ?>
+        <button type="submit" class="btn-submit">SIMPAN ✓</button>
+    <?php endif; ?>
     </div>
 </form>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="../assets/JS/lsp_common.js"></script>
-<script src="../assets/JS/fr_ak02.js"></script>
-<script>
-    // Kirim id_asesi ke JS
-    var ID_ASESI = <?php echo $id_asesi; ?>;
-</script>
 </body>
 </html>

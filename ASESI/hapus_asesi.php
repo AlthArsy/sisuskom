@@ -30,7 +30,7 @@ if (isset($_GET['all']) && $_GET['all'] == '1') {
 
     // mysqli_begin_transaction($koneksi);
     // try {
-       
+
         // $stmt = mysqli_prepare($koneksi, "UPDATE users SET id_referensi = NULL WHERE id_referensi IS NOT NULL");
         // mysqli_stmt_execute($stmt);
         // mysqli_stmt_close($stmt);
@@ -53,7 +53,7 @@ $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0) {
     die("ID tidak valid.");
 }
-                        
+
 
 mysqli_begin_transaction($koneksi);
 try {

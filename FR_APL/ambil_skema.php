@@ -24,7 +24,7 @@ if ($action === 'search') {
         }
     }
 
-    echo json_encode(['status' => 'ok', 'data' => $data]);
+    echo json_encode(['status' => 'ok', 'data' => $data]); 
     exit;
 }
 
@@ -48,7 +48,7 @@ if ($action === 'detail') {
     $skema = mysqli_fetch_assoc($res_skema);
 
     if (!$skema) {
-        echo json_encode(['status' => 'error', 'message' => 'Skema tidak ditemukan']); 
+        echo json_encode(['status' => 'error', 'message' => 'Skema tidak ditemukan']);
         exit;
     }
 
@@ -68,6 +68,50 @@ if ($action === 'detail') {
         'status'  => 'ok',
         'skema'   => $skema,
         'units'   => $units
+    ]);
+    exit;
+}
+
+if ($action === 'bukti') {
+    $id_skema = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
+    if (!$id_skema) {
+        echo json_encode(['status' => 'error', 'message' => 'id_skema tidak valid']);
+        exit;
+    }
+
+    $res_bd = mysqli_query(
+        $koneksi,
+        "SELECT id_bd, bukti_dasar
+         FROM tb_bukti_dasar
+         WHERE id_skema = '$id_skema'
+         ORDER BY id_bd ASC"
+    );
+    $res_ba = mysqli_query(
+        $koneksi,
+        "SELECT id_ba, bukti_adm
+         FROM tb_bukti_adm
+         WHERE id_skema = '$id_skema'
+         ORDER BY id_ba ASC"
+    );
+
+    $bukti_dasar = [];
+    $bukti_adm = [];
+
+    if ($res_bd) {
+        while ($row = mysqli_fetch_assoc($res_bd)) {
+            $bukti_dasar[] = $row;
+        }
+    }
+    if ($res_ba) {
+        while ($row = mysqli_fetch_assoc($res_ba)) {
+            $bukti_adm[] = $row;
+        }
+    }
+
+    echo json_encode([
+        'status' => 'ok',
+        'bukti_dasar' => $bukti_dasar,
+        'bukti_adm' => $bukti_adm
     ]);
     exit;
 }

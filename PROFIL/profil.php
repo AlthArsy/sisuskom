@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_password'])) {
         $new_password = $_POST['new_password'];
         $confirm_password = $_POST['confirm_password'];
-        
+
         if ($new_password !== $confirm_password) {
             $message = "Password baru tidak cocok!";
             $message_type = "error";
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $update = "UPDATE users SET password = ? WHERE id_user = ?";
             $stmt = mysqli_prepare($koneksi, $update);
             mysqli_stmt_bind_param($stmt, "si", $new_password, $user_data['id_user']);
-            
+
             if (mysqli_stmt_execute($stmt)) {
                 $message = "Password berhasil diubah!";
                 $message_type = "success";
@@ -69,10 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             mysqli_stmt_close($stmt);
         }
-    } 
+    }
     // elseif (isset($_POST['update_username']) && $role === 'Admin_utm') {
     //     $new_username = trim($_POST['username']);
-        
+
     //     if (empty($new_username)) {
     //         $message = "Username tidak boleh kosong!";
     //         $message_type = "error";
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //         $update = "UPDATE users_admin SET username = ? WHERE id_user_admin = ?";
     //         $stmt = mysqli_prepare($koneksi, $update);
     //         mysqli_stmt_bind_param($stmt, "si", $new_username, $user_data['id_user_admin']);
-            
+
     //         if (mysqli_stmt_execute($stmt)) {
     //             $_SESSION['username'] = $new_username;
     //             $message = "Username berhasil diubah!";
@@ -92,10 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //         }
     //         mysqli_stmt_close($stmt);
     //     }
-    // } 
+    // }
         elseif (isset($_POST['update_username']) && $role === 'Admin_lsp') {
         $new_username = trim($_POST['username']);
-        
+
         if (empty($new_username)) {
             $message = "Username tidak boleh kosong!";
             $message_type = "error";
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $update = "UPDATE users SET username = ? WHERE id_user = ?";
             $stmt = mysqli_prepare($koneksi, $update);
             mysqli_stmt_bind_param($stmt, "si", $new_username, $user_data['id_user']);
-            
+
             if (mysqli_stmt_execute($stmt)) {
                 $_SESSION['username'] = $new_username;
                 $message = "Username berhasil diubah!";
@@ -120,11 +120,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama_asesor = trim($_POST['nama_asesor']);
         $jenis_kelamin = $_POST['jenis_kelamin'];
         $alamat = trim($_POST['alamat']);
-        
+
         $update = "UPDATE tb_asesor SET no_reg = ?, nama_asesor = ?, jenis_kelamin = ?, alamat = ? WHERE id_asesor = ?";
         $stmt = mysqli_prepare($koneksi, $update);
         mysqli_stmt_bind_param($stmt, "ssssi", $no_reg, $nama_asesor, $jenis_kelamin, $alamat, $user_data['id_asesor']);
-        
+
         if (mysqli_stmt_execute($stmt)) {
             $_SESSION['nama_user'] = $nama_asesor;
             $message = "Profil berhasil diperbarui!";
@@ -140,22 +140,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'nama_asesi', 'nik', 'jenis_kelamin', 'kebangsaan', 'alamat_rumah', 'kode_pos',
             'hp', 'email', 'pendidikan', 'nama_institusi', 'jabatan', 'alamat_institusi', 'kode_pos_institusi'
         ];
-        
+
         $values = [];
         foreach ($fields as $field) {
             $values[] = trim($_POST[$field] ?? '');
         }
-        
-        $update = "UPDATE tb_asesi SET 
+
+        $update = "UPDATE tb_asesi SET
             nama_asesi = ?, nik = ?, jenis_kelamin = ?, kebangsaan = ?, alamat_rumah = ?, kode_pos = ?,
             hp = ?, email = ?, pendidikan = ?, nama_institusi = ?, jabatan = ?, alamat_institusi = ?, kode_pos_institusi = ?
             WHERE id_asesi = ?";
-        
+
         $stmt = mysqli_prepare($koneksi, $update);
         $values[] = $user_data['id_asesi'];
         $types = str_repeat('s', count($fields)) . 'i';
         mysqli_stmt_bind_param($stmt, $types, ...$values);
-        
+
         if (mysqli_stmt_execute($stmt)) {
             $_SESSION['nama_user'] = $values[0];
             $message = "Profil berhasil diperbarui!";
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="info-box">
         <strong><i class="fas fa-info-circle"></i> Informasi Akun:</strong><br>
-        Username: <strong><?= htmlspecialchars($username) ?></strong> | 
+        Username: <strong><?= htmlspecialchars($username) ?></strong> |
         Role: <strong><?= htmlspecialchars($role) ?></strong>
     </div>
 
@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST">
                 <div class="form-group">
                     <label for="username" class="required">Username Baru</label>
-                    <input type="text" id="username" name="username" class="form-control" 
+                    <input type="text" id="username" name="username" class="form-control"
                            value="<?= htmlspecialchars($user_data['username']) ?>" required>
                 </div>
                 <button type="submit" name="update_username" class="btn btn-primary">
@@ -214,13 +214,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST">
                 <div class="form-group">
                     <label for="new_password" class="required">Password Baru</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" 
+                    <input type="password" id="new_password" name="new_password" class="form-control"
                            minlength="6" required>
                     <small style="color: #6c757d;">Minimal 6 karakter</small>
                 </div>
                 <div class="form-group">
                     <label for="confirm_password" class="required">Konfirmasi Password Baru</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" 
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
                            minlength="6" required>
                 </div>
                 <button type="submit" name="update_password" class="btn btn-success">
@@ -240,12 +240,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="no_reg" class="required">No Registrasi</label>
-                        <input type="text" id="no_reg" name="no_reg" class="form-control" 
+                        <input type="text" id="no_reg" name="no_reg" class="form-control"
                                value="<?= htmlspecialchars($profile_data['no_reg']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="nama_asesor" class="required">Nama Lengkap</label>
-                        <input type="text" id="nama_asesor" name="nama_asesor" class="form-control" 
+                        <input type="text" id="nama_asesor" name="nama_asesor" class="form-control"
                                value="<?= htmlspecialchars($profile_data['nama_asesor']) ?>" required>
                     </div>
                 </div>
@@ -259,7 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="form-group">
                         <label for="alamat" class="required">Alamat</label>
-                        <input type="text" id="alamat" name="alamat" class="form-control" 
+                        <input type="text" id="alamat" name="alamat" class="form-control"
                                value="<?= htmlspecialchars($profile_data['alamat']) ?>" required>
                     </div>
                 </div>
@@ -282,12 +282,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="nama_asesi" class="required">Nama Lengkap</label>
-                        <input type="text" id="nama_asesi" name="nama_asesi" class="form-control" 
+                        <input type="text" id="nama_asesi" name="nama_asesi" class="form-control"
                                value="<?= htmlspecialchars($profile_data['nama_asesi']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="nik" class="required">NIK</label>
-                        <input type="text" id="nik" name="nik" class="form-control" 
+                        <input type="text" id="nik" name="nik" class="form-control"
                                value="<?= htmlspecialchars($profile_data['nik']) ?>" maxlength="16" required>
                     </div>
                 </div>
@@ -301,31 +301,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="form-group">
                         <label for="kebangsaan" class="required">Kebangsaan</label>
-                        <input type="text" id="kebangsaan" name="kebangsaan" class="form-control" 
+                        <input type="text" id="kebangsaan" name="kebangsaan" class="form-control"
                                value="<?= htmlspecialchars($profile_data['kebangsaan']) ?>" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="alamat_rumah" class="required">Alamat Rumah</label>
-                        <input type="text" id="alamat_rumah" name="alamat_rumah" class="form-control" 
+                        <input type="text" id="alamat_rumah" name="alamat_rumah" class="form-control"
                                value="<?= htmlspecialchars($profile_data['alamat_rumah']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="kode_pos" class="required">Kode Pos</label>
-                        <input type="text" id="kode_pos" name="kode_pos" class="form-control" 
+                        <input type="text" id="kode_pos" name="kode_pos" class="form-control"
                                value="<?= htmlspecialchars($profile_data['kode_pos']) ?>" maxlength="6" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="hp" class="required">No HP</label>
-                        <input type="text" id="hp" name="hp" class="form-control" 
+                        <input type="text" id="hp" name="hp" class="form-control"
                                value="<?= htmlspecialchars($profile_data['hp']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="email" class="required">Email</label>
-                        <input type="email" id="email" name="email" class="form-control" 
+                        <input type="email" id="email" name="email" class="form-control"
                                value="<?= htmlspecialchars($profile_data['email']) ?>" required>
                     </div>
                 </div>
@@ -334,30 +334,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="pendidikan">Pendidikan Terakhir</label>
-                        <input type="text" id="pendidikan" name="pendidikan" class="form-control" 
+                        <input type="text" id="pendidikan" name="pendidikan" class="form-control"
                                value="<?= htmlspecialchars($profile_data['pendidikan'] ?? '') ?>">
                     </div>
                     <div class="form-group">
                         <label for="nama_institusi" class="required">Nama Institusi</label>
-                        <input type="text" id="nama_institusi" name="nama_institusi" class="form-control" 
+                        <input type="text" id="nama_institusi" name="nama_institusi" class="form-control"
                                value="<?= htmlspecialchars($profile_data['nama_institusi']) ?>" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="jabatan" class="required">Jabatan</label>
-                        <input type="text" id="jabatan" name="jabatan" class="form-control" 
+                        <input type="text" id="jabatan" name="jabatan" class="form-control"
                                value="<?= htmlspecialchars($profile_data['jabatan']) ?>" required>
                     </div>
                     <div class="form-group">
                         <label for="alamat_institusi" class="required">Alamat Institusi</label>
-                        <input type="text" id="alamat_institusi" name="alamat_institusi" class="form-control" 
+                        <input type="text" id="alamat_institusi" name="alamat_institusi" class="form-control"
                                value="<?= htmlspecialchars($profile_data['alamat_institusi']) ?>" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="kode_pos_institusi" class="required">Kode Pos Institusi</label>
-                    <input type="text" id="kode_pos_institusi" name="kode_pos_institusi" class="form-control" 
+                    <input type="text" id="kode_pos_institusi" name="kode_pos_institusi" class="form-control"
                            value="<?= htmlspecialchars($profile_data['kode_pos_institusi']) ?>" maxlength="6" required>
                 </div>
 
@@ -383,7 +383,7 @@ setTimeout(function() {
 document.getElementById('confirm_password')?.addEventListener('input', function() {
     const newPass = document.getElementById('new_password').value;
     const confirmPass = this.value;
-    
+
     if (newPass !== confirmPass) {
         this.setCustomValidity('Password tidak cocok!');
     } else {

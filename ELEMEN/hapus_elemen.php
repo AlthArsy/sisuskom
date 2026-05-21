@@ -16,7 +16,7 @@ $id_unit = 0;
 
 if ($id > 0) {
     mysqli_begin_transaction($koneksi);
-    
+
     try {
 
         $query_skema = "SELECT id_unit From tb_elemen WHERE id_elemen = ?";
@@ -35,33 +35,33 @@ if ($id > 0) {
         mysqli_stmt_bind_param($stmt_kuk, 'i', $id);
         mysqli_stmt_execute($stmt_kuk);
         $result_kuk = mysqli_stmt_get_result($stmt_kuk);
-        
+
         $kuk_ids = [];
         while ($row = mysqli_fetch_assoc($result_kuk)) {
             $kuk_ids[] = $row['id_kuk'];
         }
         mysqli_stmt_close($stmt_kuk);
-        
+
         $total_kuk = count($kuk_ids);
-        
-        
+
+
         $query_hapus_elemen = "DELETE FROM tb_elemen WHERE id_elemen = ?";
         $stmt_hapus_elemen = mysqli_prepare($koneksi, $query_hapus_elemen);
         mysqli_stmt_bind_param($stmt_hapus_elemen, 'i', $id);
         mysqli_stmt_execute($stmt_hapus_elemen);
         mysqli_stmt_close($stmt_hapus_elemen);
-        
+
         mysqli_commit($koneksi);
-        
+
         $_SESSION['pesan'] = "Elemen Berhasil Dihapus Beserta Kuk";
         $_SESSION['tipe'] = "success";
-        
+
     } catch (Exception $e) {
         mysqli_rollback($koneksi);
         $_SESSION['pesan'] = "Gagal menghapus Elemen: " . $e->getMessage();
         $_SESSION['tipe'] = "error";
     }
-    
+
 } else {
     $_SESSION['pesan'] = "ID Elemen tidak valid!";
     $_SESSION['tipe'] = "error";

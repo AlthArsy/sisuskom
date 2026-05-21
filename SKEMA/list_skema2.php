@@ -16,26 +16,26 @@ if (mysqli_connect_errno()) {
 
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-if ($_SESSION['role'] === 'Admin') {
+if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
     $query = "
-        SELECT 
-            tb_skema.id_skema, 
-            tb_skema.nomor_skema, 
-            tb_skema.judul_skema, 
-            tb_skema.standar_kompetensi_kerja, 
+        SELECT
+            tb_skema.id_skema,
+            tb_skema.nomor_skema,
+            tb_skema.judul_skema,
+            tb_skema.standar_kompetensi_kerja,
             tb_asesor.nama_asesor,
             COUNT(tb_unit_kompetensi.id_unit) as jumlah_unit
         FROM tb_skema
         LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
         LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
     ";
-    
+
     if (!empty($search)) {
         $query .= " WHERE tb_skema.nomor_skema LIKE ?";
     }
-    
+
     $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
-    
+
     if (!empty($search)) {
         $stmt = mysqli_prepare($koneksi, $query);
         $search_param = '%' . $search . '%';
@@ -46,7 +46,7 @@ if ($_SESSION['role'] === 'Admin') {
     } else {
         $result = mysqli_query($koneksi, $query);
     }
-    
+
 } else if ($_SESSION['role'] === 'Asesor') {
     if (!isset($_SESSION['id_asesor'])) {
         $username = $_SESSION['username'];
@@ -63,16 +63,16 @@ if ($_SESSION['role'] === 'Admin') {
         }
         mysqli_stmt_close($stmt_asesor);
     }
-    
+
     $id_asesor_login = intval($_SESSION['id_asesor']);
-    
+
     if ($id_asesor_login > 0) {
         $query = "
-            SELECT 
-                tb_skema.id_skema, 
-                tb_skema.nomor_skema, 
-                tb_skema.judul_skema, 
-                tb_skema.standar_kompetensi_kerja, 
+            SELECT
+                tb_skema.id_skema,
+                tb_skema.nomor_skema,
+                tb_skema.judul_skema,
+                tb_skema.standar_kompetensi_kerja,
                 tb_asesor.nama_asesor,
                 COUNT(tb_unit_kompetensi.id_unit) as jumlah_unit
             FROM tb_skema
@@ -80,13 +80,13 @@ if ($_SESSION['role'] === 'Admin') {
             LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
             WHERE tb_skema.id_asesor = ?
         ";
-        
+
         if (!empty($search)) {
             $query .= " AND tb_skema.nomor_skema LIKE ?";
         }
-        
+
         $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
-        
+
         $stmt = mysqli_prepare($koneksi, $query);
         if (!empty($search)) {
             $search_param = '%' . $search . '%';
@@ -116,7 +116,7 @@ function getUnitButtonColor($jumlah) {
         9  => '#4f0db8ff',
         10 => '#1e023dff'
     ];
-    
+
     if ($jumlah > 10) $jumlah = 10;
     return $colors[$jumlah];
 }
@@ -133,11 +133,11 @@ function getUnitButtonColor($jumlah) {
             </a>
         <?php endif; ?>
     </div>
-    
+
     <?php if (isset($_SESSION['pesan'])): ?>
         <div class="message <?php echo $_SESSION['tipe']; ?>">
-            <?php 
-                echo htmlspecialchars($_SESSION['pesan']); 
+            <?php
+                echo htmlspecialchars($_SESSION['pesan']);
                 unset($_SESSION['pesan']);
                 unset($_SESSION['tipe']);
             ?>
@@ -147,18 +147,18 @@ function getUnitButtonColor($jumlah) {
         <?php if (isset($_GET['page'])): ?>
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
         <?php endif; ?>
-        
-        <input 
-            type="text" 
+
+        <input
+            type="text"
             name="search"
-            placeholder="Cari Nomor Skema" 
+            placeholder="Cari Nomor Skema"
             value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
-        
+
         <button type="submit">Cari</button>
-        
+
         <?php if (!empty($search) || !empty($role_filter)): ?>
-            <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>" 
-               class="btn-reset" 
+            <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
+               class="btn-reset"
                style="padding:7px 18px;font-size:14px;background:#95a5a6;border:none;border-radius:4px;color:#fff;text-decoration:none;display:inline-block;">
                 Reset
             </a>
@@ -172,7 +172,7 @@ function getUnitButtonColor($jumlah) {
             <?php endif; ?>
         </div>
     <?php endif; ?>
-    
+
     <table>
         <thead>
             <tr>
@@ -184,9 +184,9 @@ function getUnitButtonColor($jumlah) {
             </tr>
         </thead>
         <tbody>
-            <?php if (isset($result) && mysqli_num_rows($result) > 0): 
+            <?php if (isset($result) && mysqli_num_rows($result) > 0):
                 $no = 1;
-                while ($row = mysqli_fetch_assoc($result)): 
+                while ($row = mysqli_fetch_assoc($result)):
                     $jumlah_unit = intval($row['jumlah_unit'] ?? 0);
                     $color = getUnitButtonColor($jumlah_unit);
             ?>

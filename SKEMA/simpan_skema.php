@@ -16,7 +16,7 @@ if (!isset($_SESSION['id_asesor']) || empty($_SESSION['id_asesor'])) {
     mysqli_stmt_bind_param($stmt_asesor, "s", $username);
     mysqli_stmt_execute($stmt_asesor);
     $result_asesor = mysqli_stmt_get_result($stmt_asesor);
-    
+
     if ($row = mysqli_fetch_assoc($result_asesor)) {
         $_SESSION['id_asesor'] = $row['id_asesor'];
     } else {

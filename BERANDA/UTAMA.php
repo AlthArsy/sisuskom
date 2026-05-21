@@ -1,4 +1,4 @@
-<?php 
+<?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -43,7 +43,7 @@ $roles_data = [
                 'label' => 'Manajemen User'
             ],
             [
-                'href' => '../ADMIN/Admin.php',
+                'href' => '../Admin_lsp/Table_admin_lsp.php',
                 'icon' => 'fas fa-users',
                 'label' => 'Manajemen Admin'
             ],
@@ -57,91 +57,35 @@ $roles_data = [
                 'icon' => 'fas fa-user-graduate',
                 'label' => 'Manajemen Asesi'
             ],
-            // [
-            //     'href' => '#',
-            //     'icon' => 'fas fa-book',
-            //     'label' => 'Bukti & Isi',
-            //     'has_dropdown' => true,
-            //     'submenu' => [
-
-            //         // [
-            //         //     'href' => '../DASAR/isi_bukti_dasar.php',
-            //         //     'icon' => '#',
-            //         //     'label' => 'Isi Bukti Dasar'
-            //         // ],
-            //         // [
-            //         //     'href' => '../ADM/isi_bukti_adm.php',
-            //         //     'icon' => '#',
-            //         //     'label' => 'Isi Bukti Adm'
-            //         // ],
-            //         // [
-            //         //     'href' => '../ELEMEN/elemen.php',
-            //         //     'icon' => 'fas fa-puzzle-piece',
-            //         //     'label' => 'Element'
-            //         // ],
-            //         // [
-            //         //     'href' => '../KUK/KUK.php',
-            //         //     'icon' => 'fas fa-check-circle',
-            //         //     'label' => 'KUK'
-            //         // ]
-            //     ]
-            // ],
-            // [
-            //     'href' => '#',
-            //     'icon' => 'fas fa-book',
-            //     'label' => 'Isi Bukti Dasar & Adm',
-            //     'has_dropdown' => true,
-            //     'submenu' => [
-            //         [
-            //             'href' => '../DASAR/isi_bukti_dasar.php',
-            //             'icon' => '#',
-            //             'label' => 'Isi Bukti Dasar'
-            //         ],
-            //         [
-            //             'href' => '../ADM/isi_bukti_adm.php',
-            //             'icon' => '#',
-            //             'label' => 'Isi Bukti Adm'
-            //         ],
-            //     ]
-            // ],
+             [
+                'href' => '../list/rekap_fr.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR APL 1'
+            ],
             [
-                'href' => '#',
-                'icon' => 'fas fa-book',
-                'label' => 'Manajemen Skema',
-                'has_dropdown' => true,
-                'submenu' => [
-                    [
-                        'href' => '../SKEMA/list_skema.php',
-                        'icon' => 'fas fa-book',
-                        'label' => 'Kelola Skema'
-                    ],
-                    [
-                        'href' => '../SKEMA/list_skema2.php',
-                        'icon' => 'fas fa-tasks',
-                        'label' => 'Data Skema'
-                    ],
-                    [
-                        'href' => '../DASAR/bukti_dasar.php',
-                        'icon' => '#',
-                        'label' => 'Bukti Dasar'
-                    ],
-                    [
-                        'href' => '../ADM/bukti_adm.php',
-                        'icon' => '#',
-                        'label' => 'Bukti Adm'
-                    ],
-                    // [
-                    //     'href' => '../ELEMEN/elemen.php',
-                    //     'icon' => 'fas fa-puzzle-piece',
-                    //     'label' => 'Element'
-                    // ],
-                    // [
-                    //     'href' => '../KUK/KUK.php',
-                    //     'icon' => 'fas fa-check-circle',
-                    //     'label' => 'KUK'
-                    // ]
-                ]
+                'href' => '../list/rekap_frapl2.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR APL 2'
+            ],
+             [
+                'href' => '../list/rekap_ak3.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap AK 3'
+            ],
+             [
+                'href' => '../list/rekap_ia1.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap IA 1'
+            ],
+            
+
+
+            [
+                'href' => '../SKEMA/list_skema2.php',
+                'icon' => 'fas fa-tasks',
+                'label' => 'Data Skema'
             ]
+
         ]
     ],
     'Admin_lsp' => [
@@ -170,104 +114,11 @@ $roles_data = [
                 'icon' => 'fas fa-user-graduate',
                 'label' => 'Rekap FR APL 1'
             ],
-            // [
-            //     'href' => '#',
-            //     'icon' => 'fas fa-book',
-            //     'label' => 'Bukti & Isi',
-            //     'has_dropdown' => true,
-            //     'submenu' => [
-
-            //         // [
-            //         //     'href' => '../DASAR/isi_bukti_dasar.php',
-            //         //     'icon' => '#',
-            //         //     'label' => 'Isi Bukti Dasar'
-            //         // ],
-            //         // [
-            //         //     'href' => '../ADM/isi_bukti_adm.php',
-            //         //     'icon' => '#',
-            //         //     'label' => 'Isi Bukti Adm'
-            //         // ],
-            //         // [
-            //         //     'href' => '../ELEMEN/elemen.php',
-            //         //     'icon' => 'fas fa-puzzle-piece',
-            //         //     'label' => 'Element'
-            //         // ],
-            //         // [
-            //         //     'href' => '../KUK/KUK.php',
-            //         //     'icon' => 'fas fa-check-circle',
-            //         //     'label' => 'KUK'
-            //         // ]
-            //     ]
-            // ],
-            // [
-            //     'href' => '#',
-            //     'icon' => 'fas fa-book',
-            //     'label' => 'Isi Bukti Dasar & Adm',
-            //     'has_dropdown' => true,
-            //     'submenu' => [
-            //         [
-            //             'href' => '../DASAR/isi_bukti_dasar.php',
-            //             'icon' => '#',
-            //             'label' => 'Isi Bukti Dasar'
-            //         ],
-            //         [
-            //             'href' => '../ADM/isi_bukti_adm.php',
-            //             'icon' => '#',
-            //             'label' => 'Isi Bukti Adm'
-            //         ],
-            //     ]
-            // ],
             [
-                'href' => '#',
-                'icon' => 'fas fa-book',
-                'label' => 'Manajemen Skema',
-                'has_dropdown' => true,
-                'submenu' => [
-                    [
-                        'href' => '../SKEMA/list_skema.php',
-                        'icon' => 'fas fa-book',
-                        'label' => 'Kelola Skema'
-                    ],
-                    [
-                        'href' => '../SKEMA/list_skema2.php',
-                        'icon' => 'fas fa-tasks',
-                        'label' => 'Data Skema'
-                    ],
-                    [
-                        'href' => '../DASAR/bukti_dasar.php',
-                        'icon' => '#',
-                        'label' => 'Bukti Dasar'
-                    ],
-                    [
-                        'href' => '../ADM/bukti_adm.php',
-                        'icon' => '#',
-                        'label' => 'Bukti Adm'
-                    ],
-                    // [
-                    //     'href' => '../ELEMEN/elemen.php',
-                    //     'icon' => 'fas fa-puzzle-piece',
-                    //     'label' => 'Element'
-                    // ],
-                    // [
-                    //     'href' => '../KUK/KUK.php',
-                    //     'icon' => 'fas fa-check-circle',
-                    //     'label' => 'KUK'
-                    // ]
-                ]
-            ]
-        ]
-    ],
-    'Asesor' => [
-        'icon' => 'fas fa-user-tie',
-        'role_name' => '',
-        'role_desc' => 'Asesor',
-        'menu' => [
-            [
-                'href' => 'UTAMA.php',
-                'icon' => 'fas fa-home',
-                'label' => 'Dashboard',
-                'active' => true
-            ],            
+                'href' => '../list/rekap_ia1.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap IA 1'
+            ],
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
@@ -284,16 +135,72 @@ $roles_data = [
                         'icon' => 'fas fa-tasks',
                         'label' => 'Data Skema'
                     ]
-                    // [
-                    //     'href' => '../ELEMEN/elemen.php',
-                    //     'icon' => 'fas fa-puzzle-piece',
-                    //     'label' => 'Element'
-                    // ],
-                    // [
-                    //     'href' => '../KUK/KUK.php',
-                    //     'icon' => 'fas fa-check-circle',
-                    //     'label' => 'KUK'
-                    // ]
+                ]
+            ]
+        ]
+    ],
+    'Asesor' => [
+        'icon' => 'fas fa-user-tie',
+        'role_name' => '',
+        'role_desc' => 'Asesor',
+        'menu' => [
+            [
+                'href' => 'UTAMA.php',
+                'icon' => 'fas fa-home',
+                'label' => 'Dashboard',
+                'active' => true
+            ],
+            [
+                'href' => '../list/rekap_frapl2.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR APL 2'
+            ],
+            [
+                'href' => '../list/rekap_ak01.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR AK01'
+            ],
+            [
+                'href' => '../list/rekap_ak02.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR AK02'
+            ],
+            [
+                'href' => '../list/rekap_ak3.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR AK03'
+            ],
+            [
+                'href' => '../list/rekap_ia1.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR IA1'
+            ],
+            [
+                'href' => '../list/rekap_ia06.php',
+                'icon' => 'fas fa-user-graduate',
+                'label' => 'Rekap FR IA06C'
+            ],
+            [
+                'href' => '../list/soal_ia06a.php',
+                'icon' => 'fas fa-question-circle',
+                'label' => 'Kelola Soal FR.IA.06A'
+            ],
+            [
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Manajemen Skema',
+                'has_dropdown' => true,
+                'submenu' => [
+                    [
+                        'href' => '../SKEMA/list_skema.php',
+                        'icon' => 'fas fa-book',
+                        'label' => 'Kelola Skema'
+                    ],
+                    [
+                        'href' => '../SKEMA/list_skema2.php',
+                        'icon' => 'fas fa-tasks',
+                        'label' => 'Data Skema'
+                    ]
                 ]
             ]
         ]
@@ -310,30 +217,12 @@ $roles_data = [
                 'active' => true
             ],
             [
-                'href' => '#',
-                'icon' => 'fas fa-book',
-                'label' => 'Isi Bukti Dasar & Adm',
-                'has_dropdown' => true,
-                'submenu' => [
-                    [
-                        'href' => '../DASAR/isi_bukti_dasar.php',
-                        'icon' => '#',
-                        'label' => 'Isi Bukti Dasar'
-                    ], 
-                    [
-                        'href' => '../ADM/isi_bukti_adm.php',
-                        'icon' => '#',
-                        'label' => 'Isi Bukti Adm'
-                    ],
-                ]
-            ],
-            [
                 'href' => '../list/list_form.php',
                 'icon' => '',
                 'label' => 'Form Lsp',
             ]
         ]
-    ] 
+    ]
 ];
 
 $user_data = isset($roles_data[$role]) ? $roles_data[$role] : $roles_data['Admin'];
@@ -364,6 +253,8 @@ $allowed_pages = [
     '../ASESOR/edit.php',
     '../ASESOR/hapus_asesor.php',
     '../DASAR/bukti_dasar.php',
+    '../DASAR/ubah_bd.php',
+    '../DASAR/hapus_bd.php',
     '../ASESI/detail_asesi.php',
     '../ASESI/edit.php',
     '../ASESI/hapus_asesi.php',
@@ -382,6 +273,24 @@ $allowed_pages = [
     '../list/list_form.php',
     '../list/rekap_fr.php',
     '../FR_APL/FR_APL1.php',
+    '../Admin_lsp/Table_admin_lsp.php',
+    '../ADM/ubah_ba.php',
+    '../list/rekap_frapl2.php',
+    '../FR_APL/FR_APL02.php',
+    '../FR_APL/FR_AK01.php',
+    '../list/rekap_ia1.php',
+    '../FR_APL/FR_IA1.php',
+    '../list/rekap_ak3.php',
+    '../FR_APL/FR_AK03.php',
+    '../list/soal_ia06a.php',
+    '../list/rekap_ak3.php',
+    '../list/rekap_ak01.php',
+    '../list/rekap_ak02.php',
+    '../FR_APL/FR_IA06C.php',
+    '../list/rekap_ia06.php',
+    '../',
+    '../',
+    '../',
     '../',
     '../',
     '../'
@@ -398,7 +307,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Informasi Manajemen LSP</title>
-    <link rel="stylesheet" href="../assets/CSS/utama.css">   
+    <link rel="stylesheet" href="../assets/CSS/utama.css">
     <link rel="icon" type="image/x-icon" href="../assets/IMG/iconlogo.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
@@ -409,7 +318,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
         <aside class="sidebar" id="sidebar">
             <div class="profile-section">
-                <h2><?=htmlspecialchars($nama_user)?></h2> 
+                <h2><?=htmlspecialchars($nama_user)?></h2>
                 <p><?=htmlspecialchars($user_data['role_desc'])?></p>
             </div>
 
@@ -421,7 +330,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     $href = $item['href'];
                     $is_active = '';
                     $has_dropdown = isset($item['has_dropdown']) && $item['has_dropdown'];
-                    
+
                     $submenu_active = false;
                     if ($has_dropdown && isset($item['submenu'])) {
                         foreach ($item['submenu'] as $sub) {
@@ -431,7 +340,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                             }
                         }
                     }
-                    
+
                     if ($href === 'UTAMA.php') {
                         if (!$page_to_include) {
                             $is_active = 'active';
@@ -439,7 +348,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     } elseif ($page_to_include === $href || $submenu_active) {
                         $is_active = 'active';
                     }
-                    
+
                     if ($has_dropdown) {
                         echo '<div class="menu-item '.$is_active.'" onclick="toggleDropdown('.$index.')">';
                         echo '<div class="nav-item-content">';
@@ -448,7 +357,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                         echo '</div>';
                         echo '<i class="fas fa-chevron-down dropdown-arrow" id="arrow-'.$index.'"></i>';
                         echo '</div>';
-                        
+
                         $submenu_open = $submenu_active ? 'open' : '';
                         echo '<div class="submenu '.$submenu_open.'" id="submenu-'.$index.'">';
                         foreach ($item['submenu'] as $subitem) {
@@ -467,7 +376,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                         } elseif ($href !== '#') {
                             $href = '?page=' . $href;
                         }
-                        
+
                         echo '<a href="'.htmlspecialchars($href).'" class="'.$is_active.'">';
                         echo '<div class="nav-item-content">';
                         echo '<i class="'.$item['icon'].'"></i>';
@@ -497,7 +406,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     © 2025 Dev : <a href="http://#.com">Althaf And Riyan</a></div>
                 <div class="version">
                     <b>Version: </b> M1
-                </div>        
+                </div>
             </div>
         </aside>
 
@@ -506,7 +415,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                 <button class="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
-                <?php 
+                <?php
                 if ($page_to_include) {
                     $breadcrumb_found = false;
                     foreach ($user_data['menu'] as $item) {
@@ -541,7 +450,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
             ?>
             <div class="content-card">
                 <h2>Beranda</h2>
-                
+
                 <p class="welcome-text">
                     Selamat datang <strong><?=htmlspecialchars($nama_user)?></strong>!
                 </p>
@@ -554,7 +463,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
         function toggleDropdown(index) {
             const submenu = document.getElementById('submenu-' + index);
             const arrow = document.getElementById('arrow-' + index);
-            
+
             submenu.classList.toggle('open');
             arrow.classList.toggle('rotated');
         }
@@ -570,10 +479,10 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             sidebar.classList.toggle('collapsed');
             overlay.classList.toggle('active');
-            
+
             if (window.innerWidth > 768) {
                 mainContent.classList.toggle('expanded');
             }
@@ -585,7 +494,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     if (window.innerWidth <= 768) {
                         const sidebar = document.getElementById('sidebar');
                         const overlay = document.getElementById('sidebarOverlay');
-                        
+
                         if (!sidebar.classList.contains('collapsed')) {
                             sidebar.classList.add('collapsed');
                             overlay.classList.remove('active');
@@ -599,7 +508,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (window.innerWidth > 768) {
                 overlay.classList.remove('active');
                 sidebar.classList.remove('collapsed');

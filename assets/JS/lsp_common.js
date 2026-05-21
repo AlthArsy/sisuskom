@@ -95,12 +95,12 @@ document.addEventListener('click', function (e) {
 });
 
 /**
- * @param {string} canvasId   
- * @param {string} phId   
- * @param {string} badgeId  
- * @param {string} btnDlId 
+ * @param {string} canvasId
+ * @param {string} phId
+ * @param {string} badgeId
+ * @param {string} btnDlId
  * @param {string} hiddenId
- * @param {string} content    
+ * @param {string} content
  */
 function generateQR(canvasId, phId, badgeId, btnDlId, hiddenId, content) {
     var canvas = document.getElementById(canvasId);

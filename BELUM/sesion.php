@@ -8,7 +8,7 @@ if (isset($_SESSION['LAST_ACTIVITY']) &&
     session_destroy();
     header("Location: ../login.php?error=Session timeout, silakan login kembali");
     exit();
-} 
+}
 
 $_SESSION['LAST_ACTIVITY'] = time();
 
@@ -30,11 +30,11 @@ function checkRole($allowedRoles) {
     if (!isLoggedIn() || !isset($_SESSION['role'])) {
         return false;
     }
-    
+
     if (is_array($allowedRoles)) {
         return in_array($_SESSION['role'], $allowedRoles);
     }
-    
+
     return $_SESSION['role'] === $allowedRoles;
 }
 

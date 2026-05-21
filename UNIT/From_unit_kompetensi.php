@@ -17,8 +17,8 @@ $id_skema = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
 
 if ($id_skema > 0) {
     $query_skema = "
-        SELECT 
-            tb_unit_kompetensi.kode_unit, 
+        SELECT
+            tb_unit_kompetensi.kode_unit,
             tb_unit_kompetensi.judul_unit,
             tb_unit_kompetensi.id_skema,
             tb_asesor.nama_asesor
@@ -41,15 +41,15 @@ $skema_data = [];
 
 if (isset($_GET['id_skema'])) {
     $id_skema = intval($_GET['id_skema']);
-    
+
     $sql = "SELECT * FROM tb_skema WHERE id_skema = ?";
     $stmt = mysqli_prepare($koneksi, $sql);
-    
+
     if ($stmt) {
         mysqli_stmt_bind_param($stmt, "i", $id_skema);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        
+
         if ($result && mysqli_num_rows($result) > 0) {
             $skema_data = mysqli_fetch_assoc($result);
         } else {
@@ -67,10 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
     $id_skema = intval($_POST['id_skema']);
     $kode_unit = $_POST['kode_unit'] ?? [];
     $judul_unit = $_POST['judul_unit'] ?? [];
-    
+
     $errors = [];
     $success_count = 0;
-    
+
     $has_data = false;
     foreach ($kode_unit as $index => $kode) {
         if (!empty(trim($kode)) || !empty(trim($judul_unit[$index] ?? ''))) {
@@ -78,44 +78,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
             break;
         }
     }
-    
+
     if (!$has_data) {
         $errors[] = "Minimal harus menambahkan satu unit kompetensi";
     }
-    
+
     if (empty($errors)) {
         foreach ($kode_unit as $index => $kode) {
             $kode = trim($kode);
             $judul = trim($judul_unit[$index] ?? '');
-            
+
             if (empty($kode) && empty($judul)) {
                 continue;
             }
-            
+
             if (empty($kode) || empty($judul)) {
-                $errors[] = "Unit #" . ($index + 1) . ": Kode dan Judul  id_unit harus diisi"; 
+                $errors[] = "Unit #" . ($index + 1) . ": Kode dan Judul  id_unit harus diisi";
                 continue;
             }
-            
+
             $check_sql = "SELECT id_unit FROM tb_unit_kompetensi WHERE id_skema = ? AND kode_unit = ?";
             $check_stmt = mysqli_prepare($koneksi, $check_sql);
             mysqli_stmt_bind_param($check_stmt, "is", $id_skema, $kode);
             mysqli_stmt_execute($check_stmt);
             mysqli_stmt_store_result($check_stmt);
-            
+
             if (mysqli_stmt_num_rows($check_stmt) > 0) {
                 $errors[] = "Kode unit '$kode' sudah ada dalam skema ini";
                 mysqli_stmt_close($check_stmt);
                 continue;
             }
             mysqli_stmt_close($check_stmt);
-            
+
             $insert_sql = "INSERT INTO tb_unit_kompetensi (id_skema, kode_unit, judul_unit) VALUES (?, ?, ?)";
             $insert_stmt = mysqli_prepare($koneksi, $insert_sql);
-            
+
             if ($insert_stmt) {
                 mysqli_stmt_bind_param($insert_stmt, "iss", $id_skema, $kode, $judul);
-                
+
                 if (mysqli_stmt_execute($insert_stmt)) {
                     $success_count++;
                 } else {
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                 mysqli_stmt_close($insert_stmt);
             }
         }
-        
+
         if ($success_count > 0) {
             $_SESSION['pesan'] = "$success_count unit kompetensi berhasil ditambahkan!";
             $_SESSION['tipe'] = 'success';
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
             exit();
         }
     }
-    
+
     if (!empty($errors)) {
         $message = implode("<br>", $errors);
         $message_type = 'error';
@@ -154,18 +154,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
             <p><strong>Judul Skema:</strong> <?php echo htmlspecialchars($skema_data['judul_skema']); ?></p>
         </div>
     <?php endif; ?>
-    
+
     <?php if (!empty($message)): ?>
         <div class="message <?php echo $message_type; ?>">
             <?php echo $message; ?>
         </div>
     <?php endif; ?>
-    
+
     <?php if (!empty($skema_data)): ?>
         <div class="form-container">
             <form method="post" action="" id="formUnit">
                 <input type="hidden" name="id_skema" value="<?php echo $skema_data['id_skema']; ?>">
-                
+
                 <div class="unit-container" id="unitContainer">
                     <div class="unit-item" data-unit="1">
                         <div class="unit-item-header">
@@ -176,10 +176,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                                 <label for="kode_unit_1" class="required">
                                     Kode Unit
                                 </label>
-                                <input type="text" 
-                                       id="kode_unit_1" 
-                                       name="kode_unit[]" 
-                                       class="form-control" 
+                                <input type="text"
+                                       id="kode_unit_1"
+                                       name="kode_unit[]"
+                                       class="form-control"
                                        placeholder="Contoh: J.620100.004.02"
                                        maxlength="100">
                                 <span class="form-hint">Kode unik unit kompetensi</span>
@@ -188,24 +188,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                                 <label for="judul_unit_1" class="required">
                                     Judul Unit
                                 </label>
-                                <input type="text" 
-                                       id="judul_unit_1" 
-                                       name="judul_unit[]" 
-                                       class="form-control" 
+                                <input type="text"
+                                       id="judul_unit_1"
+                                       name="judul_unit[]"
+                                       class="form-control"
                                        placeholder="Contoh: Menggunakan Struktur Data">
                                 <span class="form-hint">unit kompetensi</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <button type="button" class="btn-add-more" onclick="addUnit()">
                     <i class="fas fa-plus"></i> Tambah Unit Lagi
                 </button>
-                
+
                 <div class="button-group">
                     <a href="UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $skema_data['id_skema'] ?>" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal 
+                        <i class="fas fa-times"></i> Batal
                     </a>
                     <button type="submit" name="simpan" class="btn btn-primary">
                         <i class="fas fa-save"></i> Simpan Semua Unit
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
         </div>
     <?php else: ?>
         <div class="message error">
-            <i class="fas fa-exclamation-triangle"></i> 
+            <i class="fas fa-exclamation-triangle"></i>
             Data skema tidak ditemukan.
             <br><br>
             <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
@@ -227,11 +227,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
 
 <script>
     let unitCount = 1;
-    
+
     function addUnit() {
         unitCount++;
         const container = document.getElementById('unitContainer');
-        
+
         const unitHtml = `
             <div class="unit-item" data-unit="${unitCount}">
                 <div class="unit-item-header">
@@ -245,9 +245,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                         <label class="required">
                             Kode Unit
                         </label>
-                        <input type="text" 
-                               name="kode_unit[]" 
-                               class="form-control" 
+                        <input type="text"
+                               name="kode_unit[]"
+                               class="form-control"
                                placeholder="Contoh: J.620100.004.02"
                                maxlength="100">
                         <span class="form-hint">Kode unik unit kompetensi</span>
@@ -256,32 +256,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
                         <label class="required">
                             Judul Unit
                         </label>
-                        <input type="text" 
-                               name="judul_unit[]" 
-                               class="form-control" 
+                        <input type="text"
+                               name="judul_unit[]"
+                               class="form-control"
                                placeholder="Contoh: Menggunakan Struktur Data">
                         <span class="form-hint">unit kompetensi</span>
                     </div>
                 </div>
             </div>
         `;
-        
+
         container.insertAdjacentHTML('beforeend', unitHtml);
     }
-    
+
     function removeUnit(button) {
         const unitItem = button.closest('.unit-item');
         unitItem.remove();
-        
+
         const units = document.querySelectorAll('.unit-item');
         units.forEach((unit, index) => {
             const number = index + 1;
             unit.querySelector('.unit-number').innerHTML = `Unit #${number}`;
         });
-        
+
         unitCount = units.length;
     }
-    
+
     setTimeout(function() {
         const messages = document.querySelectorAll('.message');
         messages.forEach(message => {

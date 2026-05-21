@@ -2,310 +2,363 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include "../koneksi.php";
 
 if (!isset($_SESSION['username'])) {
-    echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
+    header('Location: ../LOGIN/login.php');
+    exit;
 }
+
+$e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
+function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
 $id_asesi = isset($_GET['id_asesi'])
     ? intval($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
+$role     = $_SESSION['role'] ?? '';
+$is_asesi = ($role === 'Asesi');
 
-$role     = isset($_SESSION['role']) ? $_SESSION['role'] : '';
-$is_asesi = ($role === 'Asesi'); 
-
-$nama_asesi_db = '';
-if ($id_asesi) {
-    $r = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT nama_asesi FROM tb_asesi WHERE id_asesi='$id_asesi' LIMIT 1"));
-    $nama_asesi_db = $r['nama_asesi'] ?? '';
+$flash_msg  = $_SESSION['flash_ia01'] ?? '';
+$flash_type = '';
+if ($flash_msg) {
+    [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
+    unset($_SESSION['flash_ia01']);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_skema = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
-    $tuk = isset($_POST['tuk']) ? trim($_POST['tuk']) : '';
-    $tanggal = isset($_POST['tanggal']) ? trim($_POST['tanggal']) : '';
-    $rekomendasi = isset($_POST['rekomendasi']) ? trim($_POST['rekomendasi']) : '';
-    $umpan_balik = isset($_POST['umpan_balik']) ? trim($_POST['umpan_balik']) : '';
-    $rek_kelompok = isset($_POST['rek_kelompok']) ? trim($_POST['rek_kelompok']) : '';
-    $rek_unit = isset($_POST['rek_unit']) ? trim($_POST['rek_unit']) : '';
-    $rek_elemen = isset($_POST['rek_elemen']) ? trim($_POST['rek_elemen']) : '';
-    $rek_kuk = isset($_POST['rek_kuk']) ? trim($_POST['rek_kuk']) : '';
-    $nama_asesi = isset($_POST['nama_asesi']) ? trim($_POST['nama_asesi']) : '';
-    $tanggal_asesi = isset($_POST['tanggal_asesi']) ? trim($_POST['tanggal_asesi']) : '';
-    $ttd_asesi_qr = isset($_POST['ttd_asesi_qr']) ? trim($_POST['ttd_asesi_qr']) : '';
-    $nama_asesor = isset($_POST['nama_asesor']) ? trim($_POST['nama_asesor']) : '';
-    $no_reg_asesor = isset($_POST['no_reg_asesor']) ? trim($_POST['no_reg_asesor']) : '';
-    $tanggal_asesor = isset($_POST['tanggal_asesor']) ? trim($_POST['tanggal_asesor']) : '';
-    $ttd_asesor_qr = isset($_POST['ttd_asesor_qr']) ? trim($_POST['ttd_asesor_qr']) : '';
-    $standar = isset($_POST['standar']) ? $_POST['standar'] : [];
-    $pencapaian = isset($_POST['pencapaian']) ? $_POST['pencapaian'] : [];
-    $penilaian_lanjut= isset($_POST['penilaian_lanjut'])? $_POST['penilaian_lanjut'] : [];
- 
-    if ($id_skema && $tuk && $id_asesi) {
-        $e = fn($v) => mysqli_real_escape_string($koneksi, $v);
+$asesi = null;
+if ($id_asesi) {
+    $asesi = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT * FROM tb_asesi WHERE id_asesi='{$e($id_asesi)}' LIMIT 1"));
+}
 
-        $sql = "INSERT INTO tb_ia01
-            (id_asesi, id_skema, tuk, tanggal, rekomendasi, umpan_balik,
-             rek_kelompok, rek_unit, rek_elemen, rek_kuk,
-             nama_asesi, tanggal_asesi, ttd_asesi_qr,
-             nama_asesor, no_reg_asesor, tanggal_asesor, ttd_asesor_qr)
-            VALUES (
-                '$id_asesi','$id_skema','{$e($tuk)}',
-                " . ($tanggal ? "'{$e($tanggal)}'" : "NULL") . ",
-                " . ($rekomendasi ? "'{$e($rekomendasi)}'" : "NULL") . ",
-                " . ($umpan_balik ? "'{$e($umpan_balik)}'" : "NULL") . ",
-                '{$e($rek_kelompok)}','{$e($rek_unit)}','{$e($rek_elemen)}','{$e($rek_kuk)}',
-                '{$e($nama_asesi)}',
-                " . ($tanggal_asesi ? "'{$e($tanggal_asesi)}'" : "NULL") . ",
-                '{$e($ttd_asesi_qr)}',
-                '{$e($nama_asesor)}','{$e($no_reg_asesor)}',
-                " . ($tanggal_asesor ? "'{$e($tanggal_asesor)}'" : "NULL") . ",
-                '{$e($ttd_asesor_qr)}'
-            )";
-        $res = mysqli_query($koneksi, $sql);
+$ak01 = null;
+if ($id_asesi) {
+    $sql_ak01 = "SELECT a.*, 
+                        apl.id_skema,
+                        s.judul_skema, s.nomor_skema,
+                        asr.nama_asesor, asr.no_reg, asr.id_asesor
+                 FROM tb_ak01 a
+                 LEFT JOIN tb_apl1 apl ON a.id_apl1 = apl.id_apl1
+                 LEFT JOIN tb_skema s   ON apl.id_skema = s.id_skema
+                 LEFT JOIN tb_asesor asr ON a.id_asesor = asr.id_asesor
+                 WHERE a.id_asesi = '$id_asesi'
+                 ORDER BY a.id_ak01 DESC LIMIT 1";
+        $ak01 = mysqli_fetch_assoc(mysqli_query($koneksi, $sql_ak01));
+}
 
-        if (!$res) {
-            echo "<script>alert('Gagal simpan!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
-        } else {
-            $id_ia01 = mysqli_insert_id($koneksi);
-            foreach ($pencapaian as $id_kuk => $penc) {
-                $id_kuk_i = intval($id_kuk);
-                $penc_esc = mysqli_real_escape_string($koneksi, $penc);
-                $std_esc  = mysqli_real_escape_string($koneksi, $standar[$id_kuk] ?? '');
-                $pnl_esc  = mysqli_real_escape_string($koneksi, $penilaian_lanjut[$id_kuk] ?? '');
-                mysqli_query($koneksi,
-                    "INSERT INTO tb_jawaban_ia01 (id_ia01, id_kuk, standar_industri, pencapaian, penilaian_lanjut)
-                     VALUES ('$id_ia01','$id_kuk_i','$std_esc','$penc_esc','$pnl_esc')");
-            }
-            echo "<script>alert('FR.IA.01 berhasil disimpan!');
-                          window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
-            exit;
-        }
-    } else {
-        echo "<script>alert('Pilih skema dan TUK terlebih dahulu!');</script>";
+$id_skema_auto      = $ak01['id_skema'] ?? 0;
+$nama_asesor_final  = $ak01['nama_asesor'] ?? 'Belum Dipanggil';
+$noreg_asesor_final = $ak01['no_reg'] ?? '-';
+
+$asesor_info = null;
+if (!$ak01 || empty($ak01['nama_asesor'])) {
+    $id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
+    if ($id_asesor_session) {
+        $asesor_info = mysqli_fetch_assoc(mysqli_query($koneksi,
+            "SELECT * FROM tb_asesor WHERE id_asesor='{$id_asesor_session}' LIMIT 1"));
+    }
+}
+$nama_asesor_final  = $ak01['nama_asesor']   ?? $asesor_info['nama_asesor']   ?? '';
+$noreg_asesor_final = $ak01['no_reg'] ?? $asesor_info['no_reg'] ?? '';
+$id_asesor_final    = intval($ak01['id_asesor'] ?? $asesor_info['id_asesor'] ?? $_SESSION['id_asesor'] ?? 0);
+
+$apl1     = null;
+$id_apl1  = 0;
+$id_skema = 0;
+
+if (!empty($_GET['id_skema'])) {
+    $id_skema = intval($_GET['id_skema']);
+}
+
+if (!$id_skema && $id_asesi) {
+    $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT a.*, s.judul_skema, s.nomor_skema 
+         FROM tb_apl1 a
+         LEFT JOIN tb_skema s ON a.id_skema = s.id_skema
+         WHERE a.id_asesi='{$e($id_asesi)}'
+         ORDER BY a.id_apl1 DESC LIMIT 1"));
+    if ($apl1) {
+        $id_apl1  = intval($apl1['id_apl1']);
+        $id_skema = intval($apl1['id_skema']);
     }
 }
 
-$dsb       = $is_asesi ? 'disabled' : '';
-$dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' : '';
+if (!$id_skema && $ak01) {
+    $id_skema = intval($ak01['id_skema']);
+}
+
+if (!$apl1 && $id_asesi && $id_skema) {
+    $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT a.*, s.judul_skema, s.nomor_skema
+         FROM tb_apl1 a
+         LEFT JOIN tb_skema s ON a.id_skema = s.id_skema
+         WHERE a.id_asesi='{$e($id_asesi)}' AND a.id_skema='{$e($id_skema)}'
+         LIMIT 1"));
+    if ($apl1) $id_apl1 = intval($apl1['id_apl1']);
+}
+
+$has_data = false;
+if ($id_asesi && $id_skema) {
+    $chk = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT COUNT(*) AS cnt FROM tb_ia01
+         WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($id_apl1)}'"));
+    $has_data = ($chk && $chk['cnt'] > 0);
+}
+
+$mode = 'create';
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
+    $mode = $_GET['mode'];
+} elseif ($has_data) {
+    $mode = 'view';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $p_id_skema          = intval($_POST['id_skema'] ?? 0);
+    $p_id_apl1           = intval($_POST['id_apl1'] ?? 0);
+    $p_tanggal           = trim($_POST['tanggal'] ?? '');
+    $p_rekomendasi       = trim($_POST['rekomendasi'] ?? '');
+    $p_umpan_balik       = trim($_POST['umpan_balik'] ?? '');
+    $p_alasan_rekomendasi = trim($_POST['alasan_rekomendasi'] ?? '');
+    $p_standar           = is_array($_POST['standar'] ?? null) ? $_POST['standar'] : [];
+    $p_pencapaian        = is_array($_POST['pencapaian'] ?? null) ? $_POST['pencapaian'] : [];
+    $p_penilaian_lanjut  = is_array($_POST['penilaian_lanjut'] ?? null) ? $_POST['penilaian_lanjut'] : [];
+
+    if (!$p_id_skema || !$id_asesi) {
+        $_SESSION['flash_ia01'] = 'error|Data tidak lengkap – skema tidak ditemukan.';
+        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        exit;
+    }
+    if (!$p_id_apl1) {
+        $_SESSION['flash_ia01'] = 'error|APL-01 untuk asesi + skema ini belum ditemukan.';
+        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        exit;
+    }
+
+    $all_kuk = [];
+    $res_kuk = mysqli_query($koneksi,
+        "SELECT k.id_kuk, e.id_elemen, u.id_unit
+         FROM tb_kuk k
+         JOIN tb_elemen          e ON k.id_elemen = e.id_elemen
+         JOIN tb_unit_kompetensi u ON e.id_unit   = u.id_unit
+         WHERE u.id_skema = '{$e($p_id_skema)}'
+         ORDER BY u.id_unit, e.id_elemen, k.id_kuk");
+    while ($kr = mysqli_fetch_assoc($res_kuk)) $all_kuk[] = $kr;
+
+    if (!$all_kuk) {
+        $_SESSION['flash_ia01'] = 'error|Skema ini belum memiliki unit/elemen/KUK.';
+        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create"); 
+        exit;
+    }
+
+    $old_ids = [];
+    $r_old = mysqli_query($koneksi,
+        "SELECT id_ia01 FROM tb_ia01
+         WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($p_id_apl1)}'");
+    while ($ro = mysqli_fetch_assoc($r_old)) $old_ids[] = intval($ro['id_ia01']);
+    if ($old_ids) {
+        $ids_str = implode(',', $old_ids);
+        mysqli_query($koneksi, "DELETE FROM detail_ia01 WHERE id_ia01 IN ($ids_str)");
+        mysqli_query($koneksi, "DELETE FROM tb_ia01    WHERE id_ia01 IN ($ids_str)");
+    }
+
+    $ok = true;
+    $id_ak01_val = intval($ak01['id_ak01'] ?? 0);
+
+    $sql = "INSERT INTO tb_ia01
+    (id_apl1, id_ak01, id_asesi, id_asesor,
+     tanggal, rekomendasi, umpan_balik, belum_kompeten)
+    VALUES (
+        '{$e($p_id_apl1)}', '$id_ak01_val', '{$e($id_asesi)}', '{$e($id_asesor_final)}',
+        " . ($p_tanggal              ? "'{$e($p_tanggal)}'"              : "NULL") . ",                   
+        " . ($p_rekomendasi          ? "'{$e($p_rekomendasi)}'"          : "NULL") . ",
+        " . ($p_umpan_balik          ? "'{$e($p_umpan_balik)}'"          : "NULL") . ",
+        " . ($p_alasan_rekomendasi   ? "'{$e($p_alasan_rekomendasi)}'"   : "NULL") . "                    
+    )";
+
+    if (mysqli_query($koneksi, $sql)) {
+        $new_id_ia01 = mysqli_insert_id($koneksi);
+        foreach ($all_kuk as $kr) {
+            $id_kuk_i    = intval($kr['id_kuk']);
+            $id_elemen_i = intval($kr['id_elemen']);
+            $id_unit_i   = intval($kr['id_unit']);
+            // $std    = $p_standar[$id_kuk_i], ?? '';  
+            $penc = $p_pencapaian[$id_kuk_i]       ?? '';
+            $pnl  = $p_penilaian_lanjut[$id_kuk_i] ?? '';
+
+            $ok_d = mysqli_query($koneksi,
+                "INSERT INTO detail_ia01
+                    (id_ia01, id_skema, id_unit, id_elemen, id_kuk,
+                    --  standar_industri,
+                     pencapaian, `Penilaian Lanjut`)
+                 VALUES (
+                    '$new_id_ia01',
+                    '{$e($p_id_skema)}',
+                    '$id_unit_i', '$id_elemen_i', '$id_kuk_i',
+                     -- '{$e($std)}',
+                    '{$e($penc)}',
+                    '{$e($pnl)}'
+                 )");
+            if (!$ok_d) $ok = false;
+        }
+    } else {
+        $ok = false;
+    }
+
+    $_SESSION['flash_ia01'] = $ok
+        ? 'success|FR.IA.01 berhasil disimpan!'
+        : 'error|Sebagian data gagal disimpan: ' . mysqli_error($koneksi);
+    header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=view");
+    exit;
+}
+
+
+
+$units = [];
+if ($id_skema) {
+    $res_u = mysqli_query($koneksi,
+        "SELECT * FROM tb_unit_kompetensi
+         WHERE id_skema='{$e($id_skema)}' ORDER BY id_unit");
+    while ($unit = mysqli_fetch_assoc($res_u)) {
+        $unit['elemen'] = [];
+        $res_el = mysqli_query($koneksi,
+            "SELECT * FROM tb_elemen
+             WHERE id_unit='{$e($unit['id_unit'])}' ORDER BY id_elemen");
+        while ($el = mysqli_fetch_assoc($res_el)) {
+            $el['kuk'] = [];
+            $res_kk = mysqli_query($koneksi,
+                "SELECT * FROM tb_kuk
+                 WHERE id_elemen='{$e($el['id_elemen'])}' ORDER BY id_kuk");
+            while ($kk = mysqli_fetch_assoc($res_kk)) $el['kuk'][] = $kk;
+            $unit['elemen'][] = $el;
+        }
+        $units[] = $unit;
+    }
+}
+$standar_skema = '';
+if ($id_skema) {
+    $rs = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT standar_kompetensi_kerja FROM tb_skema
+         WHERE id_skema='{$e($id_skema)}' LIMIT 1"));
+    $standar_skema = $rs['standar_kompetensi_kerja'] ?? '';
+}
+
+$saved_vals = [];
+$saved_hdr  = ['tanggal'=>'','rekomendasi'=>'','umpan_balik'=>'', 'alasan_rekomendasi'=>'']; 
+if ($mode === 'view' && $id_asesi && $id_skema) {
+    $res_ed = mysqli_query($koneksi,
+        "SELECT d.id_kuk, i.tanggal, i.rekomendasi, i.umpan_balik, i.belum_kompeten,
+                -- d.standar_industri,
+                d.pencapaian,
+                d.`Penilaian Lanjut` AS penilaian_lanjut
+         FROM tb_ia01 i
+         LEFT JOIN detail_ia01 d ON d.id_ia01 = i.id_ia01
+         WHERE i.id_asesi='{$e($id_asesi)}' AND i.id_apl1='{$e($id_apl1)}'");
+    $first = true;
+    while ($er = mysqli_fetch_assoc($res_ed)) {
+        if ($first) {
+            $saved_hdr = [
+                'tanggal'            => $er['tanggal'],
+                'rekomendasi'        => $er['rekomendasi'],
+                'umpan_balik'        => $er['umpan_balik'],
+                'alasan_rekomendasi' => $er['belum_kompeten'],
+            ];
+            $first = false;
+        }
+        $saved_vals[intval($er['id_kuk'])] = [
+            // 'standar'               => $er['standar_industri'],
+            'pencapaian'            => $er['pencapaian'],
+            'penilaian_lanjut'      => $er['penilaian_lanjut'],
+        ];
+    }
+}
+
+$nama_asesi_db  = $asesi['nama_asesi'] ?? '';
+$is_asesi       = ($role === 'Asesi');
+$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+
+$dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
+$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
+$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb              = $dsb_untuk_asesor;  
+$lock_asesi       = $dsb_untuk_asesi;    
+
+$tgl_form = $mode === 'create'
+    ? date('Y-m-d')
+    : ($saved_hdr['tanggal'] ?: ($ak01['hari_tanggal'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FR.IA.01 Ceklis Observasi</title>
+    <link rel="stylesheet" href="../assets/CSS/CSS_APL/fr_ia01.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="../assets/JS/lsp_common.js"></script>
-    <script src="../assets/JS/fr_ia01.js"></script>
-
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .form-box {
-            margin:35px auto; background:#fff;
-            border:1px solid #ddd; border-radius:6px;
-            padding:25px 20px; box-shadow:0 2px 6px rgba(0,0,0,0.05);
-        }
-        .form-control {
-            width:99%; padding:5px 7px; border:1px solid #ccc;
-            border-radius:4px; box-sizing:border-box; font-size:14px;
-        }
-        .btn-submit {
-            background:#4A7AFF; color:#fff; border:none;
-            padding:8px 22px; border-radius:4px; font-size:15px; cursor:pointer;
-        }
-        .btn-submit:hover { background:#325fd6; }
-        .btn-back {
-            background:#888; color:#fff; border:none;
-            padding:8px 22px; border-radius:4px; font-size:15px; cursor:pointer; margin-right:8px;
-        }
-        .btn-back:hover { background:#666; }
-        .label { font-weight:bold; }
-        .required { color:red; font-weight:normal; }
-        .small-text { font-size:12px; color:#444; }
-        .section-title {
-            font-weight:bold; font-size:14px;
-            border-left:4px solid #4A7AFF;
-            padding-left:8px; margin:20px 0 10px;
-        }
-
-        .skema-wrap { position:relative; }
-        .skema-dropdown {
-            position:absolute; top:100%; left:0; right:0;
-            background:#fff; border:1px solid #4A7AFF;
-            border-radius:0 0 5px 5px; max-height:200px;
-            overflow-y:auto; z-index:999; display:none;
-            box-shadow:0 4px 12px rgba(0,0,0,0.12);
-        }
-        .skema-item { padding:9px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid #eef; }
-        .skema-item:hover { background:#eef3ff; }
-        .skema-item .sk-judul { font-weight:bold; color:#1a237e; }
-        .skema-item .sk-nomor { font-size:11px; color:#777; }
-
-        .panduan-box {
-            background:#fffde7; border:1px solid #ffe082;
-            border-radius:5px; padding:10px 14px;
-            font-size:12px; margin-bottom:16px;
-        }
-        .panduan-box ul { margin:6px 0 0 16px; padding:0; }
-
-        .tbl-units { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px; }
-        .tbl-units th { background:#cadbfc; padding:7px 10px; border:1px solid #b0bec5; text-align:center; }
-        .tbl-units td { padding:6px 10px; border:1px solid #ccc; vertical-align:top; }
-        .tbl-units td:first-child { text-align:center; width:40px; }
-
-        .unit-obs-box {
-            border:1px solid #b0bec5; border-radius:6px;
-            margin-bottom:20px; overflow:hidden;
-        }
-        .unit-obs-header {
-            background:#cadbfc; padding:10px 14px;
-            font-weight:bold; font-size:14px;
-        }
-        .unit-obs-header .unit-sub { font-size:12px; font-weight:normal; color:#333; }
-
-        .tbl-obs { width:100%; border-collapse:collapse; font-size:12px; }
-        .tbl-obs th {
-            background:#dce8ff; padding:7px 8px;
-            border:1px solid #b0c4de; text-align:center; font-size:12px;
-        }
-        .tbl-obs td { padding:6px 8px; border:1px solid #d0d8e8; vertical-align:middle; }
-        .tbl-obs .elemen-row td {
-            background:#eef4ff; font-weight:bold;
-            font-size:12px; padding:5px 8px;
-        }
-        .tbl-obs .kuk-text { font-size:12px; color:#333; }
-
-        .radio-yt { display:flex; justify-content:center; gap:8px; }
-        .radio-yt label { font-size:12px; cursor:pointer; white-space:nowrap; }
-
-        .obs-input {
-            width:100%; min-height:36px; resize:vertical;
-            border:1px solid #ccc; border-radius:3px;
-            font-size:11px; padding:3px 5px; box-sizing:border-box;
-        }
-
-        .placeholder-box {
-            text-align:center; padding:24px; color:#aaa;
-            font-size:13px; border:1px dashed #ccc;
-            border-radius:5px; margin:10px 0;
-        }
-
-        .rek-box {
-            border:1px solid #ccc; border-radius:5px;
-            padding:14px; background:#fafbff; margin-top:16px;
-        }
-        .rek-grid { display:flex; gap:16px; flex-wrap:wrap; margin-top:14px; }
-        .rek-col { flex:1; min-width:220px; }
-        .rek-col .col-title {
-            font-weight:bold; font-size:14px;
-            border-bottom:1px solid #ddd; padding-bottom:5px; margin-bottom:10px;
-        }
-
-        .qr-box {
-            border:2px dashed #4A7AFF; border-radius:8px;
-            padding:10px 8px; background:#f4f7ff;
-            text-align:center; margin-top:10px;
-        }
-        .qr-box .qr-title { font-size:11px; font-weight:bold; color:#1a237e; margin-bottom:6px; }
-        .qr-canvas-wrap {
-            display:flex; justify-content:center; align-items:center;
-            min-height:88px; margin-bottom:4px;
-        }
-        .qr-canvas-wrap canvas, .qr-canvas-wrap img {
-            border:2px solid #4A7AFF; border-radius:5px;
-            padding:4px; background:#fff;
-        }
-        .qr-ph-sm {
-            width:90px; height:90px; border:2px dashed #aac; border-radius:5px;
-            display:flex; align-items:center; justify-content:center;
-            color:#bbb; font-size:11px; background:#fff;
-            flex-direction:column; gap:3px; margin:0 auto;
-        }
-        .qr-badge {
-            display:none; background:#e6f4ea; color:#2e7d32;
-            border-radius:20px; padding:2px 8px; font-size:10px; font-weight:bold;
-        }
-        .btn-dl-qr {
-            display:none; font-size:11px; background:#4A7AFF; color:#fff;
-            border:none; padding:3px 10px; border-radius:20px;
-            cursor:pointer; margin-top:4px;
-        }
-        .btn-dl-qr:hover { background:#325fd6; }
-
-        @media(max-width:768px){
-            .form-box { margin:6vw auto; padding:14px 4vw; }
-            h2 { font-size:17px; }
-            .btn-submit,.btn-back { width:48%; padding:10px; }
-            .tbl-obs { font-size:11px; }
-            .rek-grid { flex-direction:column; }
-        }
-    </style>
 </head>
 <body>
 <div class="form-box">
-<form method="post" autocomplete="off" id="mainForm">
-    <input type="hidden" name="id_asesi"      value="<?php echo $id_asesi; ?>">
-    <input type="hidden" name="id_skema"      id="id_skema_hidden">
-    <input type="hidden" name="nama_asesor"   id="nama_asesor_hidden">
-    <input type="hidden" name="no_reg_asesor" id="no_reg_asesor_hidden">
-    <input type="hidden" name="ttd_asesi_qr"  id="ttd_asesi_qr_input">
-    <input type="hidden" name="ttd_asesor_qr" id="ttd_asesor_qr_input">
 
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
         FR.IA.01. CL – CEKLIS OBSERVASI AKTIVITAS<br>
-        <span style="font-size:14px; font-weight:normal;">DI TEMPAT KERJA ATAU TEMPAT KERJA SIMULASI</span>
     </h2>
 
-    <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff; margin:16px 0 14px;">
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <?php if ($flash_msg): ?>
+    <div class="flash <?= h($flash_type) ?>"><?= h($flash_msg) ?></div>
+    <?php endif; ?>
 
-            <div style="flex:2; min-width:180px;">
-                <label class="small-text">Skema Sertifikasi – Judul <span class="required">*</span></label>
-                <div class="skema-wrap">
-                    <input type="text" id="judul_skema" class="form-control"
-                           placeholder="Ketik judul skema..." autocomplete="off"
-                           oninput="searchSkema(this.value)" required>
-                    <div class="skema-dropdown" id="skema-dropdown"></div>
-                </div>
+<form method="post" autocomplete="off" id="mainForm">
+    <input type="hidden" name="id_asesi" value="<?= $id_asesi ?>">
+    <input type="hidden" name="id_skema"  value="<?= $id_skema ?>">
+    <input type="hidden" name="id_apl1"   value="<?= $id_apl1 ?>">
+
+    <div class="info-box">
+        <div class="info-row">
+            <div class="info-col" style="flex:3; min-width:200px;">
+                <span class="small-text label">Skema Sertifikasi – Judul <span class="required">*</span></span>
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['judul_skema'] ?? '') ?>"
+                       readonly style="background:#f5f5f5; color:#1a237e;">
             </div>
-            <div style="flex:1; min-width:130px;">
-                <label class="small-text">Nomor</label>
-                <input type="text" id="nomor_skema" class="form-control"
-                       placeholder="Otomatis" readonly style="background:#f5f5f5;">
+            <div class="info-col" style="flex:1; min-width:90px;">
+                <span class="small-text label">Nomor</span>
+                <input type="text" class="form-control"
+                       value="<?= h($apl1['nomor_skema'] ?? '') ?>"
+                       readonly style="background:#f5f5f5;">
             </div>
-            <div style="flex:1; min-width:150px;">
-                <label class="small-text">TUK <span class="required">*</span></label>
-                <select name="tuk" class="form-control" required <?= $dsb ?> style="<?= $dsb_style ?>">
+            <div class="info-col" style="flex:1; min-width:130px;">
+                <span class="small-text label">TUK <span class="required">*</span></span>
+                <select name="tuk" class="form-control" <?= $dsb ?>
+                        style=" <?= $dsb_style ?>">
                     <option value="">-- Pilih --</option>
-                    <option value="Sewaktu">Sewaktu</option>
-                    <option value="Tempat Kerja">Tempat Kerja</option>
-                    <option value="Mandiri">Mandiri</option>
+                    <?php foreach (['Sewaktu','Tempat Kerja','Mandiri'] as $t):
+                        $sel = ($ak01['tuk'] ?? '') === $t ? 'selected' : ''; ?>
+                    <option value="<?= h($t) ?>" <?= $sel ?>><?= h($t) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
-        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
-            <div style="flex:2; min-width:180px;">
-                <label class="small-text">Nama Asesor</label>
-                <div id="asesor-display"
-                     style="padding:5px 8px; border:1px solid #e0e0e0; border-radius:4px;
-                            background:#f5f5f5; font-size:14px; color:#1a237e; min-height:32px;">
-                    — pilih skema dulu —
-                </div>
+        <div class="info-row">
+            <div class="info-col" style="flex:2; min-width:180px;">
+                <span class="small-text label">Nama Asesor</span>
+                <input type="text" class="form-control"
+                       value="<?= h($nama_asesor_final) ?>"
+                       readonly style="background:#f5f5f5; color:#1a237e;">
             </div>
-            <div style="flex:2; min-width:180px;">
-                <label class="small-text">Nama Asesi</label>
+            <div class="info-col" style="flex:2; min-width:180px;">
+                <span class="small-text label">Nama Asesi</span>
                 <input type="text" name="nama_asesi" id="nama_asesi" class="form-control"
-                       placeholder="Nama Asesi"
-                       value="<?php echo htmlspecialchars($nama_asesi_db); ?>"
-                       oninput="scheduleQRAsesi()">
+                       value="<?= h($nama_asesi_db) ?>"
+                       readonly placeholder="Nama Asesi"
+                       oninput="if(typeof scheduleQRAsesi==='function') scheduleQRAsesi()">
             </div>
-            <div style="flex:1; min-width:140px;">
-                <label class="small-text">Tanggal</label>
+            <div class="info-col" style="flex:1; min-width:130px;">
+                <span class="small-text label">Tanggal</span>
                 <input type="date" name="tanggal" class="form-control"
+                       value="<?= h($tgl_form) ?>"
                        <?= $dsb ?> style="<?= $dsb_style ?>">
             </div>
         </div>
@@ -316,146 +369,266 @@ $dsb_style = $is_asesi ? 'pointer-events:none;opacity:0.75;background:#f5f5f5;' 
         <ul>
             <li>Lengkapi nama unit kompetensi, elemen, dan KUK sesuai kolom dalam tabel.</li>
             <li>Isi standar industri atau tempat kerja.</li>
-            <li>Centang <b>Ya</b> jika asesi dapat mendemonstrasikan tugas sesuai KUK, atau <b>Tidak</b> bila sebaliknya.</li>
+            <li>Klik <b>Ya</b> jika asesi dapat mendemonstrasikan tugas sesuai KUK, atau <b>Tidak</b> bila sebaliknya.</li>
+            <li>Jika memilih <b>Tidak</b>, wajib mengisi alasan mengapa belum kompeten.</li>
             <li>Penilaian Lanjut diisi bila hasil belum dapat disimpulkan.</li>
         </ul>
     </div>
 
-    <div id="unit-list-container">
-        <div class="placeholder-box" id="unit-list-ph">
-            Pilih skema untuk menampilkan daftar unit kompetensi
-        </div>
-        <div id="unit-list-wrap" style="display:none; overflow-x:auto;">
-            <table class="tbl-units">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Kode Unit</th>
-                        <th>Judul Unit</th>
-                    </tr>
-                </thead>
-                <tbody id="unit-list-tbody"></tbody>
-            </table>
-        </div>
+    <?php if (empty($units)): ?>
+    <div class="placeholder-box">
+        Pilih skema untuk menampilkan daftar unit kompetensi
     </div>
 
-    <div id="obs-container"></div>
+    <?php else: ?>
 
-    <div id="rek-section" style="display:none;">
-        <div class="section-title">Umpan Balik &amp; Rekomendasi</div>
-        <div class="rek-box">
-            <div>
-                <label class="small-text">Umpan Balik untuk Asesi :</label>
-                <textarea name="umpan_balik" class="form-control" rows="3"
-                          placeholder="Tuliskan umpan balik..."
-                          <?= $dsb ?> style="<?= $dsb_style ?>"></textarea>
-            </div>
-            <div style="margin-top:12px;">
-                <label class="label" style="font-size:13px;">Rekomendasi :</label>
-                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; <?= $dsb_style ?>">
-                    <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Kompeten" <?= $dsb ?>>
-                        Asesi telah memenuhi seluruh KUK → <b>KOMPETEN</b>
-                    </label>
-                    <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Belum Kompeten" <?= $dsb ?>>
-                        Asesi belum memenuhi seluruh KUK → <b>BELUM KOMPETEN</b>
-                    </label>
-                </div>
-            </div>
-            <div id="rek-detail" style="display:none; margin-top:10px;">
-                <div style="font-size:12px; color:#888; margin-bottom:6px;">
-                    Pada: Kelompok Pekerjaan: ___ Unit: ___ Elemen: ___ KUK: ___
-                </div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:100px;">
-                        <label class="small-text">Kelompok</label>
-                        <input type="text" name="rek_kelompok" class="form-control" placeholder="Kelompok"
-                               <?= $dsb ?> style="<?= $dsb_style ?>">
-                    </div>
-                    <div style="flex:1; min-width:100px;">
-                        <label class="small-text">Unit</label>
-                        <input type="text" name="rek_unit" class="form-control" placeholder="Unit"
-                               <?= $dsb ?> style="<?= $dsb_style ?>">
-                    </div>
-                    <div style="flex:1; min-width:100px;">
-                        <label class="small-text">Elemen</label>
-                        <input type="text" name="rek_elemen" class="form-control" placeholder="Elemen"
-                               <?= $dsb ?> style="<?= $dsb_style ?>">
-                    </div>
-                    <div style="flex:1; min-width:100px;">
-                        <label class="small-text">KUK</label>
-                        <input type="text" name="rek_kuk" class="form-control" placeholder="KUK"
-                               <?= $dsb ?> style="<?= $dsb_style ?>">
-                    </div>
-                </div>
+    <table class="tbl-units">
+        <thead>
+            <tr>
+                <th style="width:46px;">No.</th>
+                <th style="width:200px;">Kode Unit</th>
+                <th>Judul Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($units as $ui => $unit): ?>
+            <tr>
+                <td><?= $ui + 1 ?></td>
+                <td><?= h($unit['kode_unit']) ?></td>
+                <td><?= h($unit['judul_unit']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <?php foreach ($units as $ui => $unit): ?>
+    <div class="unit-obs-box">
+        <div class="unit-obs-header">
+            Unit Kompetensi <?= $ui + 1 ?>
+            <div class="unit-sub">
+                Kode Unit : <?= h($unit['kode_unit']) ?> &nbsp;&nbsp;
+                Judul Unit : <?= h($unit['judul_unit']) ?>
             </div>
         </div>
+        <div style="overflow-x:auto;">
+        <table class="tbl-obs">
+            <thead>
+                <tr>
+                    <th style="width:42px;">No.</th>
+                    <th style="width:160px;">Elemen</th>
+                    <th>Kriteria Unjuk Kerja</th>
+                    <th style="width:175px;">Standar Industri / Tempat Kerja</th>
+                    <th style="width:46px;">Ya</th>
+                    <th style="width:46px;">Tidak</th>
+                    <th style="width:185px;">Penilaian Lanjut</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($unit['elemen'] as $ei => $el):
+                $jml_kuk = count($el['kuk']);
+            ?>
+                <?php foreach ($el['kuk'] as $ki => $kk):
+                    $sv       = $saved_vals[intval($kk['id_kuk'])] ?? [];
+                    $std_val  = $sv['standar']               ?? '';
+                    $penc_val = $sv['pencapaian']             ?? '';
+                    $pl_val   = $sv['penilaian_lanjut']       ?? '';
+                    $abk_val  = $sv['alasan_belum_kompeten']  ?? '';
+                    $kuk_id   = $kk['id_kuk'];
+                ?>
+                <tr>
+                    <td style="text-align:center; font-size:12px; white-space:nowrap;">
+                        <?= ($ei + 1) . '.' . ($ki + 1) ?>
+                    </td>
 
-        <div class="rek-grid">
-            <div class="rek-col">
-                <div class="col-title">Asesi</div>
-                <div style="font-size:13px; margin-bottom:6px;">
-                    <b>Nama :</b>
-                    <span id="asesi-ttd-nama" style="color:#1a237e;">
-                        <?php echo htmlspecialchars($nama_asesi_db); ?>
-                    </span>
-                </div>
-                <div style="margin-bottom:8px;">
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesi" id="tanggal_asesi"
-                           class="form-control" onchange="scheduleQRAsesi()">
-                </div>
-                <div class="qr-box">
-                    <div class="qr-title">QR Tanda Tangan Asesi</div>
-                    <div class="qr-canvas-wrap" id="qr-asesi-canvas">
-                        <div class="qr-ph-sm" id="qr-asesi-ph">
-                            <span style="font-size:18px;"></span><span>Isi nama dulu</span>
+                    <?php if ($ki === 0): ?>
+                    <td class="td-elemen" rowspan="<?= $jml_kuk ?>">
+                        <?= ($ei + 1) . '. ' . h($el['nama_elemen']) ?>
+                    </td>
+                    <?php endif; ?>
+
+                    <td class="kuk-text"><?= h($kk['kuk']) ?></td>
+
+                    <td>
+                    <input type="text"
+                           name="standar[<?= $kuk_id ?>]"
+                           class="form-control"
+                           style="font-size:12px;"
+                           value="<?= h($std_val ?: $standar_skema) ?>"
+                           placeholder="Standar industri..."
+                           <?= $lock_asesi ?>>
+                    </td>
+
+                    <td>
+                        <div class="radio-yt">
+                            <input type="radio"
+                                   name="pencapaian[<?= $kuk_id ?>]"
+                                   id="ya_<?= $kuk_id ?>"
+                                   value="Ya"
+                                   <?= $penc_val === 'Ya' ? 'checked' : '' ?>
+                                   <?= $dsb_untuk_asesor ?>>
                         </div>
-                    </div>
-                    <div id="qr-asesi-badge" class="qr-badge">QR Siap</div><br>
-                    <button type="button" id="btn-dl-asesi" class="btn-dl-qr"
-                            onclick="downloadQR('qr-asesi-canvas','ttd_asesi')">⬇ Download</button>
-                </div>
+                    </td>
+
+                    <td>
+                        <div class="radio-yt">
+                            <input type="radio"
+                                   name="pencapaian[<?= $kuk_id ?>]"
+                                   id="tidak_<?= $kuk_id ?>"
+                                   value="Tidak"
+                                   <?= $penc_val === 'Tidak' ? 'checked' : '' ?>
+                                   <?= $dsb_untuk_asesor ?>>
+                        </div>
+                    </td>
+
+                    <td>
+                        <textarea name="penilaian_lanjut[<?= $kuk_id ?>]"
+                                  class="obs-input"
+                                  placeholder="Penilaian lanjut..."
+                                  <?= $dsb_untuk_asesor ?>><?= h($pl_val) ?></textarea>
+                    </td>
+
+                    <!-- <td>
+                        <php if ($mode === 'view'): ?>
+                            <span style="font-size:12px;"><= h($pl_val) ?></span>
+                        <php else: ?>
+                            <textarea name="penilaian_lanjut[<= $kuk_id ?>]"
+                                      class="obs-input"
+                                      placeholder="Penilaian lanjut..."
+                                      <= $dsb_untuk_asesor ?>><= h($pl_val) ?></textarea>
+                        <php endif; ?>
+                    </td> -->
+                </tr>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    <div class="section-title">Rekomendasi</div>
+    <div class="rek-box">
+        <div>
+        <label class="small-text">Umpan Balik untuk Asesi :</label>
+        <textarea name="umpan_balik" class="form-control" rows="3"
+                  placeholder="Tuliskan umpan balik..."
+                  <?= $dsb_untuk_asesor ?> style="margin-top:4px;"
+        ><?= h($saved_hdr['umpan_balik']) ?></textarea>
+        </div>
+
+        <div style="margin-top:12px;">
+            <label class="small-text">Rekomendasi :</label>
+            <div style="display:flex; gap:20px; flex-wrap:wrap; margin-top:6px;
+                        font-size:13px; <?= $dsb_style ?>">
+                <label style="display:flex; align-items:center; gap:6px;">
+                    Asesi telah memenuhi seluruh KUK
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="radio" name="rekomendasi" value="Kompeten"
+                           id="rek_kompeten"
+                           <?= $saved_hdr['rekomendasi'] === 'Kompeten' ? 'checked' : '' ?>
+                           <?= $dsb_untuk_asesor ?>
+                           onchange="toggleAlasanRek(this.value)">
+                    <b>KOMPETEN</b>
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="radio" name="rekomendasi" value="Belum Kompeten"
+                           id="rek_belum"
+                           <?= $saved_hdr['rekomendasi'] === 'Belum Kompeten' ? 'checked' : '' ?>
+                           <?= $dsb_untuk_asesor ?>
+                           onchange="toggleAlasanRek(this.value)">
+                    <b>BELUM KOMPETEN</b>
+                </label>
             </div>
 
-            <div class="rek-col">
-                <div class="col-title">Asesor</div>
-                <div style="font-size:13px; margin-bottom:2px;">
-                    <b>Nama :</b> <span id="asesor-ttd-nama" style="color:#1a237e;">— pilih skema —</span>
-                </div>
-                <div style="font-size:11px; color:#888; margin-bottom:8px;">
-                    No. Reg: <span id="asesor-ttd-noreg">-</span>
-                </div>
-                <!-- <div style="margin-bottom:8px; <= $dsb_style ?>">
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesor" id="tanggal_asesor"
-                           class="form-control" onchange="scheduleQRAsesor()"
-                           <= $dsb ?> style="<= $dsb_style ?>">
+                <?php if ($saved_hdr['rekomendasi'] === 'Belum Kompeten' && $saved_hdr['alasan_rekomendasi']): ?>
+                <!-- <div style="margin-top:10px; padding:10px 14px; background:#fff3f3;
+                            border:1px solid #ef9a9a; border-radius:6px;">
+                     <div style="font-size:12px; font-weight:700; color:#c62828; margin-bottom:4px;">
+                        Alasan Belum Kompeten (Rekomendasi) :
+                    </div> -->
+                    <!-- <div style="font-size:13px; color:#b71c1c;">
+                        <= nl2br(h($saved_hdr['alasan_rekomendasi'])) ?>
+                    </div>
                 </div> -->
-<!-- `                <div class="qr-box" style="<= $dsb_style ?>">
-                    <div class="qr-title">QR Tanda Tangan Asesor</div>
-                    <div class="qr-canvas-wrap" id="qr-asesor-canvas">
-                        <div class="qr-ph-sm" id="qr-asesor-ph">
-                            <span style="font-size:18px;"></span><span>Pilih skema dulu</span>
-                        </div>
-                    </div>
-                    <div id="qr-asesor-badge" class="qr-badge">QR Siap</div><br>
-                    <button type="button" id="btn-dl-asesor" class="btn-dl-qr"
-                            onclick="downloadQR('qr-asesor-canvas','ttd_asesor')">⬇ Download</button>
-                </div>` -->
+                <?php endif; ?>
+                <div id="alasan-rek-wrap"
+                     style="<?= $saved_hdr['rekomendasi'] === 'Belum Kompeten' ? 'display:block;' : 'display:none;' ?>">
+                    <label>⚠ Kenapa Belum Kompeten? (Penjelasan Rekomendasi)</label>
+                    <textarea name="alasan_rekomendasi"
+                              placeholder="Jelaskan alasan rekomendasi Belum Kompeten..."
+                              <?= $dsb_untuk_asesor ?>><?= h($saved_hdr['alasan_rekomendasi']) ?></textarea>
+                </div>
+        </div>
+    </div>
+
+    <div class="rek-grid">
+        <div class="rek-col">
+            <div class="col-title">Asesi</div>
+            <div style="font-size:13px; margin-bottom:6px;">
+                <b>Nama :</b>
+                <span id="asesi-ttd-nama" style="color:#1a237e;"><?= h($nama_asesi_db) ?></span>
+            </div>
+        </div>
+        <div class="rek-col">
+            <div class="col-title">Asesor</div>
+            <div style="font-size:13px; margin-bottom:4px;">
+                <b>Nama :</b>
+                <span style="color:#1a237e;"><?= h($nama_asesor_final) ?></span>
+            </div>
+            <div style="font-size:12px; color:#888;">
+                No. Reg: <?= h($noreg_asesor_final) ?>
             </div>
         </div>
     </div>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
-        <button type="button" class="btn-back"
-            onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
-            Kembali
-        </button>
-        <button type="submit" class="btn-submit" onclick="return prepareQR()">SIMPAN ✓</button>
-    </div>
+    <?php endif; ?>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                Kembali
+            </button>
+
+            <?php if ($is_asesor): ?>
+                <button type="submit" class="btn-submit">SIMPAN ✓</button>
+            <?php endif; ?>
+            
+            <?php if ($is_asesi): ?>
+                <button type="submit" class="btn-submit" style="background:blue;">SIMPAN ✓</button>
+            <?php endif; ?>
+        </div>
 </form>
 </div>
+
+<script>
+// function toggleAlasanBK(kukId, val) {
+//     var wrap = document.getElementById('alasan_bk_wrap_' + kukId);
+//     if (!wrap) return;
+//     if (val === 'Tidak') {
+//         wrap.style.display = 'block';
+//         var ta = wrap.querySelector('textarea');
+//         if (ta) ta.focus();
+//     } else {
+//         wrap.style.display = 'none';
+//         var ta = wrap.querySelector('textarea');
+//         if (ta) ta.value = '';  
+//     }
+// }
+
+function toggleAlasanRek(val) {
+    var wrap = document.getElementById('alasan-rek-wrap');
+    if (!wrap) return;
+    if (val === 'Belum Kompeten') {
+        wrap.style.display = 'block';
+        var ta = wrap.querySelector('textarea');
+        if (ta) ta.focus();
+    } else {
+        wrap.style.display = 'none';
+        var ta = wrap.querySelector('textarea');
+        if (ta) ta.value = '';
+    }
+}
+</script>
 </body>
 </html>

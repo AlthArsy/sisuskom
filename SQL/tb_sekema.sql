@@ -48,6 +48,5 @@ INSERT INTO tb_kuk (id_elemen, kuk) VALUES
 (3, 'Membuat poster mengacu prinsip grid');
 
 
-
 -----
 -----

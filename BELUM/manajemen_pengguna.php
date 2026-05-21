@@ -1,4 +1,4 @@
-<?php 
+<?php
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -247,7 +247,7 @@ if (!$hasil) {
             </div>
         <?php endif; ?>
         <?php
-        $sql_stats = "SELECT 
+        $sql_stats = "SELECT
             SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as total_admin,
             SUM(CASE WHEN role = 'asesor' THEN 1 ELSE 0 END) as total_asesor,
             SUM(CASE WHEN role = 'assesi' THEN 1 ELSE 0 END) as total_assesi,
@@ -293,8 +293,8 @@ if (!$hasil) {
                     <a href="tambah-user-baru.php" class="btn-tambah">
                         <i class="fas fa-user-plus"></i> Tambah User Baru
                     </a>
-                    
-                </div>  
+
+                </div>
                 <div class="table-container">
                     <table id="usersTable">
                         <thead>
@@ -337,7 +337,7 @@ if (!$hasil) {
                                                 <a href='ubah.php?id=" . $row['id'] . "' class='btn-aksi btn-ubah'>
                                                     <i class='fas fa-edit'></i> Ubah
                                                 </a>
-                                                <a href='hapus.php?id=" . $row['id'] . "' 
+                                                <a href='hapus.php?id=" . $row['id'] . "'
                                                    class='btn-aksi btn-hapus'
                                                    onclick=\"return confirm('Yakin ingin menghapus user ini?');\">
                                                     <i class='fas fa-trash'></i> Hapus
@@ -351,7 +351,7 @@ if (!$hasil) {
                                         <div class='empty-state'>
                                             <i class='fas fa-users-slash'></i>
                                             <h3>Belum ada data user</h3>
-                                            <p>Tambahkan user baru untuk memulai</p> 
+                                            <p>Tambahkan user baru untuk memulai</p>
                                         </div>
                                       </td></tr>";
                             }
@@ -372,13 +372,13 @@ if (!$hasil) {
                 const searchTerm = this.value.toLowerCase().trim();
                 const table = document.getElementById('usersTable');
                 if (!table) return;
-                
+
                 const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-                
+
                 for (let i = 0; i < rows.length; i++) {
                     const cells = rows[i].getElementsByTagName('td');
                     let found = false;
-                    
+
                     if (searchTerm === '') {
                         found = true;
                     } else {
@@ -390,7 +390,7 @@ if (!$hasil) {
                             }
                         }
                     }
-                    
+
                     rows[i].style.display = found ? '' : 'none';
                 }
             });

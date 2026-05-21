@@ -32,8 +32,8 @@ if (!empty($tempat_lahir) && strpos($tempat_lahir, '/') !== false) {
 if (!empty($nama) && !empty($no_ktp) && !empty($tempat_lahir) && !empty($tgl_lahir) && !empty($jenis_kelamin) && !empty($alamat_rumah) && !empty($hp) && !empty($email) && !empty($kualifikasi)) {
 
     $sql1 = "INSERT INTO FR1a (
-        nama, 
-        no_ktp, 
+        nama,
+        no_ktp,
         tempat_lahir,
         tgl_lahir,
         jenis_kelamin,
@@ -62,8 +62,8 @@ if (!empty($nama) && !empty($no_ktp) && !empty($tempat_lahir) && !empty($tgl_lah
     )";
 
     $sql2 = "INSERT INTO FR1b (
-        nama_institusi, 
-        jabatan, 
+        nama_institusi,
+        jabatan,
         alamat_kantor,
         kode_pos_kantor,
         telp_kantor,

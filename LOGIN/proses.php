@@ -49,12 +49,12 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
 
             if (!empty($user['id_admin']) && !is_null($user['id_admin'])) {
                 $id_admin = $user['id_admin'];
-                
+
                 if ($role === 'Admin_lsp') {
 
                     $profil = mysqli_query($koneksi, "SELECT nama_admin FROM tb_admin WHERE id_admin = '$id_admin'");
                     $data_profil = mysqli_fetch_assoc($profil);
-                    
+
                     if ($data_profil) {
                         $_SESSION['nama_user'] = $data_profil['nama_admin'];
                     }
@@ -63,12 +63,12 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
 
             if (!empty($user['id_asesor']) && !is_null($user['id_asesor'])) {
                 $id_asesor = $user['id_asesor'];
-                
+
                 if ($role === 'Asesor') {
 
                     $profil = mysqli_query($koneksi, "SELECT nama_asesor FROM tb_asesor WHERE id_asesor = '$id_asesor'");
                     $data_profil = mysqli_fetch_assoc($profil);
-                    
+
                     if ($data_profil) {
                         $_SESSION['nama_user'] = $data_profil['nama_asesor'];
                     }
@@ -81,31 +81,31 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
                 if ($role === 'Asesi') {
                     $profil = mysqli_query($koneksi, "SELECT nama_asesi FROM tb_asesi WHERE id_asesi = '$id_asesi'");
                     $data_profil = mysqli_fetch_assoc($profil);
-                    
+
                     if ($data_profil) {
                         $_SESSION['nama_user'] = $data_profil['nama_asesi'];
                     }
-                } 
-            } 
+                }
+            }
 
             if ($role === 'Admin_lsp') {
                 if (empty($user['id_admin']) || is_null($user['id_admin'])) {
                     if ($role === 'Admin_lsp') {
                         echo "<script>alert('Silakan lengkapi profil terlebih dahulu.'); window.location.href='../Admin/input_profil.php';</script>";
                         exit;
-                    } 
+                    }
                 }
-            }            
+            }
 
             if ($role === 'Asesor') {
                 if (empty($user['id_asesor']) || is_null($user['id_asesor'])) {
                     if ($role === 'Asesor') {
                         echo "<script>alert('Silakan lengkapi profil terlebih dahulu.'); window.location.href='../ASESOR/input_profil.php';</script>";
                         exit;
-                    } 
+                    }
                 }
             }
-            
+
             if ($role === 'Asesi') {
                 if (empty($user['id_asesi']) || is_null($user['id_asesi'])) {
                     if ($role === 'Asesi') {
@@ -114,7 +114,7 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
                     }
                 }
             }
-            
+
             if ($role === 'Admin_utm') {
                 echo "<script>alert('Login berhasil sebagai ADMIN UTAMA'); window.location.href='../BERANDA/UTAMA.php';</script>";
             } elseif ($role === 'Admin_lsp') {
