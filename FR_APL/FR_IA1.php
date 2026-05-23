@@ -330,15 +330,8 @@ $tgl_form = $mode === 'create'
                        readonly style="background:#f5f5f5;">
             </div>
             <div class="info-col" style="flex:1; min-width:130px;">
-                <span class="small-text label">TUK <span class="required">*</span></span>
-                <select name="tuk" class="form-control" <?= $dsb ?>
-                        style=" <?= $dsb_style ?>">
-                    <option value="">-- Pilih --</option>
-                    <?php foreach (['Sewaktu','Tempat Kerja','Mandiri'] as $t):
-                        $sel = ($ak01['tuk'] ?? '') === $t ? 'selected' : ''; ?>
-                    <option value="<?= h($t) ?>" <?= $sel ?>><?= h($t) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <span class="small-text label">TUK </span>
+                <input type="text" name="tuk" value="<?= h($ak01['tuk'] ?? '') ?>"  class="form-control" disabled style="<?= $dsb_style ?>">
             </div>
         </div>
         <div class="info-row">
@@ -358,7 +351,7 @@ $tgl_form = $mode === 'create'
             <div class="info-col" style="flex:1; min-width:130px;">
                 <span class="small-text label">Tanggal</span>
                 <input type="date" name="tanggal" class="form-control"
-                       value="<?= h($tgl_form) ?>"
+                       value="<?= h($tgl_form) ?>" disabled 
                        <?= $dsb ?> style="<?= $dsb_style ?>">
             </div>
         </div>
@@ -583,21 +576,27 @@ $tgl_form = $mode === 'create'
     </div>
 
     <?php endif; ?>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
-
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                    
+        <?php if ($is_asesor): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ia1.php'">
+                Kembali
+            </button>
+            <button type="submit" class="btn-submit">SIMPAN ✓</button>
+        <?php endif; ?>
+        
+        <?php if ($is_asesi): ?>
             <button type="button" class="btn-back"
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
-
-            <?php if ($is_asesor): ?>
-                <button type="submit" class="btn-submit">SIMPAN ✓</button>
-            <?php endif; ?>
-            
-            <?php if ($is_asesi): ?>
+            <?php if (!$has_data): ?>
                 <button type="submit" class="btn-submit" style="background:blue;">SIMPAN ✓</button>
             <?php endif; ?>
-        </div>
+        <?php endif; ?>
+            
+    </div>
 </form>
 </div>
 

@@ -57,29 +57,49 @@ $roles_data = [
                 'icon' => 'fas fa-user-graduate',
                 'label' => 'Manajemen Asesi'
             ],
-             [
-                'href' => '../list/rekap_fr.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR APL 1'
+            [
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Recap Note',
+                'has_dropdown' => true,
+                'submenu' => [
+                        [
+                            'href' => '../list/rekap_frapl2.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 2'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak01.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK01'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak02.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK02'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak3.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK03'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia1.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA1'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia06.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA06C'
+                        ]
+                ]
             ],
             [
-                'href' => '../list/rekap_frapl2.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR APL 2'
+                'href' => '../list/soal_ia06a.php',
+                'icon' => 'fas fa-question-circle',
+                'label' => 'Kelola Soal FR.IA.06A'
             ],
-             [
-                'href' => '../list/rekap_ak3.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap AK 3'
-            ],
-             [
-                'href' => '../list/rekap_ia1.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap IA 1'
-            ],
-            
-
-
             [
                 'href' => '../SKEMA/list_skema2.php',
                 'icon' => 'fas fa-tasks',
@@ -151,34 +171,42 @@ $roles_data = [
                 'active' => true
             ],
             [
-                'href' => '../list/rekap_frapl2.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR APL 2'
-            ],
-            [
-                'href' => '../list/rekap_ak01.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR AK01'
-            ],
-            [
-                'href' => '../list/rekap_ak02.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR AK02'
-            ],
-            [
-                'href' => '../list/rekap_ak3.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR AK03'
-            ],
-            [
-                'href' => '../list/rekap_ia1.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR IA1'
-            ],
-            [
-                'href' => '../list/rekap_ia06.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR IA06C'
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Recap Note',
+                'has_dropdown' => true,
+                'submenu' => [
+                        [
+                            'href' => '../list/rekap_frapl2.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 2'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak01.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK01'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak02.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK02'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak3.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK03'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia1.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA1'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia06.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA06C'
+                        ]   
+                ]
             ],
             [
                 'href' => '../list/soal_ia06a.php',
@@ -288,8 +316,8 @@ $allowed_pages = [
     '../list/rekap_ak02.php',
     '../FR_APL/FR_IA06C.php',
     '../list/rekap_ia06.php',
-    '../',
-    '../',
+    '../FR_APL/FR_IA06A.php',
+    '../FR_APL/FR_AK02.php',
     '../',
     '../',
     '../',

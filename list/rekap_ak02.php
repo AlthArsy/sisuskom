@@ -159,7 +159,7 @@ $base = '../BERANDA/UTAMA.php';
                     <th>No.</th>
                     <th>Nama Asesi</th>
                     <th>Skema Sertifikasi</th>
-                    <th>TUK (dari AK-01)</th>
+                    <th>TUK</th>
                     <th>Rekomendasi</th>
                     <th>Tindak Lanjut</th>
                     <th>Asesor Penilai</th>

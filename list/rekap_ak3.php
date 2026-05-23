@@ -48,14 +48,16 @@ $filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
 
 $where = "WHERE 1=1";
 if ($filter === 'belum')    $where .= " AND (a.catatan_lainnya IS NULL OR a.catatan_lainnya = '')";
-if ($filter === 'sesuai')   $where .= " AND a.catatan_lainnya = 'Selesai'";
-if ($filter === 'tidak')    $where .= " AND a.catatan_lainnya = 'Belum Selesai'";
+// if ($filter === 'sesuai')   $where .= " AND a.catatan_lainnya = 'Selesai'";
+// if ($filter === 'tidak')    $where .= " AND a.catatan_lainnya = 'Belum Selesai'";
 
-$sql = "SELECT a.id_ak03, a.id_asesi, a.id_apl1, a.tgl_mulai, a.tgl_selesai, a.catatan_lainnya,
+$sql = "SELECT a.id_ak03, a.id_asesi, a.id_apl1, a.id_ak01, a.tgl_selesai, a.catatan_lainnya,
+               ak.hari_tanggal, ak.tuk,
                s.judul_skema, s.nomor_skema,
                asi.nama_asesi
         FROM tb_ak03 a
         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = a.id_apl1
+        LEFT JOIN tb_ak01 ak  ON ak.id_ak01  = a.id_ak01
         LEFT JOIN tb_skema s   ON s.id_skema  = apl.id_skema
         LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
         $where
@@ -148,7 +150,7 @@ $base = '../BERANDA/UTAMA.php';
             <div class="num"><?= $total_all ?></div>
             <div class="lbl">Total AK-03</div>
         </a>
-        <a href="<?= $base ?>?page=../list/rekap_ak3.php&filter=belum"
+        <!-- <a href="<?= $base ?>?page=../list/rekap_ak3.php&filter=belum"
            class="rekap-card card-belum <?= $filter==='belum'?'active':'' ?>">
             <div class="num"><?= $total_belum ?></div>
             <div class="lbl">Belum Diproses</div>
@@ -162,7 +164,7 @@ $base = '../BERANDA/UTAMA.php';
            class="rekap-card card-tidak <?= $filter==='belumdiselesaikan'?'active':'' ?>">
             <div class="num"><?= $total_tidak ?></div>
             <div class="lbl">Belum Selesai</div>
-        </a>
+        </a> -->
     </div>
 
     <?php if (empty($rows)): ?>
@@ -175,9 +177,10 @@ $base = '../BERANDA/UTAMA.php';
                     <th>No.</th>
                     <th>Nama Asesi</th>
                     <th>Skema</th>
+                    <th>TUK</th>
                     <th>Tgl Mulai</th>
                     <th>Tgl Selesai</th>
-                    <th>Status</th>
+                    <!-- <th>Status</th> -->
                     <!-- <th>Komentar Admin</th> -->
                     <th>Aksi</th>
                 </tr>
@@ -194,9 +197,10 @@ $base = '../BERANDA/UTAMA.php';
                         <?= htmlspecialchars($r['judul_skema'] ?? '—') ?>
                         <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema'] ?? '—') ?></div>
                     </td>
-                    <td style="text-align:center;"><?= htmlspecialchars($r['tgl_mulai'] ?? '—') ?></td>
+                    <td style="text-align:center;"><?= htmlspecialchars($r['tuk'] ?? '—') ?></td>
+                    <td style="text-align:center;"><?= htmlspecialchars($r['hari_tanggal'] ?? '—') ?></td>
                     <td style="text-align:center;"><?= htmlspecialchars($r['tgl_selesai'] ?? '—') ?></td>
-                    <td style="text-align:center;">
+                    <!-- <td style="text-align:center;">
                         <?php if ($is_belum): ?>
                             <span class="badge badge-belum">Belum Diproses</span>
                         <?php elseif ($r['catatan_lainnya'] === 'selesai'): ?>
@@ -204,7 +208,7 @@ $base = '../BERANDA/UTAMA.php';
                         <?php else: ?>
                             <span class="badge badge-tidak">belum selesai</span>
                         <?php endif; ?>
-                    </td>
+                    </td> -->
                     <!-- <td style="max-width:200px;"> -->
                         <!-- <php if ($is_belum): ?>
                             <form method="post" action="<= $base ?>?page=../list/rekap_ak3.php&filter=<= urlencode($filter) ?>">
@@ -237,7 +241,7 @@ $base = '../BERANDA/UTAMA.php';
                             </a>
                         <php endif; ?> -->
                         <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_AK03.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">
-                            Lihat
+                            Lihat Detail
                         </a>
                     </td>
                 </tr>

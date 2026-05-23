@@ -17,12 +17,12 @@ $is_asesi = ($role === 'Asesi');
 
 $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
 
-$flash_msg  = $_SESSION['flash_ia06c'] ?? '';
-$flash_type = '';
-if ($flash_msg) {
-    [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
-    unset($_SESSION['flash_ia06c']);
-}
+// $flash_msg  = $_SESSION['flash_ia06c'] ?? '';
+// $flash_type = '';
+// if ($flash_msg) {
+//     [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
+//     unset($_SESSION['flash_ia06c']);
+// }
 
 $id_apl1_db     = 0;
 $id_skema_db    = 0;
@@ -70,17 +70,21 @@ if ($id_skema_db) {
 
 $hari_tanggal_db = '';
 $waktu_db        = '';
-$tuk_db = '';
-if ($id_asesi && $id_skema_db) {
+$tuk_db          = '';
+$id_ak01_db      = 0;
+
+if ($id_asesi) {
     $qak1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT tuk, hari_tanggal, waktu, id_ak01 FROM tb_ak01
-         WHERE id_asesi = '$id_asesi' AND id_apl1 = '$id_apl1_db'
-         ORDER BY id_ak01 DESC
-         LIMIT 1"));
-    $tuk_db = $qak1['tuk'] ?? '';
-    $hari_tanggal_db = $qak1['hari_tanggal'] ?? '';
-    $waktu_db = $qak1['waktu'] ?? '';
-    $id_ak01_db = intval($qak1['id_ak01'] ?? 0);
+        "SELECT id_ak01, tuk, hari_tanggal, waktu
+         FROM tb_ak01
+         WHERE id_asesi = '$id_asesi'
+         ORDER BY id_ak01 DESC LIMIT 1"));
+    if ($qak1) {
+        $id_ak01_db      = intval($qak1['id_ak01']);
+        $tuk_db          = $qak1['tuk'] ?? '';
+        $hari_tanggal_db = $qak1['hari_tanggal'] ?? '';
+        $waktu_db        = $qak1['waktu'] ?? '';
+    }
 }
 
 
@@ -97,7 +101,7 @@ if ($id_skema_db && $id_asesor_db) {
 $soal_list = [];
 if ($id_ia06a_db) {
     $rs = mysqli_query($koneksi,
-        "SELECT id_soal, soal
+        "SELECT id_soal, soal, kunci_jawaban
          FROM tb_soal
          WHERE id_ia06a='$id_ia06a_db'
          ORDER BY id_soal ASC");
@@ -125,6 +129,21 @@ if ($id_asesi && $id_apl1_db && $id_ia06a_db) {
     }
 }
 
+$has_data = false;
+if ($id_asesi && $id_skema_db) {
+    $chk = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT COUNT(*) AS cnt FROM tb_ia06
+         WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($id_apl1_db)}'"));
+    $has_data = ($chk && $chk['cnt'] > 0);
+}
+
+$mode = 'create';
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
+    $mode = $_GET['mode'];
+} elseif ($has_data) {
+    $mode = 'view';
+}
+
 $jawaban_saved = [];
 if ($id_ia06_db) {
     $rj = mysqli_query($koneksi,
@@ -142,8 +161,8 @@ if (!$is_asesi) $mode = 'view'; // asesor/admin selalu readonly
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
 
     if (!$id_asesi || !$id_apl1_db || !$id_ia06a_db || !$id_asesor_db) {
-        $_SESSION['flash_ia06c'] = 'error|Data tidak lengkap. Pastikan APL-01, skema, dan asesor sudah terkonfigurasi.';
-        header("Location: FR_IA06C.php?id_asesi=$id_asesi");
+        $_SESSION['alert'] = 'Data tidak lengkap. Pastikan APL-01, skema, dan asesor sudah terkonfigurasi.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi");
         exit;
     }
 
@@ -151,11 +170,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
 
     if (!$id_ia06_db) {
         $ins_h = mysqli_query($koneksi,
-            "INSERT INTO tb_ia06 (id_apl1, id_ia06a, id_asesor, id_asesi)
-             VALUES ('$id_apl1_db','$id_ia06a_db','$id_asesor_db','$id_asesi')");
+            "INSERT INTO tb_ia06 (id_apl1, id_ak01, id_ia06a, id_asesor, id_asesi)
+             VALUES ('$id_apl1_db','$id_ak01_db','$id_ia06a_db','$id_asesor_db','$id_asesi')");
         if (!$ins_h) {
-            $_SESSION['flash_ia06c'] = 'error|Gagal membuat sesi jawaban: ' . mysqli_error($koneksi);
-            header("Location: FR_IA06C.php?id_asesi=$id_asesi");
+            $_SESSION['alert'] = 'Gagal membuat sesi jawaban: ' . mysqli_error($koneksi);
+            header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi");
             exit;
         }
         $id_ia06_db = mysqli_insert_id($koneksi);
@@ -167,6 +186,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
 
     $gagal     = false;
     $jw_post   = $_POST['jawaban'] ?? [];
+    $kosong  = 0;
+    foreach ($soal_list as $s) {
+        $jwb = trim($jw_post[intval($s['id_soal'])] ?? '');
+        if ($jwb === '') $kosong++;
+    }
+
+    if ($kosong > 0) {
+        $_SESSION['alert'] = "Masih ada $kosong pertanyaan yang belum dijawab!";
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=edit");
+        exit;
+    }
 
     foreach ($soal_list as $s) {
         $id_soal = intval($s['id_soal']);
@@ -181,26 +211,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
         if (!$ins) $gagal = true;
     }
 
-    $_SESSION['flash_ia06c'] = $gagal
-        ? 'warning|Sebagian jawaban gagal disimpan: ' . mysqli_error($koneksi)
-        : 'success|Jawaban berhasil disimpan!';
-    header("Location: FR_IA06C.php?id_asesi=$id_asesi&mode=view");
+    if ($gagal) {
+        $_SESSION['alert'] = 'Sebagian jawaban gagal disimpan: ' . mysqli_error($koneksi);;
+    } else {
+        $_SESSION['alert'] = 'Jawaban berhasil disimpan!';
+    }
+    header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=view");
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$is_asesi
     && isset($_POST['aspek']) && isset($_POST['save_umpan_balik'])) {
-    if ($id_ia06_db) {
-        $aspek = mysqli_real_escape_string($koneksi, trim($_POST['aspek'] ?? ''));
-        $ub = mysqli_real_escape_string($koneksi, trim($_POST['umpan_balik'] ?? ''));
-        mysqli_query($koneksi,
-            "UPDATE tb_ia06 SET aspek='{$aspek}', umpan_balik='{$ub}' WHERE id_ia06='$id_ia06_db'");
-        $_SESSION['flash_ia06c'] = 'success|Aspek dan umpan balik berhasil disimpan!';
-        header("Location: FR_IA06C.php?id_asesi=$id_asesi&mode=view");
+
+    if (!$id_ia06_db) {
+        $_SESSION['alert'] = "DEBUG: id_ia06_db kosong! id_asesi=$id_asesi, id_apl1=$id_apl1_db, id_ia06a=$id_ia06a_db";
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=view");
         exit;
     }
-}
 
+    $aspek = mysqli_real_escape_string($koneksi, trim($_POST['aspek'] ?? ''));
+    $ub    = mysqli_real_escape_string($koneksi, trim($_POST['umpan_balik'] ?? ''));
+    mysqli_query($koneksi,
+        "UPDATE tb_ia06 SET aspek='$aspek', umpan_balik='$ub'
+         WHERE id_ia06='$id_ia06_db'");
+
+    $hasil_post = $_POST['hasil'] ?? [];
+    foreach ($hasil_post as $id_soal => $nilai) {
+        $id_soal = intval($id_soal);
+        $nilai   = in_array($nilai, ['Benar','Salah']) ? $nilai : '';
+        if ($nilai) {
+            mysqli_query($koneksi,
+                "UPDATE tb_ia06_jawaban SET hasil='$nilai'
+                 WHERE id_ia06='$id_ia06_db' AND id_soal='$id_soal'");
+        }
+    }
+
+    $_SESSION['alert'] = 'Penilaian berhasil disimpan!';
+    header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=view");
+    exit;
+}
 function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 
 $total   = count($soal_list);
@@ -364,8 +413,9 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
         FR.IA.06C &nbsp;–&nbsp; LEMBAR JAWABAN PERTANYAAN TERTULIS ESAI
     </h2>
 
-    <?php if ($flash_msg): ?>
-        <div class="flash flash-<?= h($flash_type) ?>"><?= h($flash_msg) ?></div>
+    <?php if (!empty($_SESSION['alert'])): ?>
+    <script>alert('<?= addslashes($_SESSION['alert']) ?>');</script>
+    <?php unset($_SESSION['alert']); ?>
     <?php endif; ?>
 
     <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px;
@@ -458,7 +508,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     <span class="soal-no"><?= $s['no_urut'] ?>.</span>
                     <span class="soal-text"><?= h($s['soal']) ?></span>
                 </div>
-
+            
                 <div>
                     <span class="jawaban-label">
                         Jawaban
@@ -467,34 +517,55 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                         <?php endif; ?>
                         :
                     </span>
-
+                        
                     <?php if ($is_asesi && $mode === 'edit'): ?>
                         <textarea
                             name="jawaban[<?= $sid ?>]"
                             class="jawaban-textarea"
                             placeholder="Tulis jawaban Anda di sini..."
                             rows="4"><?= h($jwb) ?></textarea>
-
                     <?php else: ?>
                         <div class="jawaban-view <?= $has_ans ? '' : 'empty' ?>">
                             <?= $has_ans ? h($jwb) : 'Belum diisi oleh asesi.' ?>
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <?php if (!$is_asesi && $has_ans): ?>
-                <div class="hasil-wrap">
+                <div class="hasil-wrap" style="margin-top:8px;">
                     <span class="hasil-label">Hasil :</span>
-                    <?php if ($hasil): ?>
-                        <span class="hasil-badge <?= $hasil === 'K' ? 'hasil-k' : 'hasil-bk' ?>">
-                            <?= $hasil === 'K' ? '✔ Tercapai' : '✘ Belum Tercapai' ?>
-                        </span>
-                    <?php else: ?>
-                        <span class="hasil-badge hasil-empty">Belum dinilai</span>
-                    <?php endif; ?>
+                        <?php if ($is_asesi): ?>
+                            <span style="font-weight:bold; color:<?= $hasil === 'Benar' ? '#388e3c' : ($hasil === 'Salah' ? '#c62828' : '#999') ?>">
+                                <?= $hasil ?: 'Belum dinilai' ?>
+                            </span>
+                        <?php else: ?>
+                        <?php endif; ?>
+                </div>
+                    
+                <?php if (!$is_asesi && $has_ans): ?>
+                <div class="hasil-wrap" style="margin-top:8px;">
+                    <span class="hasil-label">Hasil :</span>
+                    <label style="margin-right:12px; cursor:pointer;">
+                        <input type="radio"
+                               name="hasil[<?= $sid ?>]"
+                               value="Benar"
+                               <?= $hasil === 'Benar' ? 'checked' : '' ?>>
+                        Benar
+                    </label>
+                    <label style="cursor:pointer;">
+                        <input type="radio"
+                               name="hasil[<?= $sid ?>]"
+                               value="Salah"
+                               <?= $hasil === 'Salah' ? 'checked' : '' ?>>
+                        Salah
+                    </label>
+                </div>
+                
+                <div style="margin-top:8px; padding:8px 12px; background:#f0f7ff;
+                            border-left:3px solid #1565c0; border-radius:4px; font-size:12px;">
+                    <b style="color:#1565c0;">Kunci Jawaban :</b><br>
+                    <span style="color:#333;"><?= nl2br(h($s['kunci_jawaban'] ?? '—')) ?></span>
                 </div>
                 <?php endif; ?>
-
+                
             </div>
             <?php endforeach; ?>
         <?php endif; ?>
@@ -579,52 +650,44 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
             </div>
         </div>
 
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:22px;">
-            <?php?>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                    
+        <?php if ($is_asesor): ?>
             <button type="button" class="btn-back"
-                onclick="window.location.href='UTAMA.php?page=../list/rekap_ia06.php'">
-                &lt;- BACK
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ia06.php'">
+                Kembali
             </button>
-
-            <?php if ($is_asesi): ?>
-                <?php if ($mode === 'view' && $ada_jawaban): ?>
-                    <!-- <button type="button" class="btn-submit"
-                        onclick="window.location.href='form_ia06c.php?id_asesi=<= $id_asesi ?>&mode=edit'">
-                        EDIT JAWABAN
-                    </button> -->
-                <?php else: ?>
-                    <button type="submit" class="btn-submit"
-                        onclick="return konfirmasiSimpan()">
-                        SIMPAN JAWABAN
-                    </button>
-                <?php endif; ?>
-
-            <?php else: ?>
-                <?php if ($id_ia06_db): ?>
-                    <button type="submit" name="save_umpan_balik" value="1"
-                            class="btn-submit">
-                        SIMPAN UMPAN BALIK
-                    </button>
-                <?php endif; ?>
+            <button type="submit" class="btn-submit" name="save_umpan_balik">SIMPAN ✓</button>
+        <?php endif; ?>
+        
+        <?php if ($is_asesi): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                Kembali
+            </button>
+            <?php if (!$has_data): ?>
+                <button type="submit" class="btn-submit" >SIMPAN ✓</button>
             <?php endif; ?>
-        </div>
+        <?php endif; ?>
+            
+    </div>
 
     </form>
 
 </div>
 
 <script>
-function konfirmasiSimpan() {
-    var textareas = document.querySelectorAll('.jawaban-textarea');
-    var kosong = 0;
-    textareas.forEach(function(ta) {
-        if (ta.value.trim() === '') kosong++;
-    });
-    if (kosong > 0) {
-        return confirm(kosong + ' pertanyaan belum dijawab. Lanjutkan menyimpan?');
-    }
-    return true;
-}
+// function konfirmasiSimpan() {
+//     var textareas = document.querySelectorAll('.jawaban-textarea');
+//     var kosong = 0;
+//     textareas.forEach(function(ta) {
+//         if (ta.value.trim() === '') kosong++;
+//     });
+//     if (kosong > 0) {
+//         return confirm(kosong + ' pertanyaan belum dijawab. Lanjutkan menyimpan?');
+//     }
+//     return true;
+// }
 // function toggleAlasanBK(kukId, val) {
 //     var wrap = document.getElementById('alasan_bk_wrap_' + kukId);
 //     if (!wrap) return;

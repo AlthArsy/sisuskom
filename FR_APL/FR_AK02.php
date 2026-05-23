@@ -173,7 +173,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
 
-    // ── Hapus data lama dulu (seperti pola FR_IA1) ──
     $old = mysqli_query($koneksi,
         "SELECT id_ak02 FROM tb_ak02
          WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'");
@@ -185,7 +184,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_query($koneksi, "DELETE FROM tb_ak02 WHERE id_ak02 IN ($ids_str)");
     }
 
-    // ── Insert header baru ──
     $sql = "INSERT INTO tb_ak02
         (id_asesi, id_asesor, id_apl1, id_ak01,
          rekomendasi, tindak_lanjut, komentar_asesor)

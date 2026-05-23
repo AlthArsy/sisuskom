@@ -122,7 +122,7 @@ $base = '../BERANDA/UTAMA.php';
                         <th>No.</th>
                         <th>Nama Asesi</th>
                         <th>Skema Sertifikasi</th>
-                        <th>TUK (pilihan)</th>
+                        <th>TUK</th>
                         <th>Hari / Tanggal</th>
                         <th>Waktu</th>
                         <th>TUK Pelaksanaan</th>
