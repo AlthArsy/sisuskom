@@ -101,6 +101,32 @@ if ($apl2_exist) {
         $jawaban_exist[$j['id_elemen']] = $j['nilai'];
     }
 }
+if ($is_asesi && $apl1 && !$apl2_exist && $id_skema) {
+    $id_apl1_fk   = intval($apl1['id_apl1']);
+    $id_asesor_fk = intval($apl1['id_asesor']);
+    $nama_ttd     = '';
+
+    $res = mysqli_query($koneksi,
+        "INSERT INTO tb_apl2 (id_apl1, id_asesi, id_asesor, rekomendasi, tertanda)
+         VALUES ('$id_apl1_fk','$id_asesi','$id_asesor_fk', NULL, '')");
+
+    if ($res) {
+        $id_apl2_new = mysqli_insert_id($koneksi);
+        foreach ($units as $u) {
+            foreach ($u['elemen'] as $el) {
+                $id_el_i = intval($el['id_elemen']);
+                foreach ($el['kuk'] as $k) {
+                    $id_kuk_i = intval($k['id_kuk']);
+                    mysqli_query($koneksi,
+                        "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
+                         VALUES ('$id_apl2_new','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
+                }
+            }
+        }
+        $apl2_exist = mysqli_fetch_assoc(mysqli_query($koneksi,
+            "SELECT * FROM tb_apl2 WHERE id_asesi='$id_asesi' ORDER BY id_apl2 DESC LIMIT 1"));
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesi') {
     $id_apl1_fk   = intval($apl1['id_apl1']  ?? 0);
@@ -323,27 +349,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
 
     <div class="rek-box">
         <div class="rek-col">
-            <!-- <div class="col-title">Asesi :</div> -->
-             <div class="col-title">Ditinjau Oleh Asesor :</div>
+            <div class="col-title">Ditinjau Oleh Asesor :   </div>
               <div style="font-size:13px;font-weight:bold;color:#1a237e;margin-bottom:4px;">
                 <?= h($apl1['nama_asesor'] ?? '-') ?>
             </div>
             <div style="font-size:12px;color:#888;margin-bottom:8px;">
                 No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
             </div>
-            <?php if ($apl2_exist['rekomendasi']): ?>
-            <div style="margin-top:6px;font-size:13px;font-weight:bold;
-                        color:<?= $apl2_exist['rekomendasi'] === 'Dapat' ? '#2e7d32' : '#c00' ?>;">
-                Rekomendasi: <?= h($apl2_exist['rekomendasi']) ?>
-            </div>
-            <?php else: ?>
             <div style="font-size:11px;color:#888;font-style:italic;">
                 * K/BK & Rekomendasi akan diisi Asesor setelah asesmen
             </div>
-            <?php endif; ?>
             <div style="font-size:13px;margin-bottom:8px;">
                 Asesmen dapat / tidak dapat dilanjutkan melalui :
-            </div>
+            </div>            
 
             <?php if (!$is_asesi): ?>
             <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;">
@@ -351,13 +369,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                     <input type="radio" name="rekomendasi" value="Dapat"
                            <?= $apl2_exist['rekomendasi'] === 'Dapat' ? 'checked' : '' ?>
                            style="accent-color:#2e7d32;width:15px;height:15px;">
-                    <span style="color:#2e7d32;font-weight:bold;">Dapat</span>
+                    <span style="font-weight:bold;">Dapat</span>
                 </label>
                 <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
                     <input type="radio" name="rekomendasi" value="Tidak Dapat"
                            <?= $apl2_exist['rekomendasi'] === 'Tidak Dapat' ? 'checked' : '' ?>
                            style="accent-color:#c00;width:15px;height:15px;">
-                    <span style="color:#c00;font-weight:bold;">Tidak Dapat</span>
+                    <span style="font-weight:bold;">Tidak Dapat</span>
                 </label>
             </div>
             <?php else: ?>
@@ -381,24 +399,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                        readonly style="background:#f5f5f5;">
             </div> -->
         </div>
+
         <div class="rek-col">
-            <!-- <div class="col-title">Ditinjau Oleh Asesor :</div>
-            <div style="font-size:13px;font-weight:bold;color:#1a237e;margin-bottom:4px;">
-                <?= h($apl1['nama_asesor'] ?? '-') ?>
+            <div class="col-title">Asesi :</div> 
+            <div style="font-size:13px; margin-bottom:6px;">
+                <b>Nama :</b>
+                <span id="asesi-ttd-nama" style="color:#1a237e;"><?= h($nama_asesi_db) ?></span>
             </div>
-            <div style="font-size:12px;color:#888;margin-bottom:8px;">
-                No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
-            </div>
-            <?php if ($apl2_exist['rekomendasi']): ?>
-            <div style="margin-top:6px;font-size:13px;font-weight:bold;
-                        color:<?= $apl2_exist['rekomendasi'] === 'Dapat' ? '#2e7d32' : '#c00' ?>;">
-                Rekomendasi: <?= h($apl2_exist['rekomendasi']) ?>
-            </div>
-            <?php else: ?>
-            <div style="font-size:11px;color:#888;font-style:italic;">
-                * K/BK & Rekomendasi akan diisi Asesor setelah asesmen
-            </div>
-            <?php endif; ?> -->
         </div>
     </div>
 
@@ -408,6 +415,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
         <?php endif; ?>
         <?php if ($is_asesi): ?>
         <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+        <a href="../pdf/cetak_apl2.php?id_asesi=<?= $id_asesi ?>" 
+           target="_blank" 
+           class="btn-submit" 
+           style="background:#1a237e;text-decoration:none;">
+           Cetak PDF
+        </a>
         <?php endif; ?>
         <?php if (!$is_asesi): ?>
         <button type="submit" class="btn-submit">SIMPAN PENILAIAN</button>

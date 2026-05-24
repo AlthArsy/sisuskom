@@ -7,7 +7,7 @@ include "../koneksi.php";
 $role = $_SESSION['role'] ?? '';
 $id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
 if (!in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])) {
-    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Asesor, Admin LSP, dan Admin UTM.</p>";
+    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Asesor, Admin LSP, dan Admin Utama.</p>";
     exit;
 }
 
@@ -52,11 +52,12 @@ while ($r = mysqli_fetch_assoc($result)) {
 }
 $total = count($rows);
 
-$where_role = ($role === 'Asesor' && $id_asesor_session) ? "WHERE id_asesor = '$id_asesor_session'" : "";
-$total_all    = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $where_role"))['c'] ?? 0;
-$total_belum  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $where_role AND (rekomendasi IS NULL OR rekomendasi='')"))['c'] ?? 0;
-$total_kompeten   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $where_role AND rekomendasi='Kompeten'"))['c'] ?? 0;
-$total_belum_komp = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $where_role AND rekomendasi='Belum Kompeten'"))['c'] ?? 0;
+$f = $id_asesor_session ? "WHERE id_asesor='$id_asesor_session'" : "WHERE 1=1";
+
+$total_all    = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $f"))['c'] ?? 0;
+$total_belum  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $f AND (rekomendasi IS NULL OR rekomendasi='')"))['c'] ?? 0;
+$total_kompeten   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $f AND rekomendasi='Kompeten'"))['c'] ?? 0;
+$total_belum_komp = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak02 $f AND rekomendasi='Belum Kompeten'"))['c'] ?? 0;
 
 $base = '../BERANDA/UTAMA.php';
 ?>
@@ -194,12 +195,6 @@ $base = '../BERANDA/UTAMA.php';
                            href="<?= $base ?>?page=../FR_APL/FR_AK02.php&id_asesi=<?= $r['id_asesi'] ?>&mode=view">
                             Lihat
                         </a>
-                        <?php if ($is_belum && in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])): ?>
-                        <a class="btn-rek"
-                           href="<?= $base ?>?page=../FR_APL/FR_AK02.php&id_asesi=<?= $r['id_asesi'] ?>&mode=edit">
-                            Isi Data
-                        </a>
-                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

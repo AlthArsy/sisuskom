@@ -181,12 +181,12 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
                            href="<?= $base ?>?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">
                         Lihat
                         </a>
-                        <?php if (empty($r['rekomendasi'])): ?>
+                        <!-- <?php if (empty($r['rekomendasi'])): ?>
                         <a class="btn-rek"
                            href="<?= $base ?>?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $r['id_asesi'] ?>#form-rek">
                         Isi Data
                         </a>
-                        <?php endif; ?>
+                        <?php endif; ?> -->
                     </td>
                 </tr>
                 <?php endforeach; ?>

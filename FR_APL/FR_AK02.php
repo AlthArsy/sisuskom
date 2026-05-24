@@ -2,8 +2,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 include "../koneksi.php";
+
+$e = fn($s) => mysqli_real_escape_string($koneksi, (string)$s);
+$h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
 
 if (!isset($_SESSION['username'])) {
     echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
@@ -15,12 +20,12 @@ $id_asesi = isset($_GET['id_asesi'])
 $role     = $_SESSION['role'] ?? '';
 $is_asesi = ($role === 'Asesi');
 
-$flash_msg  = $_SESSION['flash_ak02'] ?? '';
-$flash_type = '';
-if ($flash_msg) {
-    [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
-    unset($_SESSION['flash_ak02']);
-}
+// $flash_msg  = $_SESSION['flash_ak02'] ?? '';
+// $flash_type = '';
+// if ($flash_msg) {
+//     [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
+//     unset($_SESSION['flash_ak02']); 
+// }
 
 
 
@@ -96,14 +101,14 @@ if ($id_asesi && $id_apl1_db) {
 
 $mode = 'create';
 $id_skema = $id_skema_db;
-if (isset($_GET['mode']) && in_array($_GET['mode'], ['view','create','edit'])) {
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view','create'])) {
     $mode = $_GET['mode'];
 } elseif ($data_ak02_saved) {
     $chk_rek = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT rekomendasi FROM tb_ak02
          WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
          LIMIT 1"));
-    $mode = ($chk_rek && $chk_rek['rekomendasi']) ? 'view' : 'edit';
+    $mode = ($chk_rek && $chk_rek['rekomendasi']) ? 'view' : 'create';
 }
 
 $id_asesor_db   = 0;
@@ -121,6 +126,21 @@ if ($id_skema_db) {
         $nama_asesor_db  = $qas['nama_asesor'] ?? '';
         $noreg_asesor_db = $qas['no_reg']       ?? '';
     }
+}
+
+$has_data = false;
+if ($id_asesi && $id_skema_db) {
+    $chk = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT COUNT(*) AS cnt FROM tb_ak02
+         WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($id_apl1_db)}'"));
+    $has_data = ($chk && $chk['cnt'] > 0);
+}
+
+$mode = 'create';
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
+    $mode = $_GET['mode'];
+} elseif ($has_data) {
+    $mode = 'view';
 }
 
 $list_unit = [];
@@ -145,13 +165,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $komentar_asesor  = isset($_POST['komentar_asesor']) ? trim($_POST['komentar_asesor']) : '';
 
     if (!$p_id_skema || !$id_asesi) {
-        $_SESSION['flash_ak02'] = 'error|Data tidak lengkap – skema tidak ditemukan.';
-        header("Location: FR_AK02.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        $_SESSION['alert'] = 'Data tidak lengkap – skema tidak ditemukan.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
         exit;
     }
     if (!$p_id_apl1) {
-        $_SESSION['flash_ak02'] = 'error|APL-01 untuk asesi + skema ini belum ditemukan.';
-        header("Location: FR_AK02.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        $_SESSION['alert'] = 'APL-01 untuk asesi + skema ini belum ditemukan.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
         exit;
     } else {
         $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
@@ -168,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $res = mysqli_query($koneksi, $sql);
 
         if (!$res) {
-            $pesan      = 'Gagal menyimpan header: ' . mysqli_error($koneksi);
+            $_SESSION['alert'] = 'Gagal menyimpan header: ' . mysqli_error($koneksi);
             $pesan_type = 'error';
 } else {
     $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
@@ -196,7 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $res = mysqli_query($koneksi, $sql);
 
     if (!$res) {
-        $pesan      = 'Gagal menyimpan: ' . mysqli_error($koneksi);
+        $_SESSION['alert'] = 'Gagal menyimpan: ' . mysqli_error($koneksi);
         $pesan_type = 'error';
         } else {
                 $id_ak02      = mysqli_insert_id($koneksi);
@@ -224,11 +244,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                  " . ($lain ? "'$lain'" : "NULL") . ")");
                     if (!$ins) $gagal_detail = true;
                 }
-        
-                $_SESSION['flash_ak02'] = $gagal_detail
-                    ? 'warning|Header tersimpan, sebagian detail gagal.'
-                    : 'success|FR.AK.02 berhasil disimpan!';
-                header("Location: FR_AK02.php?id_asesi=$id_asesi&mode=view");
+
+                    if ($gagal) {
+                    $_SESSION['alert'] = 'Header tersimpan, sebagian detail gagal.' . mysqli_error($koneksi);;
+                } else {
+                    $_SESSION['alert'] = 'Data berhasil disimpan!';
+                }
+                header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&mode=view");
                 exit;
             }
         }
@@ -242,10 +264,12 @@ $is_asesi       = ($role === 'Asesi');
 $is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
 
 $dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
-$dsb_untuk_asesor = $is_asesor ? '' : 'disabled';
+$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
 $dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
 $dsb              = $dsb_untuk_asesor;  
 $lock_asesi       = $dsb_untuk_asesi;    
+
+$tgl_form = $hari_tanggal_db ?: date('Y-m-d');
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -342,6 +366,10 @@ $lock_asesi       = $dsb_untuk_asesi;
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
         FR.AK.02. REKAMAN ASESMEN KOMPETENSI
     </h2>
+    <?php if (!empty($_SESSION['alert'])): ?>
+    <script>alert('<?= addslashes($_SESSION['alert']) ?>');</script>
+    <?php unset($_SESSION['alert']); ?>
+    <?php endif; ?>
     <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff; margin:16px 0 14px;">
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <div style="flex:2; min-width:180px;">
@@ -562,40 +590,30 @@ $lock_asesi       = $dsb_untuk_asesi;
                             </span>
                         <?php endif; ?>
                     </div>
-                <!-- <div style="margin-bottom:8px; <= $dsb_style ?>">
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesor" id="tanggal_asesor"
-                           class="form-control" onchange="scheduleQRAsesor()"
-                           <= $dsb ?> style="<= $dsb_style ?>">
-                </div> -->
-                <!-- <div class="qr-box" style="< $dsb_style ">
-                    <div class="qr-title">QR Tanda Tangan Asesor</div>
-                    <div class="qr-canvas-wrap" id="qr-asesor-canvas">
-                        <div class="qr-ph-sm" id="qr-asesor-ph">
-                        <span>Pilih skema dulu</span>
-                        </div>
-                    </div>
-                    <div id="qr-asesor-badge" class="qr-badge">QR Siap</div><br>
-                    <button type="button" id="btn-dl-asesor" class="btn-dl-qr"
-                            onclick="dlQRAsesor()">⬇ Download</button>
-                </div> -->
             </div>
         </div>
     </div>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
-        <button type="button" class="btn-back"
-            onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
-             Kembali
-        </button>
-    <?php if ($mode === 'view' && !$is_asesi): ?>
-        <button type="submit" class="btn-submit"
-                >
-            UPDATE
-        </button>
-    <?php elseif ($mode !== 'view'): ?>
-        <button type="submit" class="btn-submit">SIMPAN ✓</button>
-    <?php endif; ?>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                    
+        <?php if ($is_asesor): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ak02.php'">
+                Kembali
+            </button>
+            <button type="submit" class="btn-submit">SIMPAN ✓</button>
+        <?php endif; ?>
+        
+        <?php if ($is_asesi): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                Kembali
+            </button>
+            <?php if (!$has_data): ?>
+                <button type="submit" class="btn-submit" >SIMPAN ✓</button>
+            <?php endif; ?>
+        <?php endif; ?>
+            
     </div>
 </form>
 </div>

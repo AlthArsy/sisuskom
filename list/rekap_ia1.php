@@ -38,11 +38,12 @@ if ($filter === 'kompeten') $where .= " AND i.rekomendasi = 'Kompeten'";
 if ($filter === 'belum_kompeten') $where .= " AND i.rekomendasi = 'Belum Kompeten'";
 
 $sql = "SELECT i.id_ia01, i.id_apl1, i.id_ak01, i.id_asesi,
-               i.rekomendasi, i.umpan_balik, i.tanggal,
+               i.rekomendasi, i.umpan_balik, ak.hari_tanggal, ak.tuk,
                s.judul_skema, s.nomor_skema, s.id_skema,
                asi.nama_asesi
         FROM tb_ia01 i
         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = i.id_apl1
+        LEFT JOIN tb_ak01 ak ON ak.id_ak01 = i.id_ak01
         LEFT JOIN tb_skema s  ON s.id_skema  = apl.id_skema
         LEFT JOIN tb_asesi asi ON asi.id_asesi = i.id_asesi
         $where
@@ -173,6 +174,7 @@ $base = '../BERANDA/UTAMA.php';
                     <th>No.</th>
                     <th>Nama Asesi</th>
                     <th>Skema</th>
+                    <th>TUK</th>
                     <th>Tanggal Observasi</th>
                     <th>Status Rekomendasi</th>
                     <!-- <th>Umpan Balik</th> -->
@@ -196,7 +198,8 @@ $base = '../BERANDA/UTAMA.php';
                         <?= htmlspecialchars($r['judul_skema'] ?? '') ?>
                         <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema'] ?? '') ?></div>
                     </td>
-                    <td style="text-align:center;"><?= htmlspecialchars($r['tanggal'] ?? '') ?></td>
+                    <td style="text-align:center;"><?= htmlspecialchars($r['tuk'] ?? '') ?></td>
+                    <td style="text-align:center;"><?= htmlspecialchars($r['hari_tanggal'] ?? '') ?></td>
                     <td style="text-align:center;">
                         <?php if ($is_belum): ?>
                             <span class="badge badge-belum">Belum Diproses</span>

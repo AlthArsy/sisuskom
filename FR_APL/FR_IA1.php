@@ -21,12 +21,12 @@ $id_asesi = isset($_GET['id_asesi'])
 $role     = $_SESSION['role'] ?? '';
 $is_asesi = ($role === 'Asesi');
 
-$flash_msg  = $_SESSION['flash_ia01'] ?? '';
-$flash_type = '';
-if ($flash_msg) {
-    [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
-    unset($_SESSION['flash_ia01']);
-}
+// $flash_msg  = $_SESSION['flash_ia01'] ?? '';
+// $flash_type = '';
+// if ($flash_msg) {
+//     [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
+//     unset($_SESSION['flash_ia01']);
+// }
 
 $asesi = null;
 if ($id_asesi) {
@@ -128,13 +128,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $p_penilaian_lanjut  = is_array($_POST['penilaian_lanjut'] ?? null) ? $_POST['penilaian_lanjut'] : [];
 
     if (!$p_id_skema || !$id_asesi) {
-        $_SESSION['flash_ia01'] = 'error|Data tidak lengkap – skema tidak ditemukan.';
-        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        $_SESSION['alert'] = 'error|Data tidak lengkap – skema tidak ditemukan.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
         exit;
     }
     if (!$p_id_apl1) {
-        $_SESSION['flash_ia01'] = 'error|APL-01 untuk asesi + skema ini belum ditemukan.';
-        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
+        $_SESSION['alert'] = 'error|APL-01 untuk asesi + skema ini belum ditemukan.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create");
         exit;
     }
 
@@ -149,8 +149,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     while ($kr = mysqli_fetch_assoc($res_kuk)) $all_kuk[] = $kr;
 
     if (!$all_kuk) {
-        $_SESSION['flash_ia01'] = 'error|Skema ini belum memiliki unit/elemen/KUK.';
-        header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create"); 
+        $_SESSION['alert'] = 'error|Skema ini belum memiliki unit/elemen/KUK.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=create"); 
         exit;
     }
 
@@ -208,10 +208,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ok = false;
     }
 
-    $_SESSION['flash_ia01'] = $ok
-        ? 'success|FR.IA.01 berhasil disimpan!'
-        : 'error|Sebagian data gagal disimpan: ' . mysqli_error($koneksi);
-    header("Location: FR_IA1.php?id_asesi=$id_asesi&id_skema=$p_id_skema&mode=view");
+    if ($gagal) {
+        $_SESSION['alert'] = 'Sebagian Data gagal disimpan: ' . mysqli_error($koneksi);;
+    } else {
+        $_SESSION['alert'] = 'Data berhasil disimpan!';
+    }
+    header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$p_id_skema&mode=view");
     exit;
 }
 
@@ -297,7 +299,6 @@ $tgl_form = $mode === 'create'
     <title>FR.IA.01 Ceklis Observasi</title>
     <link rel="stylesheet" href="../assets/CSS/CSS_APL/fr_ia01.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="../assets/JS/lsp_common.js"></script>
 </head>
 <body>
 <div class="form-box">
@@ -306,8 +307,9 @@ $tgl_form = $mode === 'create'
         FR.IA.01. CL – CEKLIS OBSERVASI AKTIVITAS<br>
     </h2>
 
-    <?php if ($flash_msg): ?>
-    <div class="flash <?= h($flash_type) ?>"><?= h($flash_msg) ?></div>
+    <?php if (!empty($_SESSION['alert'])): ?>
+    <script>alert('<?= addslashes($_SESSION['alert']) ?>');</script>
+    <?php unset($_SESSION['alert']); ?>
     <?php endif; ?>
 
 <form method="post" autocomplete="off" id="mainForm">
@@ -407,14 +409,15 @@ $tgl_form = $mode === 'create'
         <table class="tbl-obs">
             <thead>
                 <tr>
-                    <th style="width:42px;">No.</th>
-                    <th style="width:160px;">Elemen</th>
-                    <th>Kriteria Unjuk Kerja</th>
-                    <th style="width:175px;">Standar Industri / Tempat Kerja</th>
-                    <th style="width:46px;">Ya</th>
-                    <th style="width:46px;">Tidak</th>
-                    <th style="width:185px;">Penilaian Lanjut</th>
+                    <th rowspan="2" style="width:42px;">No.</th>
+                    <th rowspan="2" style="width:160px;">Elemen</th>
+                    <th rowspan="2" >Kriteria Unjuk Kerja</th>
+                    <th rowspan="2" style="width:175px;">Standar Industri / Tempat Kerja</th>
+                    <th colspan="2" style="width:46px;">Pencapaian</th>
+                    <!-- <th style="width:46px;">Tidak</th> -->
+                    <th rowspan="2" style="width:185px;">Penilaian Lanjut</th>
                 </tr>
+                <tr><th>Ya</th><th>Tidak</th></tr>
             </thead>
             <tbody>
             <?php foreach ($unit['elemen'] as $ei => $el):
@@ -456,7 +459,7 @@ $tgl_form = $mode === 'create'
                             <input type="radio"
                                    name="pencapaian[<?= $kuk_id ?>]"
                                    id="ya_<?= $kuk_id ?>"
-                                   value="Ya"
+                                   value="Ya" style="accent-color:#2e7d32;"
                                    <?= $penc_val === 'Ya' ? 'checked' : '' ?>
                                    <?= $dsb_untuk_asesor ?>>
                         </div>
@@ -467,7 +470,7 @@ $tgl_form = $mode === 'create'
                             <input type="radio"
                                    name="pencapaian[<?= $kuk_id ?>]"
                                    id="tidak_<?= $kuk_id ?>"
-                                   value="Tidak"
+                                   value="Tidak" style="accent-color:#c00;"
                                    <?= $penc_val === 'Tidak' ? 'checked' : '' ?>
                                    <?= $dsb_untuk_asesor ?>>
                         </div>
@@ -518,19 +521,19 @@ $tgl_form = $mode === 'create'
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                     <input type="radio" name="rekomendasi" value="Kompeten"
-                           id="rek_kompeten"
+                           id="rek_kompeten" style="accent-color:#2e7d32;width:15px;height:15px;"
                            <?= $saved_hdr['rekomendasi'] === 'Kompeten' ? 'checked' : '' ?>
                            <?= $dsb_untuk_asesor ?>
                            onchange="toggleAlasanRek(this.value)">
-                    <b>KOMPETEN</b>
+                    <b style="accent-color:#2e7d32;" >KOMPETEN</b>
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
                     <input type="radio" name="rekomendasi" value="Belum Kompeten"
-                           id="rek_belum"
+                           id="rek_belum" style="accent-color:#c00;width:15px;height:15px;"
                            <?= $saved_hdr['rekomendasi'] === 'Belum Kompeten' ? 'checked' : '' ?>
                            <?= $dsb_untuk_asesor ?>
                            onchange="toggleAlasanRek(this.value)">
-                    <b>BELUM KOMPETEN</b>
+                    <b style="accent-color:#c00;" >BELUM KOMPETEN</b>
                 </label>
             </div>
 
@@ -601,20 +604,6 @@ $tgl_form = $mode === 'create'
 </div>
 
 <script>
-// function toggleAlasanBK(kukId, val) {
-//     var wrap = document.getElementById('alasan_bk_wrap_' + kukId);
-//     if (!wrap) return;
-//     if (val === 'Tidak') {
-//         wrap.style.display = 'block';
-//         var ta = wrap.querySelector('textarea');
-//         if (ta) ta.focus();
-//     } else {
-//         wrap.style.display = 'none';
-//         var ta = wrap.querySelector('textarea');
-//         if (ta) ta.value = '';  
-//     }
-// }
-
 function toggleAlasanRek(val) {
     var wrap = document.getElementById('alasan-rek-wrap');
     if (!wrap) return;

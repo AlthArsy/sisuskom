@@ -54,7 +54,7 @@ $res_ba = false;
 $id_skema_req = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
 if (!$mode_lihat && $id_skema_req > 0) {
     $res_bd = mysqli_query(
-        $koneksi,
+        $koneksi, 
         "SELECT id_bd, bukti_dasar
          FROM tb_bukti_dasar
          WHERE id_skema = '$id_skema_req'
@@ -424,7 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                required>
                         <div class="skema-dropdown" id="skema-dropdown"></div>
                     </div>
-                    <div class="skema-selected-badge" id="skema-badge">Skema dipilih</div>
+                    <div class="skema-selected-badge" id="skema-badge">Skema dipilih</div> 
                 </div>
 
                 <div style="flex:1; min-width:140px;">

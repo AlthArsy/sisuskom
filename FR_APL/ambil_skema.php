@@ -28,7 +28,7 @@ if ($action === 'search') {
     exit;
 }
 
-//detail skema
+//detail skema HIDUP JOKOWI!!
 if ($action === 'detail') {
     $id_skema = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
 

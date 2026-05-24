@@ -7,6 +7,9 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 include "../koneksi.php";
 
+$e = fn($s) => mysqli_real_escape_string($koneksi, (string)$s);
+$h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+
 if (!isset($_SESSION['username'])) {
     header("Location: ../LOGIN/login.php");
     exit;
@@ -60,7 +63,6 @@ if ($id_asesi && $id_skema_db) {
 
 $data_ak03_saved   = null;
 $detail_ak03_saved = [];
-
 if ($id_asesi && $id_skema_db) {
     $cek = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT * FROM tb_ak03
@@ -74,6 +76,20 @@ if ($id_asesi && $id_skema_db) {
             $detail_ak03_saved[] = $d;
         }
     }
+}
+
+$has_data = false;
+if ($id_asesi && $id_skema_db) {
+    $chk = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT COUNT(*) AS cnt FROM tb_ak03
+         WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($id_apl1_db)}'"));
+    $has_data = ($chk && $chk['cnt'] > 0);
+}
+$mode = 'create';
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
+    $mode = $_GET['mode'];
+} elseif ($has_data) {
+    $mode = 'view';
 }
 
 $is_view = isset($_GET['view']) && $_GET['view'] == '1' && $data_ak03_saved;
@@ -108,9 +124,6 @@ $komponen = [
     10 => 'Asesor menggunakan keterampilan komunikasi yang efektif selama asesmen.',
 ];
 
-$pesan      = '';
-$pesan_type = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // $tgl_mulai    = trim($_POST['tgl_mulai']       ?? '');
@@ -120,8 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $catatan_komp = $_POST['catatan_komp']         ?? [];
 
     if (!$id_asesi || !$id_skema_db || !$id_apl1_db) {
-        $pesan      = 'Data APL-1 tidak ditemukan untuk asesi ini. Pastikan APL-1 sudah diisi terlebih dahulu.';
-        $pesan_type = 'error';
+        $_SESSION['alert'] = 'Data APL-1 tidak ditemukan untuk asesi ini. Pastikan APL-1 sudah diisi terlebih dahulu.';
     } else {
         $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
 
@@ -141,8 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $res = mysqli_query($koneksi, $sql);
 
         if (!$res) {
-            $pesan      = 'Gagal menyimpan header: ' . mysqli_error($koneksi);
-            $pesan_type = 'error';
+            $_SESSION['alert'] = 'Gagal menyimpan header: ' . mysqli_error($koneksi);
         } else {
             $id_ak03 = mysqli_insert_id($koneksi);
 
@@ -157,8 +168,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($gagal_detail) {
-                $pesan      = 'Header tersimpan, namun sebagian detail gagal: ' . mysqli_error($koneksi);
-                $pesan_type = 'warning';
+                $_SESSION['alert'] = 'Header tersimpan, namun sebagian detail gagal: ' . mysqli_error($koneksi);
             } else {
                 header("Location: ../BERANDA/UTAMA.php?page=../list/list_form.php&saved=ak03");
                 exit;
@@ -166,6 +176,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+$role = $_SESSION['role'] ?? '';
+$is_asesi       = ($role === 'Asesi');
+$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+
+$dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
+$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
+$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb              = $dsb_untuk_asesor;  
+$lock_asesi       = $dsb_untuk_asesi;    
+
+$tgl_form = $hari_tanggal_db ?: date('Y-m-d');
 ?>
 <html lang="id">
 <head>
@@ -308,11 +329,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <table class="tbl-ak03">
         <thead>
             <tr>
-                <th>No.</th>
-                <th>Komponen</th>
+                <th rowspan="2">No.</th>
+                <th rowspan="2">Komponen</th>
+                <th colspan="2">Hasil</th>
+                <th rowspan="2">Catatan / Komentar Asesi</th>
+            </tr>
+            <tr>
                 <th>Ya</th>
                 <th>Tidak</th>
-                <th>Catatan / Komentar Asesi</th>
             </tr>
         </thead>
         <tbody>
@@ -344,6 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </table>
 </div>
 
+
 <div style="margin-top:14px;">
     <label class="small-text">Catatan :</label>
     <div class="field-readonly <?= ($data_ak03_saved['catatan_lainnya'] ?? '') ? '' : 'empty' ?>"
@@ -355,19 +380,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
-    <a href="../BERANDA/UTAMA.php?page=../list/list_form.php"
-       class="btn-back"
-       style="text-decoration:none; display:inline-block;">
-        Kembali
-    </a>
+    <?php if ($is_asesor): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ak3.php'">
+            Kembali
+        </button>
+    <?php endif; ?>
+    <?php if ($is_asesi): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+            Kembali
+        </button>
+    <?php endif; ?>
 </div>
 
 <?php else: ?>
 
-    <?php if ($pesan): ?>
-    <div class="msg-box msg-<?= htmlspecialchars($pesan_type) ?>">
-        <?= htmlspecialchars($pesan) ?>
-    </div>
+    <?php if (!empty($_SESSION['alert'])): ?>
+    <script>alert('<?= addslashes($_SESSION['alert']) ?>');</script>
+    <?php unset($_SESSION['alert']); ?>
     <?php endif; ?>
 
     <form method="post" autocomplete="off">
@@ -478,11 +509,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <table class="tbl-ak03">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>Komponen</th>
+                        <th rowspan="2">No.</th>
+                        <th rowspan="2">Komponen</th>
+                        <th colspan="2">Hasil</th>
+                        <th rowspan="2">Catatan / Komentar Asesi</th>
+                    </tr>
+                    <tr>
                         <th>Ya</th>
                         <th>Tidak</th>
-                        <th>Catatan / Komentar Asesi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -517,6 +551,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </table>
         </div>
 
+
         <div style="margin-top:14px;">
             <label class="small-text">Catatan :</label>
             <textarea name="catatan_lainnya" class="form-control" rows="3"
@@ -533,8 +568,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </a>
             <button type="submit" class="btn-submit">SIMPAN ✓</button>
         </div>
+        
 
-    </form>
+    </form> 
 <?php endif; ?>
 </div>
 </body>

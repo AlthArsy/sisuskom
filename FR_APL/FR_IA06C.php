@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
 
     if ($kosong > 0) {
         $_SESSION['alert'] = "Masih ada $kosong pertanyaan yang belum dijawab!";
-        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=edit");
+        header("Location:  ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=edit");
         exit;
     }
 
@@ -677,31 +677,6 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
 </div>
 
 <script>
-// function konfirmasiSimpan() {
-//     var textareas = document.querySelectorAll('.jawaban-textarea');
-//     var kosong = 0;
-//     textareas.forEach(function(ta) {
-//         if (ta.value.trim() === '') kosong++;
-//     });
-//     if (kosong > 0) {
-//         return confirm(kosong + ' pertanyaan belum dijawab. Lanjutkan menyimpan?');
-//     }
-//     return true;
-// }
-// function toggleAlasanBK(kukId, val) {
-//     var wrap = document.getElementById('alasan_bk_wrap_' + kukId);
-//     if (!wrap) return;
-//     if (val === 'Tidak') {
-//         wrap.style.display = 'block';
-//         var ta = wrap.querySelector('textarea');
-//         if (ta) ta.focus();
-//     } else {
-//         wrap.style.display = 'none';
-//         var ta = wrap.querySelector('textarea');
-//         if (ta) ta.value = '';  
-//     }
-// }
-
 function toggleAlasanRek(val) {
     var wrap = document.getElementById('alasan-rek-wrap');
     if (!wrap) return;

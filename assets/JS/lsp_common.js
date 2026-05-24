@@ -15,7 +15,7 @@ function searchSkema(val) {
         dd.innerHTML = '<div class="skema-loading">Mencari...</div>';
         dd.style.display = 'block';
 
-        fetch('ambil_skema.php?action=search&q=' + encodeURIComponent(val))
+        fetch('../FR_APL/ambil_skema.php?action=search&q=' + encodeURIComponent(val))
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (res.status !== 'ok' || res.data.length === 0) {
@@ -56,7 +56,7 @@ function pilihSkema(s) {
         elBadge.style.display = 'inline-block';
     }
 
-    fetch('ambil_skema.php?action=apl2&id_skema=' + s.id_skema)
+    fetch('../FR_APL/ambil_skema.php?action=apl2&id_skema=' + s.id_skema)
         .then(function (r) { return r.json(); })
         .then(function (res) {
             if (res.status !== 'ok') return;

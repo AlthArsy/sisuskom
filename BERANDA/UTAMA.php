@@ -63,6 +63,11 @@ $roles_data = [
                 'label' => 'Recap Note',
                 'has_dropdown' => true,
                 'submenu' => [
+                         [
+                            'href' => '../list/rekap_fr.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 1'
+                        ],
                         [
                             'href' => '../list/rekap_frapl2.php',
                             'icon' => 'fas fa-user-graduate',
@@ -130,14 +135,47 @@ $roles_data = [
                 'label' => 'Manajemen Asesi'
             ],
             [
-                'href' => '../list/rekap_fr.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap FR APL 1'
-            ],
-            [
-                'href' => '../list/rekap_ia1.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Rekap IA 1'
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Recap Note',
+                'has_dropdown' => true,
+                'submenu' => [
+                        [
+                            'href' => '../list/rekap_fr.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 1'
+                        ],
+                        [
+                            'href' => '../list/rekap_frapl2.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 2'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak01.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK01'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak02.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK02'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak3.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK03'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia1.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA1'
+                        ],
+                        [
+                            'href' => '../list/rekap_ia06.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR IA06C'
+                        ]
+                ]
             ],
             [
                 'href' => '#',
@@ -261,64 +299,77 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $allowed_pages = [
     'UTAMA.php',
     '../MANAGEMENT/tampil2.php',
+//skema
     '../SKEMA/list_skema.php',
     '../SKEMA/list_skema2.php',
-    '../UNIT/unit_kompetensi.php',
-    '../SKEMA/Form_Skema.php',
-    '../ELEMEN/elemen.php',
-    '../KUK/KUK.php',
     '../SKEMA/simpan_skema.php',
-    '../ASESI/Table_asesi.php',
-    '../ASESOR/Table_asesor.php',
-    '../PENAGATURAN/tambah-user-baru.php',
-    '../PENAGATURAN/ubah.php',
-    '../UNIT/From_unit_kompetensi.php',
+    '../SKEMA/Form_Skema.php',
     '../SKEMA/Ubah_Skema.php',
+//unit kompetensi
+    '../UNIT/unit_kompetensi.php',
+    '../UNIT/Ubah_unit.php',
+    '../UNIT/hapus_unit.php',
+    '../UNIT/From_unit_kompetensi.php',
+//elemen
+    '../ELEMEN/elemen.php',
     '../ELEMEN/From_elemen.php',
+    '../ELEMEN/ubah_elemen.php',
+    '../ELEMEN/hapus_elemen.php',
+//kuk
+    '../KUK/KUK.php',
     '../KUK/From_kuk.php',
-    '../PENAGATURAN/ubah.php',
-    '../PENAGATURAN/hapus.php',
-    '../ASESOR/edit.php',
-    '../ASESOR/hapus_asesor.php',
-    '../DASAR/bukti_dasar.php',
-    '../DASAR/ubah_bd.php',
-    '../DASAR/hapus_bd.php',
+    '../KUK/hapus_kuk.php',
+    '../KUK/ubah_kuk.php',
+//asesi    
+    '../ASESI/Table_asesi.php',
     '../ASESI/detail_asesi.php',
     '../ASESI/edit.php',
     '../ASESI/hapus_asesi.php',
-    '../PROFIL/profil.php',
+//asesor
+    '../ASESOR/Table_asesor.php',
+    '../ASESOR/edit.php',
+    '../ASESOR/hapus_asesor.php',
+//pengaturan
+    '../PENAGATURAN/tambah-user-baru.php',
+    '../PENAGATURAN/ubah.php',
+    '../PENAGATURAN/ubah.php',
+    '../PENAGATURAN/hapus.php',
+//bukti dasar
+    '../DASAR/bukti_dasar.php',
+    '../DASAR/ubah_bd.php',
+    '../DASAR/hapus_bd.php',
+    '../DASAR/isi_bukti_dasar.php',
     '../DASAR/Tambah_bd.php',
+//profil    
+    '../PROFIL/profil.php',
+//bukti adm   
     '../ADM/bukti_adm.php',
     '../ADM/isi_bukti_adm.php',
     '../ADM/Tambah_ba.php',
-    '../DASAR/isi_bukti_dasar.php',
-    '../UNIT/Ubah_unit.php',
-    '../UNIT/hapus_unit.php',
-    '../ELEMEN/ubah_elemen.php',
-    '../ELEMEN/hapus_elemen.php',
-    '../KUK/hapus_kuk.php',
-    '../KUK/ubah_kuk.php',
+    '../ADM/ubah_ba.php',
+//list
     '../list/list_form.php',
     '../list/rekap_fr.php',
-    '../FR_APL/FR_APL1.php',
-    '../Admin_lsp/Table_admin_lsp.php',
-    '../ADM/ubah_ba.php',
-    '../list/rekap_frapl2.php',
-    '../FR_APL/FR_APL02.php',
-    '../FR_APL/FR_AK01.php',
-    '../list/rekap_ia1.php',
-    '../FR_APL/FR_IA1.php',
-    '../list/rekap_ak3.php',
-    '../FR_APL/FR_AK03.php',
     '../list/soal_ia06a.php',
     '../list/rekap_ak3.php',
     '../list/rekap_ak01.php',
     '../list/rekap_ak02.php',
-    '../FR_APL/FR_IA06C.php',
+    '../list/rekap_frapl2.php',
+    '../list/rekap_ia1.php',
+    '../list/rekap_ak3.php',
     '../list/rekap_ia06.php',
+//frapl
+    '../FR_APL/FR_APL1.php',
+    '../FR_APL/FR_APL02.php',
+    '../FR_APL/FR_AK01.php',
+    '../FR_APL/FR_IA1.php',
+    '../FR_APL/FR_AK03.php',
+    '../FR_APL/FR_IA06C.php',
     '../FR_APL/FR_IA06A.php',
     '../FR_APL/FR_AK02.php',
-    '../',
+
+'../Admin_lsp/Table_admin_lsp.php',
+'../',
     '../',
     '../',
     '../'
@@ -415,7 +466,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                 }
                 ?>
                 <?php if ($role === 'Admin_lsp' || $role === 'Asesor' || $role === 'Asesi'): ?>
-                <a href="#" onclick="event.preventDefault(); { window.location.href = 'UTAMA.php?page=../PROFIL/profil.php'; }">
+                <a href="UTAMA.php?page=../PROFIL/profil.php" class="<?= $page_to_include === '../PROFIL/profil.php' ? 'active' : '' ?>">
                     <div class="nav-item-content">
                         <i class="fas fa-cog"></i>
                         <span>Pengaturan</span>
@@ -462,9 +513,13 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                             }
                         }
                     }
-                    if (!$breadcrumb_found) {
-                        echo 'Dashboard';
-                    }
+                if (!$breadcrumb_found) {
+                    $breadcrumb_map = [
+                        '../PROFIL/profil.php' => 'Pengaturan',
+                        '../PENAGATURAN/tambah-user-baru.php' => 'Pengaturan',
+                    ];
+                    echo $breadcrumb_map[$page_to_include] ?? 'Dashboard';
+                }
                 } else {
                     echo 'Dashboard';
                 }
