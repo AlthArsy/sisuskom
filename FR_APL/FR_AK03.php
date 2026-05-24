@@ -264,7 +264,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
             background:#fafbff; margin:16px 0 14px;">
 
     <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <div style="flex:2; min-width:180px;">
+        <div style="flex:2.05; min-width:180px;">
             <label class="small-text">Skema Sertifikasi – Judul</label>
             <div class="field-readonly <?= $judul_skema_db ? '' : 'empty' ?>">
                 <?= $judul_skema_db ? htmlspecialchars($judul_skema_db) : '— APL-1 belum diisi —' ?>
@@ -391,6 +391,12 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
             Kembali
         </button>
+        <a href="../pdf/cetak_ak3.php?id_asesi=<?= $id_asesi ?>"
+           target="_blank"
+           class="btn-back"
+           style="background:#1565c0; color:#fff; text-decoration:none; padding:8px 18px; border-radius:4px;">
+           Cetak PDF
+        </a>
     <?php endif; ?>
 </div>
 
@@ -418,7 +424,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
 
             <div style="display:flex; gap:12px; flex-wrap:wrap;">
 
-                <div style="flex:2; min-width:180px;">
+                <div style="flex:2.05; min-width:180px;">
                     <label class="small-text">Skema Sertifikasi – Judul</label>
                     <div class="field-readonly <?= $judul_skema_db ? '' : 'empty' ?>">
                         <?= $judul_skema_db

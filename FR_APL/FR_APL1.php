@@ -382,6 +382,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/<?= $is_asesi ? 'list_form' : 'permohonan' ?>.php'">
             Kembali
         </button>
+    <a href="../pdf/cetak_apl1.php?id_asesi=<?= $id_asesi ?>" 
+       target="_blank"
+       class="btn-submit"
+       style="background:#1565c0; text-decoration:none;">
+       Cetak PDF
+    </a>
     </div>
 
     <?php endif; ?>

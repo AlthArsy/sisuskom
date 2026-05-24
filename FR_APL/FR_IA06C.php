@@ -421,7 +421,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
     <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px;
                 background:#fafbff; margin:16px 0 14px;">
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <div style="flex:2; min-width:180px;">
+            <div style="flex:2.05; min-width:180px;">
                 <label class="small-text">Skema Sertifikasi – Judul</label>
                 <div class="field-readonly <?= $judul_skema_db ? '' : 'empty' ?>">
                     <?= $judul_skema_db ? h($judul_skema_db) : '— APL-01 belum diisi —' ?>
@@ -658,6 +658,12 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 Kembali
             </button>
             <button type="submit" class="btn-submit" name="save_umpan_balik">SIMPAN ✓</button>
+            <a href="../pdf/cetak_ia6b.php?id_asesi=<?= $id_asesi ?>" 
+                       target="_blank" 
+                       class="btn-submit" 
+                       style="background:#1a237e;text-decoration:none;">
+                       Cetak PDF
+                    </a>
         <?php endif; ?>
         
         <?php if ($is_asesi): ?>

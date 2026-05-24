@@ -594,6 +594,12 @@ $tgl_form = $mode === 'create'
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
+            <a href="../pdf/cetak_ia1.php?id_asesi=<?= $id_asesi ?>"
+               target="_blank"
+               class="btn-submit"
+               style="background:#1565c0; text-decoration:none;">
+               Cetak PDF
+            </a>
             <?php if (!$has_data): ?>
                 <button type="submit" class="btn-submit" style="background:blue;">SIMPAN ✓</button>
             <?php endif; ?>

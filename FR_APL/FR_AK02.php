@@ -372,7 +372,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
     <?php endif; ?>
     <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff; margin:16px 0 14px;">
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <div style="flex:2; min-width:180px;">
+            <div style="flex:2.05; min-width:180px;">
                 <label class="small-text">Skema Sertifikasi – Judul</label>
                 <div class="field-readonly <?= $judul_skema_db ? '' : 'empty' ?>">
                     <?= $judul_skema_db
@@ -609,6 +609,12 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
+                    <a href="../pdf/cetak_ak2.php?id_asesi=<?= $id_asesi ?>" 
+                       target="_blank" 
+                       class="btn-submit" 
+                       style="background:#1a237e;text-decoration:none;">
+                       Cetak PDF
+                    </a>
             <?php if (!$has_data): ?>
                 <button type="submit" class="btn-submit" >SIMPAN ✓</button>
             <?php endif; ?>

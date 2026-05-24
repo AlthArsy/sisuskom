@@ -275,13 +275,26 @@ if ($ak01_exist && !$mode_lihat) {
     <?php if ($is_asesi): ?>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+        <a href="../pdf/cetak_ak1.php?id_asesi=<?= $id_asesi ?>" 
+           target="_blank" 
+           class="btn-submit" 
+           style="background:#1a237e;text-decoration:none;">
+           Cetak PDF
+        </a>
     </div>
     <?php endif; ?>
     <?php if ($is_asesor): ?>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <a href="../BERANDA/UTAMA.php?page=../list/rekap_ak01.php" class="btn-back">Kembali</a>
+        <a href="../pdf/cetak_ak1.php?id_asesi=<?= $id_asesi ?>" 
+           target="_blank" 
+           class="btn-submit" 
+           style="background:#1a237e;text-decoration:none;">
+           Cetak PDF
+        </a>
     </div>
     <?php endif; ?>
+    
 
 <?php elseif ($mode_lihat && !$ak01_exist): ?>
 <div style="text-align:center; padding:24px; color:#555;">
@@ -396,7 +409,9 @@ if ($ak01_exist && !$mode_lihat) {
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">← Kembali</a>
         <button type="submit" class="btn-submit"<?= !$id_asesor_apl ? ' disabled' : '' ?>>SIMPAN</button>
+        
     </div>
+    
     <?php if (!$id_asesor_apl): ?>
     <p style="font-size:12px;color:#c00;margin-top:8px;">Tombol simpan dinonaktifkan sampai skema memiliki asesor.</p>
     <?php endif; ?>
