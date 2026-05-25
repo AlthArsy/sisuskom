@@ -213,9 +213,6 @@ body { font-family:Calibri, Arial, sans-serif; font-size:10pt; background:#bbb; 
 
 .mode-badge  { display:inline-block; font-size:8pt; padding:1px 6px; border-radius:10px;
                margin-left:6px; vertical-align:middle; font-weight:normal; }
-.badge-ttd    { background:#e3f2fd; color:#1565c0; border:1px solid #90caf9; }
-.badge-qr     { background:#e8f5e9; color:#2e7d32; border:1px solid #a5d6a7; }
-.badge-kosong { background:#f5f5f5; color:#777;    border:1px solid #ccc; }
 
 .page-break { page-break-before:always; }
 .unit-wrapper { page-break-inside:avoid; break-inside:avoid; }
@@ -422,13 +419,13 @@ body { font-family:Calibri, Arial, sans-serif; font-size:10pt; background:#bbb; 
     <tr>
         <td style="font-weight:bold; width:50%;">
             Asesi
-            <span class="mode-badge badge-ttd"   id="badge-asesi-ttd">Tanda Tangan</span>
-            <span class="mode-badge badge-qr"     id="badge-asesi-qr"  style="display:none;">QR Code</span>
+            <span class="mode-badge badge-ttd"   id="badge-asesi-ttd"></span>
+            <span class="mode-badge badge-qr"     id="badge-asesi-qr"  style="display:none;"></span>
         </td>
         <td style="font-weight:bold;">
             Asesor
-            <span class="mode-badge badge-ttd"   id="badge-asesor-ttd">Tanda Tangan</span>
-            <span class="mode-badge badge-qr"     id="badge-asesor-qr"  style="display:none;">QR Code</span>
+            <span class="mode-badge badge-ttd"   id="badge-asesor-ttd"></span>
+            <span class="mode-badge badge-qr"     id="badge-asesor-qr"  style="display:none;"></span>
         </td>
     </tr>
     <tr>

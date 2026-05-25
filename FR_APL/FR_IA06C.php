@@ -658,12 +658,6 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 Kembali
             </button>
             <button type="submit" class="btn-submit" name="save_umpan_balik">SIMPAN ✓</button>
-            <a href="../pdf/cetak_ia6b.php?id_asesi=<?= $id_asesi ?>" 
-                       target="_blank" 
-                       class="btn-submit" 
-                       style="background:#1a237e;text-decoration:none;">
-                       Cetak PDF
-                    </a>
         <?php endif; ?>
         
         <?php if ($is_asesi): ?>
@@ -671,6 +665,12 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
+            <a href="../pdf/cetak_ia6c.php?id_asesi=<?= $id_asesi ?>"
+               target="_blank"
+               class="btn-submit"
+               style="background:#1565c0; text-decoration:none;">
+               Cetak PDF
+            </a>
             <?php if (!$has_data): ?>
                 <button type="submit" class="btn-submit" >SIMPAN ✓</button>
             <?php endif; ?>
