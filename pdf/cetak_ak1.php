@@ -213,7 +213,7 @@ body { font-family: Calibri, Arial, sans-serif; font-size:10pt; background:#bbb;
     <button class="mode-btn"        id="btn-qr"     onclick="setMode('qr')">QR Code</button>
     <span class="toolbar-sep"></span>
     <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
-    <a class="btn-back" href="javascript:history.back()">← Kembali</a>
+    <!-- <a class="btn-back" href="javascript:history.back()">← Kembali</a> -->
 </div>
 
 <div class="halaman">

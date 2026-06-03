@@ -1,16 +1,7 @@
-/**
- * fr_ak03.js
- * Khusus FR.AK.03 Umpan Balik dan Catatan Asesmen
- * Depends: lsp_common.js, qrcode.min.js
- */
-
-/* ── Hook dari lsp_common.js ────────────────── */
 function onSkemaSelected(s, res) {
-    // Tidak perlu render tabel (sudah statis dari PHP)
-    // lsp_common sudah set nama asesor ke semua elemen yang sesuai
+
 }
 
-/* ── QR ASESI ───────────────────────────────── */
 var qrAsesiTimer = null;
 
 function scheduleQRAsesi() {
@@ -46,13 +37,11 @@ function dlQRAsesi() {
     downloadQR('qr-asesi-canvas', 'ttd_asesi_ak03_' + id);
 }
 
-/* ── Prepare sebelum submit ─────────────────── */
 function prepareQR() {
     doGenerateQRAsesi();
     return true;
 }
 
-/* ── Auto QR saat load ──────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
     if (getVal('nama_asesi')) scheduleQRAsesi();
 });

@@ -62,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     }
 }
 ?>
+<link rel="stylesheet" href="../assets/CSS/cari-shared.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     .btn {display: inline-block; padding: 6px 14px; border: none;border-radius: 4px;font-size: 13px;font-weight: 500;cursor: pointer;text-decoration: none;transition: all 0.3s ease;
     }
@@ -89,9 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     .TBS-user-info {display: flex;justify-content: space-between;align-items: center;margin-bottom: 20px;}
     .TBS-user-info span {font-weight: bold;}
     .TBS-search-box {margin-bottom: 30px;}
-    .search-form {display: grid;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));gap: 15px;align-items: flex-end;}
-    .TBS-form-group {margin-bottom: 0;}
-    .TBS-form-group label {display: block;margin-bottom: 5px;font-weight: 500;color: #333;}
     .TBS-results-section {margin-top: 30px;}
     .TBS-results-header {display: flex;justify-content: space-between;align-items: center;margin-bottom: 15px;}
     .TBS-results-header h2 {margin: 0;color: #333;}
@@ -109,66 +108,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     @media (max-width: 768px) {
         .TBS-header h1 {font-size: 1.8em;}
         .TBS-user-info {flex-direction: column;gap: 10px;align-items: flex-start;}
-        .search-form {grid-template-columns: 1fr;}
         .TBS-results-header {flex-direction: column;gap: 10px;align-items: flex-start;}
         .TBS-field-label {display: block;}
-        table th {display: none;}
-        table tbody tr {display: block;margin-bottom: 15px;border: 1px solid #ddd;border-radius: 4px;}
-        table td {display: block;text-align: right;border: none;padding-left: 50%;position: relative;padding-bottom: 10px;}
-        table td:before {content: attr(data-label);position: absolute;left: 12px;font-weight: bold;text-align: left;color: #333;}}
+    }
 </style>
-<script>
-// function confirmDelete(id, nama) {
-//     if (confirm("Apakah Anda yakin ingin menghapus data asesor:\n" + nama + "?")) {
-//         window.location.href = "../ASESOR/hapus_asesor.php?id=" + id;
-//     }
-//     return false;
-// }
-// function clearForm() {
-//     document.getElementById('id_admin').value = '';
-//     document.getElementById('no_reg').value = '';
-//     document.getElementById('nama_admin').value = '';
-//     document.querySelector('.search-form').submit();
-//     return false;
-// }
-</script>
 <div class="content-card TBS-full-width">
     <div class="TBS-container">
         <div class="TBS-header">
-            <h1>Data Admin</h1>
-            <p>Pencarian dan Pengelolaan Data Admin</p>
+            <h1>Data Admin LSP</h1>
+            <p>Pencarian dan Pengelolaan Data Admin LSP</p>
         </div>
-        <!-- Informasi user (dikomentari, bisa diaktifkan jika diperlukan) -->
-        <!--
-        <div class="TBS-user-info">
-            <div>
-                Logged in sebagai: <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
-                (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
-            </div>
-            <div>
-                <a href="../BERANDA/UTAMA.php" class="btn btn-secondary btn-sm">← Kembali</a>
-            </div>
-        </div>
-        -->
+
         <div class="TBS-search-box">
-            <form method="post" action="" class="search-form">
-                <div class="TBS-form-group">
-                    <label for="id_admin">ID Admin</label>
-                    <input type="number" id="id_admin" name="id_admin" class="form-control"
-                           placeholder="Masukkan ID Admin" value="<?php echo htmlspecialchars($search_criteria['id_admin']); ?>">
+            <form method="post" action="" class="search-form cari-grid">
+                <div class="cari-grid-fields">
+                    <div class="TBS-form-group">
+                        <label for="id_admin">ID Admin LSP</label>
+                        <input type="number" id="id_admin" name="id_admin" class="form-control"
+                               placeholder="Masukkan ID Admin" value="<?php echo htmlspecialchars($search_criteria['id_admin']); ?>">
+                    </div>
+                    <div class="TBS-form-group">
+                        <label for="nama_admin">Nama Admin LSP</label>
+                        <input type="text" id="nama_admin" name="nama_admin" class="form-control"
+                               placeholder="Masukkan Nama" value="<?php echo htmlspecialchars($search_criteria['nama_admin']); ?>">
+                    </div>
                 </div>
-                <div class="TBS-form-group">
-                    <label for="nama_admin">Nama Admin</label>
-                    <input type="text" id="nama_admin" name="nama_admin" class="form-control"
-                           placeholder="Masukkan Nama" value="<?php echo htmlspecialchars($search_criteria['nama_admin']); ?>">
-                </div>
-                <div class="form-group btn-group">
+                <div class="cari-actions btn-group">
                     <button type="submit" name="search" class="btn btn-primary">
-                         Cari Data
+                        <i class="fas fa-search"></i> Cari Data
                     </button>
-                    <button type="button" onclick="clearForm()" class="btn btn-secondary">
-                         Bersihkan
-                    </button>
+                    <!-- <button type="button" onclick="clearForm()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Bersihkan
+                    </button> -->
                 </div>
             </form>
         </div>
@@ -178,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
                     <?php if ($search_performed && !empty(array_filter($search_criteria))): ?>
                         Hasil Pencarian
                     <?php else: ?>
-                        Semua Data Admin
+                        Semua Data Admin LSP
                     <?php endif; ?>
                 </h2>
                 <div class="results-count">
@@ -196,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
                         <thead>
                             <tr>
                                 <th width="5%">ID</th>
-                                <th width="20%">Nama Admin</th>
+                                <th width="20%">Nama Admin LSP</th>
                                 <th width="20%">Aksi</th>
                             </tr>
                         </thead>
@@ -204,18 +175,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
                             <?php foreach ($display_admin as $row): ?>
                                 <tr>
                                     <td data-label="ID">
-                                        <span class="TBS-field-label">ID</span>
+                                        <br>
                                         <div class="TBS-field-value"><?php echo htmlspecialchars($row['id_admin']); ?></div>
                                     </td>
                                     <td data-label="Nama Admin">
-                                        <span class="TBS-field-label">Nama Admin</span>
+                                        <br>
                                         <div class="TBS-field-value"><?php echo htmlspecialchars($row['nama_admin']); ?></div>
                                     </td>
-                                    <td data-label="Aksi">
+                                    <td data-label="Aksi" class="aksi">
                                         <div class="TBS-action-buttons">
-                                            <a href="UTAMA.php?page=../ADMIN/edit.php&id=<?php echo $row['id_admin']; ?>"
+                                            <a href="UTAMA.php?page=../Admin_lsp/edit_admin_lsp.php&id=<?php echo $row['id_admin']; ?>"
                                                class="btn btn-edit btn-sm"> Edit</a>
-                                            <a href="UTAMA.php?page=../ADMIN/hapus_admin.php&id=<?php echo $row['id_admin']; ?>" onclick="return confirmDelete(<?php echo $row['id_admin']; ?>, '<?php echo addslashes($row['nama_admin']); ?>')"
+                                            <a href="UTAMA.php?page=../Admin_lsp/hapus_admin_lsp.php&id=<?php echo $row['id_admin']; ?>" onclick="return confirmDelete(<?php echo $row['id_admin']; ?>, '<?php echo addslashes($row['nama_admin']); ?>')"
                                                class="btn btn-delete btn-sm"> Hapus</a>
                                         </div>
                                     </td>

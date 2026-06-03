@@ -95,11 +95,6 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp' || $_
         <h2 class="jdm">Bukti Administrasi</h2>
     </div>
 
-    <form method="get" action="" class="cari">
-        <?php if (isset($_GET['page'])): ?>
-            <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
-        <?php endif; ?>
-    </form>
     <table>
         <thead>
             <tr>

@@ -4,33 +4,37 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 include "../koneksi.php";
 
- $role = $_SESSION['role'] ?? '';
+$role = $_SESSION['role'] ?? '';
 if (!in_array($role, ['Admin_lsp', 'Admin_utm'])) {
     echo "<p style='color:red;padding:20px;'>Akses ditolak.</p>";
     exit;
 }
-//fungsi update wlee
-if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi']))
-    {
-        $id_apl1 = intval($_POST['id_apl1']);
-        $rekomendasi = $_POST['rekomendasi'] ?? '';
-        $catatan = $_POST['catatan'] ?? '';
 
-        if (in_array($rekomendasi, ['Diterima', 'Tidak Diterima'])) {
-            $stmt = mysqli_prepare($koneksi, "UPDATE tb_apl1 SET rekomendasi = ?, catatan_admin = ? WHERE id_apl1 = ?");
-            mysqli_stmt_bind_param($stmt, "ssi", $rekomendasi, $catatan, $id_apl1);
-        } else {
-            $stmt = mysqli_prepare($koneksi, "UPDATE tb_apl1 SET rekomendasi = NULL, catatan_admin = ? WHERE id_apl1 = ?");
-            mysqli_stmt_bind_param($stmt, "si", $catatan, $id_apl1);
-        }
-        mysqli_stmt_execute($stmt);
-
-        $filter_param = isset($_GET['filter']) ? '&filter=' . urlencode($_GET['filter']) : '';
-        header("Location: {$base}?page=../list/rekap_fr.php{$filter_param}");
+// Hanya Admin_lsp yang boleh melakukan update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi'])) {
+    if ($role !== 'Admin_lsp') {
+        header("Location: {$base}?page=../list/rekap_fr.php&error=forbidden");
         exit;
     }
+    $id_apl1 = intval($_POST['id_apl1']);
+    $rekomendasi = $_POST['rekomendasi'] ?? '';
+    $catatan = $_POST['catatan'] ?? '';
 
- $filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
+    if (in_array($rekomendasi, ['Diterima', 'Tidak Diterima'])) {
+        $stmt = mysqli_prepare($koneksi, "UPDATE tb_apl1 SET rekomendasi = ?, catatan_admin = ? WHERE id_apl1 = ?");
+        mysqli_stmt_bind_param($stmt, "ssi", $rekomendasi, $catatan, $id_apl1);
+    } else {
+        $stmt = mysqli_prepare($koneksi, "UPDATE tb_apl1 SET rekomendasi = NULL, catatan_admin = ? WHERE id_apl1 = ?");
+        mysqli_stmt_bind_param($stmt, "si", $catatan, $id_apl1);
+    }
+    mysqli_stmt_execute($stmt);
+
+    $filter_param = isset($_GET['filter']) ? '&filter=' . urlencode($_GET['filter']) : '';
+    header("Location: {$base}?page=../list/rekap_fr.php{$filter_param}");
+    exit;
+}
+
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
 
 $where = "WHERE 1=1";
 if ($filter === 'belum')    $where .= " AND (a.rekomendasi IS NULL OR a.rekomendasi = '')";
@@ -55,7 +59,7 @@ $total_belum   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
 $total_terima  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1 WHERE rekomendasi='Diterima'"))['c'] ?? 0;
 $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1 WHERE rekomendasi='Tidak Diterima'"))['c'] ?? 0;
 
- $base = '../BERANDA/UTAMA.php';
+$base = '../BERANDA/UTAMA.php';
 ?>
 <style>
     .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
@@ -100,7 +104,6 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
         border-radius: 4px; border: 1px solid #ccc;
         resize: vertical; margin: 5px 0;
     }
-    
     .btn-update {
         background: #f35555; color: white; border: none;
         padding: 5px 12px; border-radius: 4px; font-size: 11px;
@@ -108,20 +111,23 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
         text-decoration: none;
         display: inline-block;
     }
-    .btn-lihat {
+    .btn-lihat, .btn-cetak {
         background: #4A7AFF; color: white; border: none;
         padding: 5px 12px; border-radius: 4px; font-size: 11px;
         cursor: pointer;
         text-decoration: none;
         display: inline-block;
+        margin-right: 5px;
     }
+    .btn-cetak { background: #28a745; }
     .btn-update:hover { background: #8f4646; }
+    .btn-lihat:hover { background: #325fd6; }
+    .btn-cetak:hover { background: #1e7e34; }
     .aksi-form { display: contents; }
     @media (max-width: 700px) {
         .komentar-textarea { width: 130px; }
         .rekap-table { font-size: 11px; }
     }
-    .btn-lihat:hover { background: #325fd6; }
 </style>
 
 <div class="rekap-wrap">
@@ -143,16 +149,14 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
             <div class="num"><?= $total_terima ?></div>
             <div class="lbl">Diterima</div>
         </a>
-        </a>
-          <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=ditolak"
+        <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=ditolak"
            class="rekap-card card-ditolak <?= $filter==='ditolak'?'active':'' ?>">
             <div class="num"><?= $total_tolak ?></div>
             <div class="lbl">Tidak Diterima</div>
         </a>
     </div>
 
-
-     <?php if (empty($rows)): ?>
+    <?php if (empty($rows)): ?>
         <div class="empty-msg">Tidak ada data untuk filter ini.</div>
     <?php else: ?>
     <div style="overflow-x:auto;">
@@ -171,10 +175,10 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
             <tbody>
                 <?php foreach ($rows as $i => $r): ?>
                 <?php 
-                    // Cek apakah status masih kosong
                     $is_belum = (is_null($r['rekomendasi']) || $r['rekomendasi'] === '');
+                    $is_admin_utm = ($role === 'Admin_utm');
                 ?>
-                <?php if ($is_belum): ?>
+                <?php if (!$is_admin_utm && $is_belum): ?>
                 <form method="post" class="aksi-form">
                     <input type="hidden" name="id_apl1" value="<?= $r['id_apl1'] ?>">
                     <input type="hidden" name="update_rekomendasi" value="1">
@@ -197,7 +201,9 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
                         <?php endif; ?>
                     </td>
                     <td style="max-width:200px;">
-                        <?php if ($is_belum): ?>
+                        <?php if ($is_admin_utm): ?>
+                            <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
+                        <?php elseif ($is_belum): ?>
                             <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
                             <textarea name="catatan" class="komentar-textarea" placeholder="Komentar admin (opsional)"><?= htmlspecialchars($r['catatan_admin'] ?? '') ?></textarea>
                         <?php else: ?>
@@ -205,7 +211,10 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
                         <?php endif; ?>
                     </td>
                     <td style="text-align:left;">
-                        <?php if ($is_belum): ?>
+                        <?php if ($is_admin_utm): ?>
+                            <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">Lihat</a>
+                            <a class="btn-cetak" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&print=1&id_asesi=<?= $r['id_asesi'] ?>" target="_blank">Cetak</a>
+                        <?php elseif ($is_belum): ?>
                             <div class="radio-group">
                                 <label>
                                     <input type="radio" name="rekomendasi" value="Diterima"
@@ -220,13 +229,12 @@ $total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FR
                             </div>
                             <button type="submit" class="btn-update">Update</button>
                         <?php else: ?>
-                            <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">
-                                Lihat
-                            </a>
+                            <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">Lihat</a>
+                            <a class="btn-cetak" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&print=1&id_asesi=<?= $r['id_asesi'] ?>" target="_blank">Cetak</a>
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php if ($is_belum): ?>
+                <?php if (!$is_admin_utm && $is_belum): ?>
                 </form>
                 <?php endif; ?>
                 <?php endforeach; ?>

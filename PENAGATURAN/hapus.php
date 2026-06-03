@@ -1,70 +1,4 @@
 <?php
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
-
-// if (session_status() == PHP_SESSION_NONE) {
-//     session_start();
-// }
-
-// if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
-//     header('Location: ../LOGIN/login.php');
-//     exit;
-// }
-
-// include '../koneksi.php';
-
-// if (mysqli_connect_errno()) {
-//     die("Gagal koneksi ke database: " . mysqli_connect_error());
-// }
-
-// if (isset($_GET['id'])) {
-//     $id = intval($_GET['id']);
-
-//     $check_sql = "SELECT * FROM users WHERE id_user = ?";
-//     $check_stmt = mysqli_prepare($koneksi, $check_sql);
-
-//     if ($check_stmt) {
-//         mysqli_stmt_bind_param($check_stmt, "i", $id);
-//         mysqli_stmt_execute($check_stmt);
-//         $result = mysqli_stmt_get_result($check_stmt);
-
-//         if (mysqli_num_rows($result) > 0) {
-//             // User ditemukan, lanjutkan penghapusan
-//             $delete_sql = "DELETE FROM users WHERE id_user = ?";
-//             $delete_stmt = mysqli_prepare($koneksi, $delete_sql);
-
-//             if ($delete_stmt) {
-//                 mysqli_stmt_bind_param($delete_stmt, "i", $id);
-
-//                 if (mysqli_stmt_execute($delete_stmt)) {
-//                     $_SESSION['pesan'] = "User berhasil dihapus";
-//                     $_SESSION['tipe'] = "success";
-//                 } else {
-//                     $_SESSION['pesan'] = "Gagal menghapus user: " . mysqli_error($koneksi);
-//                     $_SESSION['tipe'] = "error";
-//                 }
-//                 mysqli_stmt_close($delete_stmt);
-//             } else {
-//                 $_SESSION['pesan'] = "Error preparing delete statement: " . mysqli_error($koneksi);
-//                 $_SESSION['tipe'] = "error";
-//             }
-//         } else {
-//             $_SESSION['pesan'] = "User tidak ditemukan";
-//             $_SESSION['tipe'] = "error";
-//         }
-//         mysqli_stmt_close($check_stmt);
-//     } else {
-//         $_SESSION['pesan'] = "Error preparing check statement: " . mysqli_error($koneksi);
-//         $_SESSION['tipe'] = "error";
-//     }
-// } else {
-//     $_SESSION['pesan'] = "ID user tidak valid";
-//     $_SESSION['tipe'] = "error";
-// }
-
-// header('Location: ../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php');
-// exit;
-
 session_start();
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm') {
@@ -94,7 +28,10 @@ if (isset($_GET['id'])) {
             $user_data = mysqli_fetch_assoc($result);
             $username = $user_data['username'];
             $role = $user_data['role'];
-            $id_referensi = $user_data['id_referensi'] ?? null;
+            $id_asesi = $user_data['id_asesi'] ?? null;
+            $id_asesor = $user_data['id_asesor'] ?? null;
+            $id_admin = $user_data['id_admin'] ?? null;
+
 
 
             mysqli_begin_transaction($koneksi);
@@ -103,12 +40,12 @@ if (isset($_GET['id'])) {
             $error_message = '';
 
 
-            if ($id_referensi) {
+            if ($id_asesor || $id_asesi) {
                 if ($role === 'Asesi') {
                     $sql_delete_asesi = "DELETE FROM tb_asesi WHERE id_asesi = ?";
                     $stmt_delete_asesi = mysqli_prepare($koneksi, $sql_delete_asesi);
                     if ($stmt_delete_asesi) {
-                        mysqli_stmt_bind_param($stmt_delete_asesi, "i", $id_referensi);
+                        mysqli_stmt_bind_param($stmt_delete_asesi, "i", $id_asesi);
                         if (!mysqli_stmt_execute($stmt_delete_asesi)) {
                             $success = false;
                             $error_message = mysqli_error($koneksi);
@@ -119,12 +56,28 @@ if (isset($_GET['id'])) {
                     $sql_delete_asesor = "DELETE FROM tb_asesor WHERE id_asesor = ?";
                     $stmt_delete_asesor = mysqli_prepare($koneksi, $sql_delete_asesor);
                     if ($stmt_delete_asesor) {
-                        mysqli_stmt_bind_param($stmt_delete_asesor, "i", $id_referensi);
+                        mysqli_stmt_bind_param($stmt_delete_asesor, "i", $id_asesor);
                         if (!mysqli_stmt_execute($stmt_delete_asesor)) {
                             $success = false;
                             $error_message = mysqli_error($koneksi);
                         }
                         mysqli_stmt_close($stmt_delete_asesor);
+                    }
+                }
+            }
+
+
+            if ($id_admin) {
+                if ($role === 'Admin_lsp') {
+                    $sql_delete_asesi = "DELETE FROM tb_admin WHERE id_admin = ?";
+                    $stmt_delete_asesi = mysqli_prepare($koneksi, $sql_delete_asesi);
+                    if ($stmt_delete_asesi) {
+                        mysqli_stmt_bind_param($stmt_delete_asesi, "i", $id_admin);
+                        if (!mysqli_stmt_execute($stmt_delete_asesi)) {
+                            $success = false;
+                            $error_message = mysqli_error($koneksi);
+                        }
+                        mysqli_stmt_close($stmt_delete_asesi);
                     }
                 }
             }

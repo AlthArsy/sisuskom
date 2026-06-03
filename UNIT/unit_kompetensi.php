@@ -120,24 +120,24 @@ if ($id_skema > 0) {
     }
 }
 
-function getElemenButtonColor($jumlah){
-    $color = [
-        0  => '#54b4bbff',
-        1  => '#00b9f1ff',
-        2  => '#6067c7ff',
-        3  => '#1947a8ff',
-        4  => '#082da7ff',
-        5  => '#b14b4bff',
-        6  => '#d13f3fff',
-        7  => '#cf3333ff',
-        8  => '#ab00eeff',
-        9  => '#4f0db8ff',
-        10 => '#1e023dff'
-    ];
+// function getElemenButtonColor($jumlah){
+//     $color = [
+//         0  => '#54b4bbff',
+//         1  => '#00b9f1ff',
+//         2  => '#6067c7ff',
+//         3  => '#1947a8ff',
+//         4  => '#082da7ff',
+//         5  => '#b14b4bff',
+//         6  => '#d13f3fff',
+//         7  => '#cf3333ff',
+//         8  => '#ab00eeff',
+//         9  => '#4f0db8ff',
+//         10 => '#1e023dff'
+//     ];
 
-    if ($jumlah > 10) $jumlah = 10;
-    return $color[$jumlah];
-}
+//     if ($jumlah > 10) $jumlah = 10;
+//     return $color[$jumlah];
+// }
 
 $units_by_skema = [];
 if (isset($result) && $result) {
@@ -210,7 +210,7 @@ if (isset($result) && $result) {
                     <th style="width: 50px;">No</th>
                     <th>Kode Unit</th>
                     <th>Judul Unit Kompetensi</th>
-                    <th style="width: 330px;">Aksi</th>
+                    <th style="width: 290px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -218,7 +218,7 @@ if (isset($result) && $result) {
                 $no = 1;
                 foreach ($units_by_skema[$id_skema] as $row):
                     $jumlah_elemen = intval($row['jumlah_elemen'] ?? 0);
-                    $color = getElemenButtonColor($jumlah_elemen);
+                    // $color = getElemenButtonColor($jumlah_elemen);
                 ?>
                     <tr>
                         <td data-label="No"><?= $no++; ?></td>
@@ -241,16 +241,16 @@ if (isset($result) && $result) {
                                     Tambah Elemen
                                 </a>
                             <?php else: ?>
-                                <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $row['id_unit'] ?>"
+                                <!-- <a href="UTAMA.php?page=../ELEMEN/From_elemen.php&id_unit=<?= $row['id_unit'] ?>"
                                    class="btn-elemen-badge"
                                    style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
                                    title="Tambah Elemen">
                                     <i class="fas fa-plus"></i>
-                                </a>
+                                </a> -->
                                 <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?= $row['id_unit'] ?>"
                                    class="btn-lihat-elemen"
                                    title="Lihat Elemen">
-                                    Lihat
+                                    Lihat Elemen
                                 </a>
                             <?php endif; ?>
                         </td>

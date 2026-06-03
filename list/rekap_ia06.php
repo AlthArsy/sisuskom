@@ -3,53 +3,90 @@ if (session_status() == PHP_SESSION_NONE) session_start();
 include "../koneksi.php";
 
 $role = $_SESSION['role'] ?? '';
+$id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
 if (!in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])) {
-    echo "<p style='color:red;padding:20px;'>Akses ditolak.</p>";
+    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Asesor, Admin LSP, dan Admin Utama.</p>";
     exit;
 }
 
 $filter = $_GET['filter'] ?? 'semua';
 
-$where = "WHERE 1=1";
-if ($filter === 'belum')          $where .= " AND (i.aspek IS NULL OR i.aspek = '')";
-if ($filter === 'tercapai')       $where .= " AND i.aspek = 'tercapai'";
-if ($filter === 'belum_tercapai') $where .= " AND i.aspek = 'belum_tercapai'";
+$c = "1=1";
+if ($role === 'Asesor' && $id_asesor_session) {
+    $c = "i.id_asesor = " . intval($id_asesor_session);
+}
+
+// $where = "WHERE 1=1";
+// if ($filter === 'belum')          $where .= " AND (i.aspek IS NULL OR i.aspek = '')";
+// if ($filter === 'tercapai')       $where .= " AND i.aspek = 'tercapai'";
+// if ($filter === 'belum_tercapai') $where .= " AND i.aspek = 'belum_tercapai'";
 
 $sql = "SELECT i.id_ia06, i.id_apl1, i.id_asesi, i.id_asesor,
                i.aspek, i.umpan_balik,
                s.judul_skema, s.nomor_skema, s.id_skema,
-               asi.nama_asesi,
+               asi.nama_asesi, asr.nama_asesor,
             (SELECT COUNT(*) FROM tb_ia06_jawaban j WHERE j.id_ia06 = i.id_ia06) AS total_jawab
         FROM tb_ia06 i
         LEFT JOIN tb_apl1 apl  ON apl.id_apl1   = i.id_apl1
         LEFT JOIN tb_skema s   ON s.id_skema     = apl.id_skema
         LEFT JOIN tb_asesi asi ON asi.id_asesi   = i.id_asesi
-        $where
-        GROUP BY i.id_asesi, i.id_apl1
-        ORDER BY i.id_ia06 DESC";
+        LEFT JOIN tb_asesor asr ON asr.id_asesor = i.id_asesor
+        WHERE $c";
+
+if ($filter === 'belum') {
+    $sql .= " AND (i.aspek IS NULL OR i.aspek = '')";
+} elseif ($filter === 'tercapai') {
+    $sql .= " AND i.aspek = 'tercapai'";
+} elseif ($filter === 'belum_tercapai') {
+    $sql .= " AND i.aspek = 'belum_tercapai'";
+}
 
 $result = mysqli_query($koneksi, $sql);
 $rows = [];
 while ($r = mysqli_fetch_assoc($result)) $rows[] = $r;
 $total = count($rows);
 
+if ($role === 'Asesor' && $id_asesor_session) {
+    $filter_asesor_sql = "id_asesor = " . intval($id_asesor_session);
+} else {
+    $filter_asesor_sql = "1=1";
+}
+
 $total_all = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06"))['c'] ?? 0;
+    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06 WHERE $filter_asesor_sql"))['c'] ?? 0;
 
 $total_belum = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
-     WHERE aspek IS NULL OR aspek=''"))['c'] ?? 0;
+    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06 
+     WHERE $filter_asesor_sql AND (aspek IS NULL OR aspek = '')"))['c'] ?? 0;
 
 $total_tercapai = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
-     WHERE aspek='tercapai'"))['c'] ?? 0;
+    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06 
+     WHERE $filter_asesor_sql AND aspek = 'tercapai'"))['c'] ?? 0;
 
 $total_belum_tercapai = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
-     WHERE aspek='belum_tercapai'"))['c'] ?? 0;
+    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06 
+     WHERE $filter_asesor_sql AND aspek = 'belum_tercapai'"))['c'] ?? 0;
+
+// $f = $id_asesor_session ? "WHERE id_asesor='$id_asesor_session'" : "WHERE 1=1";
+
+// $total_all = mysqli_fetch_assoc(mysqli_query($koneksi,
+//     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06"))['c'] ?? 0;
+
+// $total_belum = mysqli_fetch_assoc(mysqli_query($koneksi,
+//     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
+//      WHERE aspek IS NULL OR aspek=''"))['c'] ?? 0;
+
+// $total_tercapai = mysqli_fetch_assoc(mysqli_query($koneksi,
+//     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
+//      WHERE aspek='tercapai'"))['c'] ?? 0;
+
+// $total_belum_tercapai = mysqli_fetch_assoc(mysqli_query($koneksi,
+//     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia06
+//      WHERE aspek='belum_tercapai'"))['c'] ?? 0;
 
 $base = '../BERANDA/UTAMA.php';
 ?>
+<link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
 <style>
     .rekap-wrap  { padding: 10px 4px; font-family: Arial, sans-serif; }
     .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
@@ -88,7 +125,14 @@ $base = '../BERANDA/UTAMA.php';
         cursor: pointer; text-decoration: none; display: inline-block;
     }
     .btn-lihat:hover { background: #325fd6; }
-    .empty-msg { color: #999; text-align: center; padding: 28px; font-size: 13px; }
+    .btn-cetak {
+        background: #4caf50; color: white; border: none;
+        padding: 5px 14px; border-radius: 5px; font-size: 12px;
+        cursor: pointer; text-decoration: none; white-space: nowrap;
+        margin-left: 4px;
+    }
+    .btn-cetak:hover { background: #2e7d32; }
+    .empty-msg { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
 </style>
 
 <div class="rekap-wrap">
@@ -120,7 +164,7 @@ $base = '../BERANDA/UTAMA.php';
     <?php if (empty($rows)): ?>
         <div class="empty-msg">Tidak ada data untuk filter ini.</div>
     <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="rekap-table-wrap">
         <table class="rekap-table">
             <thead>
                 <tr>
@@ -136,18 +180,18 @@ $base = '../BERANDA/UTAMA.php';
                 <?php foreach ($rows as $i => $r): ?>
                 <?php $is_belum = (is_null($r['aspek']) || $r['aspek'] === ''); ?>
                 <tr>
-                    <td style="text-align:center;"><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesi'] ?? '') ?></td>
-                    <td>
+                    <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                    <td data-label="Nama Asesi"><?= htmlspecialchars($r['nama_asesi'] ?? '') ?></td>
+                    <td data-label="Skema">
                         <?= htmlspecialchars($r['judul_skema'] ?? '') ?>
-                        <div style="font-size:11px; color:#888;">
+                        <div class="rekap-skema-sub">
                             No. <?= htmlspecialchars($r['nomor_skema'] ?? '') ?>
                         </div>
                     </td>
-                    <td style="text-align:center;">
+                    <td data-label="Jumlah Jawaban" style="text-align:center;">
                         <?= intval($r['total_jawab']) ?> soal dijawab
                     </td>
-                    <td style="text-align:center;">
+                    <td data-label="Status Aspek" style="text-align:center;">
                         <?php if ($is_belum): ?>
                             <span class="badge badge-belum">Belum Dinilai</span>
                         <?php elseif ($r['aspek'] === 'tercapai'): ?>
@@ -156,18 +200,22 @@ $base = '../BERANDA/UTAMA.php';
                             <span class="badge badge-belum-tercapai">Belum Tercapai</span>
                         <?php endif; ?>
                     </td>
-                    <td style="text-align:center;">
+                    <td data-label="Aksi" class="rekap-aksi" style="text-align:center;">
                         <a class="btn-lihat"
                            href="<?= $base ?>?page=../FR_APL/FR_IA06C.php&mode=view&id_asesi=<?= $r['id_asesi'] ?>">
                             Lihat
                         </a>
+                        <a class="btn-cetak" 
+                            href="../pdf/cetak_ia6a.php?view=1&id_asesi=<?= $r['id_asesi'] ?>&print=1" target="_blank">
+                            Cetak PDF
+                         </a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-    <div style="font-size:12px; color:#888; margin-top:8px;">
+    <div class="rekap-foot">
         Menampilkan <?= $total ?> data
     </div>
     <?php endif; ?>

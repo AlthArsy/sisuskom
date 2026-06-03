@@ -100,6 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_rekomendasi'])) 
     exit;
 }
 
+$role           = $_SESSION['role'] ?? '';
+$is_asesi       = ($role === 'Asesi');
+$is_asesor      = ($role === 'Asesor');
+$is_admin_lsp   = ($role === 'Admin_lsp');
+$is_admin_utm   = ($role === 'Admin_utm');
+$is_admin       = ($role === 'Admin_lsp' || $role === 'Admin_utm');
+// $is_view_only   = ($is_admin);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_skema = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
     $judul_skema = trim($_POST['judul_skema'] ?? '');
@@ -108,7 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tujuan_lainnya = trim($_POST['tujuan_lainnya'] ?? '');
     $nama_pemohon = trim($_POST['nama_pemohon'] ?? '');
     $tanggal_pemohon = trim($_POST['tanggal_pemohon'] ?? '');
-    $qr_data = trim($_POST['qr_data'] ?? '');
     $catatan_admin = '';
     $rekomendasi = '';
     $kondisi_bd = $_POST['kondisi_bd'] ?? [];
@@ -119,13 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $sql = "INSERT INTO tb_apl1
             (id_skema, id_asesi, judul_skema, nomor_skema, tujuan_asesmen, tujuan_lainnya,
-             nama_pemohon, tanggal_pemohon, qr_data, catatan_admin, rekomendasi)
+             nama_pemohon, tanggal_pemohon, catatan_admin, rekomendasi)
             VALUES (
                 '$id_skema', '$id_asesi',
                 '{$a($judul_skema)}', '{$a($nomor_skema)}',
                 '{$a($tujuan_asesmen)}', '{$a($tujuan_lainnya)}',
                 '{$a($nama_pemohon)}', '{$a($tanggal_pemohon)}',
-                '{$a($qr_data)}',
                 " . ($catatan_admin ? "'{$a($catatan_admin)}'" : "NULL") . ",
                 " . ($rekomendasi   ? "'{$a($rekomendasi)}'"   : "NULL") . "
             )";
@@ -341,7 +347,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="font-size:13px;"><b>Nama :</b> <span style="color:#1a237e;"><?= h($nama_admin_lsp) ?></span></div>
             </div>
 
-            <?php if (in_array($role, ['Admin_lsp','Admin_utm'])): ?>
+            <?php if ($is_admin_lsp): ?>
             <div style="margin-top:16px; padding-top:12px; border-top:1px solid #ddd;">
                 <div style="font-weight:bold; font-size:13px; color:#1a237e; margin-bottom:10px;">Ubah Rekomendasi</div>
                 <form method="post">
@@ -369,15 +375,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="small-text">Tanggal</label>
                 <input type="text" class="form-control" value="<?= h($data_apl1['tanggal_pemohon']) ?>" readonly style="background:#f5f5f5;">
             </div>
-            <!-- <div class="qr-signature-box">
-                <div class="qr-title">QR Code</div>
-                <div style="text-align:center; padding:20px; color:#888; font-size:12px;">
-                    <= $data_apl1['qr_data'] ? 'QR tersimpan' : 'Tidak ada QR' ?>
-                </div>
-            </div> -->
         </div>
     </div>
+
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
+    <?php if ($is_asesor): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_fr.php'">
+            Kembali
+        </button>
+    <?php endif; ?>
+    <?php if ($is_admin): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_fr.php'">
+            Kembali
+        </button>
+        <a href="../pdf/cetak_apl1.php?id_asesi=<?= $id_asesi ?>"
+           target="_blank"
+           class="btn-back"
+           style="background:#1565c0; color:#fff; text-decoration:none; padding:8px 18px; border-radius:4px;">
+           Cetak PDF
+        </a>
+    <?php endif; ?>
+        <?php if ($is_asesi): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+            Kembali
+        </button>
+    <?php endif; ?>
+</div>
+    <!-- <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <button class="btn-back"
             onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/<?= $is_asesi ? 'list_form' : 'permohonan' ?>.php'">
             Kembali
@@ -388,7 +415,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        style="background:#1565c0; text-decoration:none;">
        Cetak PDF
     </a>
-    </div>
+    </div> -->
+    
 
     <?php endif; ?>
 </div>
@@ -397,7 +425,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="post" autocomplete="off" id="mainForm">
     <input type="hidden" name="id_asesi"  value="<?php echo $id_asesi; ?>">
     <input type="hidden" name="id_skema"  id="id_skema_hidden">
-    <input type="hidden" name="qr_data"   id="qr_data_input">
 
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
         FORMULIR PERMOHONAN SERTIFIKASI KOMPETENSI

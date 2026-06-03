@@ -6,10 +6,15 @@ if (!isset($_SESSION['id_user'])) {
     header("Location: ../LOGIN/login.php");
     exit;
 }
+include '../koneksi.php';
+$id_asesor   = $_SESSION['id_asesor'] ?? 0;
+$nama_asesor = '-';
+if ($id_asesor) {
+    $res = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT nama_asesor FROM tb_asesor WHERE id_asesor='$id_asesor' LIMIT 1"));
+    $nama_asesor = $res['nama_asesor'] ?? '-';
+}
 ?>
-<!-- <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet"> -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="../assets/CSS/From_skema.css">
 <div class="l-container">
@@ -33,16 +38,17 @@ if (!isset($_SESSION['id_user'])) {
             </div>
             <div class="form-group">
                 <label for="nama_asesor">Nama Asesor</label>
-                <input type="text"
-                       id="nama_asesor"
-                       value="<?php echo isset($_SESSION['nama_user']) ? htmlspecialchars($_SESSION['nama_user']) : ''; ?>"
-                       class="form-control"
-                       readonly>
-                <input type="hidden" name="id_referensi" value="<?php echo $_SESSION['id_referensi'] ?? ''; ?>">
+                <input type="text" id="nama_asesor"
+                    value="<?php echo htmlspecialchars($nama_asesor); ?>"
+                    class="form-control" readonly>
+                <input type="hidden" name="id_asesor" value="<?php echo $_SESSION['id_asesor'] ?? ''; ?>">
             </div>
             <div class="btn-container">
+                <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Simpan Skema
+                    <i class="fas fa-plus"></i> Simpan
                 </button>
             </div>
         </form>

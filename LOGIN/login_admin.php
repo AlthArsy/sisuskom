@@ -6,9 +6,6 @@
     <title>Login LSP Mudikal</title>
     <link rel="icon" type="image/x-icon" href="../assets/IMG/iconlogo.ico">
     <link rel="stylesheet" href="../assets/CSS/login.css">
-       <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
 </head>
 <body>
 <div class="l-container">

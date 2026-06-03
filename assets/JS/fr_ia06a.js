@@ -1,19 +1,8 @@
-/**
- * fr_ia06a.js - FR.IA.06A DPT Pertanyaan Tertulis Esai
- * Depends: lsp_common.js
- *
- * CARA KERJA:
- * - Setelah skema dipilih → fetch soal dari ambil_soal.php?action=soal&id_skema=X
- * - Jika IS_ASESI=true  → render tampilan soal saja (read-only)
- * - Jika IS_ASESI=false → render form input soal + penyusun/validator
- */
-
 var currentIdSkema = null;
 
 function onSkemaSelected(s, res) {
     currentIdSkema = s.id_skema;
     fetchAndRenderSoal(s.id_skema);
-    // Tampilkan tombol navigasi
     var btnB = document.getElementById('btn-goto-b');
     var btnC = document.getElementById('btn-goto-c');
     if (btnB) btnB.style.display = 'inline-block';
@@ -39,7 +28,6 @@ function fetchAndRenderSoal(id_skema) {
         });
 }
 
-/* ── Tampilan soal (Asesi, read-only) ───────── */
 function renderViewSoal(soalList, penyusunList) {
     var area = document.getElementById('konten-area');
     var html = '<div class="section-title" style="margin:16px 0 8px;">JAWAB SEMUA PERTANYAAN DI BAWAH INI:</div>';
@@ -58,7 +46,6 @@ function renderViewSoal(soalList, penyusunList) {
     area.innerHTML = html;
 }
 
-/* ── Form input soal (Admin/Asesor) ─────────── */
 function renderFormSoal(soalList, penyusunList, id_skema) {
     var area = document.getElementById('konten-area');
     var jumlah = soalList.length > 0 ? soalList.length : 10;
@@ -78,7 +65,6 @@ function renderFormSoal(soalList, penyusunList, id_skema) {
             '</div>';
     }
 
-    // Penyusun & Validator input
     html += '<div class="section-title" style="margin:20px 0 8px;">Penyusun dan Validator</div>';
     html += renderPenyusunForm(penyusunList);
 
@@ -104,7 +90,6 @@ function tambahSoal() {
     form.insertBefore(box, btn);
 }
 
-/* ── Penyusun form ──────────────────────────── */
 function renderPenyusunForm(list) {
     var statuses = [
         {status:'Penyusun', rows:[1,2]},
@@ -139,7 +124,6 @@ function renderPenyusunForm(list) {
     return html;
 }
 
-/* ── Penyusun read-only ─────────────────────── */
 function renderPenyusunReadOnly(list) {
     var html = '<div class="section-title" style="margin:20px 0 8px;">Penyusun dan Validator</div>' +
         '<div style="overflow-x:auto;"><table class="tbl-penyusun"><thead><tr>' +
@@ -163,7 +147,6 @@ function renderPenyusunReadOnly(list) {
     return html;
 }
 
-/* ── Navigasi ───────────────────────────────── */
 function gotoB() {
     if (!currentIdSkema) { alert('Pilih skema dulu!'); return; }
     window.location.href = 'FR_IA06B.php?id_asesi=' + ID_ASESI + '&id_skema=' + currentIdSkema;

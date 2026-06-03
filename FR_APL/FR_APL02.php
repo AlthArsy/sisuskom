@@ -21,7 +21,7 @@ $id_asesi = isset($_GET['id_asesi'])
 $role = $_SESSION['role'] ?? '';
 $is_asesi = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesi');
 $is_asesor = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesor');
-$mode_lihat  = isset($_GET['view']) && $_GET['view'] == 1;
+$is_admin_role = in_array($role, ['Admin_lsp', 'Admin_utm']);
 
 $apl1 = null;
 if ($id_asesi) {
@@ -101,48 +101,37 @@ if ($apl2_exist) {
         $jawaban_exist[$j['id_elemen']] = $j['nilai'];
     }
 }
-if ($is_asesi && $apl1 && !$apl2_exist && $id_skema) {
-    $id_apl1_fk   = intval($apl1['id_apl1']);
-    $id_asesor_fk = intval($apl1['id_asesor']);
-    $nama_ttd     = '';
 
-    $res = mysqli_query($koneksi,
-        "INSERT INTO tb_apl2 (id_apl1, id_asesi, id_asesor, rekomendasi, tertanda)
-         VALUES ('$id_apl1_fk','$id_asesi','$id_asesor_fk', NULL, '')");
+$apl2_selesai_asesi = $apl2_exist && trim((string) ($apl2_exist['tertanda'] ?? '')) !== '';
+$mode_edit_asesor   = $is_asesor && isset($_GET['edit']) && $_GET['edit'] == '1';
+$mode_melihat       = isset($_GET['view']) && $_GET['view'] == 1;
+$mode_lihat         = $mode_melihat || $is_admin_role
+    || ($is_asesor && $apl2_exist && !$mode_edit_asesor);
+$asesi_isi_form     = $is_asesi && $apl1 && !$apl2_selesai_asesi;
+$asesor_edit_form   = $is_asesor && $apl2_exist && $mode_edit_asesor;
 
-    if ($res) {
-        $id_apl2_new = mysqli_insert_id($koneksi);
-        foreach ($units as $u) {
-            foreach ($u['elemen'] as $el) {
-                $id_el_i = intval($el['id_elemen']);
-                foreach ($el['kuk'] as $k) {
-                    $id_kuk_i = intval($k['id_kuk']);
-                    mysqli_query($koneksi,
-                        "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
-                         VALUES ('$id_apl2_new','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
-                }
-            }
-        }
-        $apl2_exist = mysqli_fetch_assoc(mysqli_query($koneksi,
-            "SELECT * FROM tb_apl2 WHERE id_asesi='$id_asesi' ORDER BY id_apl2 DESC LIMIT 1"));
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesi') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesi' && $is_asesi) {
     $id_apl1_fk   = intval($apl1['id_apl1']  ?? 0);
     $id_asesor_fk = intval($apl1['id_asesor'] ?? 0);
-    $nama_ttd     = trim($_POST['nama_asesi_ttd'] ?? '');
+    $nama_ttd     = trim($_POST['nama_asesi_ttd'] ?? $nama_asesi_db);
+    $jawaban      = $_POST['jawaban'] ?? [];
 
     if ($id_skema && $id_asesi && $id_apl1_fk) {
-        $e   = fn($v) => mysqli_real_escape_string($koneksi, $v);
-        $res = mysqli_query($koneksi,
-            "INSERT INTO tb_apl2 (id_apl1, id_asesi, id_asesor, rekomendasi, tertanda)
-             VALUES ('$id_apl1_fk','$id_asesi','$id_asesor_fk', NULL, '{$e($nama_ttd)}')");
+        $e = fn($v) => mysqli_real_escape_string($koneksi, (string) $v);
 
-        if (!$res) {
-            echo "<script>alert('Gagal simpan!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
+        if ($apl2_exist) {
+            $id_apl2_upd = intval($apl2_exist['id_apl2']);
+            mysqli_query($koneksi,
+                "UPDATE tb_apl2 SET tertanda='{$e($nama_ttd)}' WHERE id_apl2='$id_apl2_upd'");
         } else {
-            $id_apl2_new = mysqli_insert_id($koneksi);
+            $res = mysqli_query($koneksi,
+                "INSERT INTO tb_apl2 (id_apl1, id_asesi, id_asesor, rekomendasi, tertanda)
+                 VALUES ('$id_apl1_fk','$id_asesi','$id_asesor_fk', NULL, '{$e($nama_ttd)}')");
+            if (!$res) {
+                echo "<script>alert('Gagal simpan!\\n" . addslashes(mysqli_error($koneksi)) . "');</script>";
+                exit;
+            }
+            $id_apl2_upd = mysqli_insert_id($koneksi);
             foreach ($units as $u) {
                 foreach ($u['elemen'] as $el) {
                     $id_el_i = intval($el['id_elemen']);
@@ -150,20 +139,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                         $id_kuk_i = intval($k['id_kuk']);
                         mysqli_query($koneksi,
                             "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
-                             VALUES ('$id_apl2_new','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
+                             VALUES ('$id_apl2_upd','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
                     }
                 }
             }
-            echo "<script>alert('APL-02 berhasil disimpan!');
-                  window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
-            exit;
         }
-    } else {
-        echo "<script>alert('Data APL 1 belum ada atau skema tidak ditemukan!');</script>";
+
+        foreach ($jawaban as $id_elemen => $nilai) {
+            $id_el_i   = intval($id_elemen);
+            $nilai_esc = $e(trim((string) $nilai));
+            if ($id_el_i <= 0 || !in_array($nilai_esc, ['K', 'BK'], true)) {
+                continue;
+            }
+            $cek = mysqli_num_rows(mysqli_query($koneksi,
+                "SELECT id_detail_apl2 FROM detail_apl2
+                 WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i' LIMIT 1"));
+            if ($cek > 0) {
+                mysqli_query($koneksi,
+                    "UPDATE detail_apl2 SET nilai='$nilai_esc'
+                     WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i'");
+            } else {
+                $row_unit = mysqli_fetch_assoc(mysqli_query($koneksi,
+                    "SELECT u.id_unit, u.id_skema, MIN(k.id_kuk) AS id_kuk
+                     FROM tb_elemen e
+                     JOIN tb_unit_kompetensi u ON u.id_unit = e.id_unit
+                     JOIN tb_kuk k ON k.id_elemen = e.id_elemen
+                     WHERE e.id_elemen='$id_el_i'
+                     GROUP BY u.id_unit, u.id_skema LIMIT 1"));
+                if ($row_unit) {
+                    mysqli_query($koneksi,
+                        "INSERT INTO detail_apl2 (id_apl2, id_skema, id_unit, id_elemen, id_kuk, nilai)
+                         VALUES ('$id_apl2_upd','" . intval($row_unit['id_skema']) . "','"
+                         . intval($row_unit['id_unit']) . "','$id_el_i','"
+                         . intval($row_unit['id_kuk']) . "','$nilai_esc')");
+                }
+            }
+        }
+
+        echo "<script>alert('APL-02 berhasil disimpan!');
+              window.location.href='../BERANDA/UTAMA.php?page=../FR_APL/FR_APL02.php&view=1&id_asesi={$id_asesi}';</script>";
+        exit;
     }
+    echo "<script>alert('Data APL 1 belum ada atau skema tidak ditemukan!');</script>";
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesor') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_asesor' && $is_asesor) {
     $id_apl2_upd = intval($_POST['id_apl2_upd'] ?? 0);
     $rekomendasi = trim($_POST['rekomendasi']   ?? '');
     $jawaban     = $_POST['jawaban']            ?? [];
@@ -185,20 +205,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                     "UPDATE detail_apl2 SET nilai='$nilai_esc'
                      WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i'");
             } else {
-                mysqli_query($koneksi,
-                    "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
-                     SELECT '$id_apl2_upd',u.id_skema,u.id_unit,'$id_el_i',MIN(k.id_kuk),'$nilai_esc'
+                $row_unit = mysqli_fetch_assoc(mysqli_query($koneksi,
+                    "SELECT u.id_unit, u.id_skema, MIN(k.id_kuk) as id_kuk
                      FROM tb_elemen e
                      JOIN tb_unit_kompetensi u ON u.id_unit = e.id_unit
                      JOIN tb_kuk k ON k.id_elemen = e.id_elemen
-                     WHERE e.id_elemen='$id_el_i' LIMIT 1");
+                     WHERE e.id_elemen='$id_el_i'
+                     GROUP BY u.id_unit, u.id_skema
+                     LIMIT 1"));
+                if ($row_unit && $row_unit['id_skema']) {
+                    $id_unit_ins  = intval($row_unit['id_unit']);
+                    $id_skema_ins = intval($row_unit['id_skema']);
+                    $id_kuk_ins   = intval($row_unit['id_kuk']);
+                    mysqli_query($koneksi,
+                        "INSERT INTO detail_apl2 (id_apl2, id_skema, id_unit, id_elemen, id_kuk, nilai)
+                         VALUES ('$id_apl2_upd','$id_skema_ins','$id_unit_ins','$id_el_i','$id_kuk_ins','$nilai_esc')");
+                }
             }
         }
         echo "<script>alert('Penilaian K/BK berhasil disimpan!'); window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_frapl2.php';</script>";
         exit;
     }
-}
-?>
+} 
+ ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -222,8 +251,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
     <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">← Kembali</a>
 </div>
 
-<?php elseif ($mode_lihat && $apl2_exist): ?>
-<?php if (!$is_asesi): ?>
+<?php elseif (($mode_lihat || $asesor_edit_form) && $apl2_exist): ?>
+<?php if ($asesor_edit_form): ?>
 <form method="post" autocomplete="off">
     <input type="hidden" name="aksi"        value="simpan_asesor">
     <input type="hidden" name="id_apl2_upd" value="<?= $apl2_exist['id_apl2'] ?>">
@@ -263,7 +292,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
         <b>PANDUAN ASESMEN MANDIRI</b>
         <ul style="margin:6px 0 0 16px;padding:0;">
             <li>Baca setiap pertanyaan di kolom sebelah kiri</li>
-            <li>Kolom <b>K</b> / <b>BK</b> akan diisi oleh <b>Asesor</b> setelah asesmen</li>
+            <li>Kolom <b>K</b> / <b>BK</b> diisi oleh <b>Asesi</b> (asesmen mandiri)</li>
+            <li>Rekomendasi <b>Dapat / Tidak Dapat</b> diisi oleh <b>Asesor</b></li>
             <li>Kolom <b>Bukti</b> diambil otomatis dari APL 1</li>
         </ul>
     </div>
@@ -302,38 +332,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                     </ul>
                 </td>
 
-                <?php if (!$is_asesi): ?>
                 <td style="text-align:center;vertical-align:middle;">
-                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
-                        <input type="radio"
-                               name="jawaban[<?= $el['id_elemen'] ?>]"
-                               value="K"
-                               <?= $nilai === 'K' ? 'checked' : '' ?>
-                               style="accent-color:#2e7d32;width:16px;height:16px;cursor:pointer;">
-                    </label>
+                    <?php if ($asesor_edit_form): ?>
+                        <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                            <input type="radio" name="jawaban[<?= $el['id_elemen'] ?>]" value="K"
+                                   <?= $nilai === 'K' ? 'checked' : '' ?>
+                                   style="accent-color:#2e7d32;width:16px;height:16px;">
+                        </label>
+                    <?php else: ?>
+                        <input type="radio" disabled <?= $nilai === 'K' ? 'checked' : '' ?>
+                               style="accent-color:#2e7d32;width:16px;height:16px;
+                                      <?= $nilai === 'K' ? '' : 'opacity:0.3;' ?>">
+                    <?php endif; ?>
                 </td>
                 <td style="text-align:center;vertical-align:middle;">
-                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
-                        <input type="radio"
-                               name="jawaban[<?= $el['id_elemen'] ?>]"
-                               value="BK"
-                               <?= $nilai === 'BK' ? 'checked' : '' ?>
-                               style="accent-color:#c00;width:16px;height:16px;cursor:pointer;">
-                    </label>
+                    <?php if ($asesor_edit_form): ?>
+                        <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                            <input type="radio" name="jawaban[<?= $el['id_elemen'] ?>]" value="BK"
+                                   <?= $nilai === 'BK' ? 'checked' : '' ?>
+                                   style="accent-color:#c00;width:16px;height:16px;">
+                        </label>
+                    <?php else: ?>
+                        <input type="radio" disabled <?= $nilai === 'BK' ? 'checked' : '' ?>
+                               style="accent-color:#c00;width:16px;height:16px;
+                                      <?= $nilai === 'BK' ? '' : 'opacity:0.3;' ?>">
+                    <?php endif; ?>
                 </td>
-                <?php else: ?>
-                <td style="text-align:center;vertical-align:middle;pointer-events:none;">
-                    <input type="radio" disabled <?= $nilai === 'K' ? 'checked' : '' ?>
-                           style="accent-color:#2e7d32;width:16px;height:16px;
-                                  <?= $nilai === 'K' ? '' : 'opacity:0.3;' ?>">
-                </td>
-                <td style="text-align:center;vertical-align:middle;pointer-events:none;">
-                    <input type="radio" disabled <?= $nilai === 'BK' ? 'checked' : '' ?>
-                           style="accent-color:#c00;width:16px;height:16px;
-                                  <?= $nilai === 'BK' ? '' : 'opacity:0.3;' ?>">
-                </td>
-                <?php endif; ?>
-
                 <td>
                     <textarea class="bukti-input" readonly
                               style="background:#f5f5f5;cursor:default;resize:none;height:100px;"
@@ -363,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                 Asesmen dapat / tidak dapat dilanjutkan melalui :
             </div>            
 
-            <?php if (!$is_asesi): ?>
+            <?php if ($asesor_edit_form): ?>
             <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;">
                 <label style="font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
                     <input type="radio" name="rekomendasi" value="Dapat"
@@ -390,14 +414,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                 </label>
             </div>
             <?php endif; ?>
-            
 
-            <!-- <div style="margin-bottom:8px;">
-                <label class="small-text">Nama</label>                               
-                <input type="text" class="form-control"
-                       value="<?= h($nama_asesi_db) ?>"
-                       readonly style="background:#f5f5f5;">
-            </div> -->
+            
         </div>
 
         <div class="rek-col">
@@ -410,11 +428,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
     </div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;">
-        <?php if ($is_asesor): ?>
+        <?php if ($is_asesor || $is_admin_role): ?>
         <a href="../BERANDA/UTAMA.php?page=../list/rekap_frapl2.php" class="btn-back">Kembali</a>
+        <?php if ($asesor_edit_form): ?>
+        <button type="submit" class="btn-submit">SIMPAN PENILAIAN</button>
         <?php endif; ?>
-        <?php if ($is_asesi): ?>
-        <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
         <a href="../pdf/cetak_apl2.php?id_asesi=<?= $id_asesi ?>" 
            target="_blank" 
            class="btn-submit" 
@@ -422,16 +440,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
            Cetak PDF
         </a>
         <?php endif; ?>
-        <?php if (!$is_asesi): ?>
-        <button type="submit" class="btn-submit">SIMPAN PENILAIAN</button>
+        <?php if ($is_asesi): ?>
+        <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
         <?php endif; ?>
+        
     </div>
 
-<?php if (!$is_asesi): ?>
+<?php if ($asesor_edit_form): ?>
 </form>
 <?php endif; ?>
 
-<?php elseif (!$apl2_exist): ?>
+<?php elseif ($asesi_isi_form): ?>
 <form method="post" autocomplete="off">
     <input type="hidden" name="aksi" value="simpan_asesi">
 
@@ -460,7 +479,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
         <b>PANDUAN ASESMEN MANDIRI</b>
         <ul style="margin:6px 0 0 16px;padding:0;">
             <li>Baca setiap pertanyaan di kolom sebelah kiri</li>
-            <li>Kolom <b>K</b> / <b>BK</b> akan diisi oleh <b>Asesor</b> setelah asesmen</li>
+            <li>Kolom <b>K</b> / <b>BK</b> diisi oleh <b>Asesi</b> (asesmen mandiri)</li>
+            <li>Rekomendasi <b>Dapat / Tidak Dapat</b> diisi oleh <b>Asesor</b></li>
             <li>Kolom <b>Bukti</b> diambil otomatis dari APL 1</li>
         </ul>
     </div>
@@ -496,11 +516,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                         <?php endforeach; ?>
                     </ul>
                 </td>
-                <td style="text-align:center;pointer-events:none;opacity:0.4;">
-                    <input type="radio" disabled>
+                <?php $nilai_asesi = $jawaban_exist[$el['id_elemen']] ?? ''; ?>
+                <td style="text-align:center;vertical-align:middle;">
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                        <input type="radio" name="jawaban[<?= $el['id_elemen'] ?>]" value="K"
+                               <?= $nilai_asesi === 'K' ? 'checked' : '' ?>
+                               style="accent-color:#2e7d32;width:16px;height:16px;">
+                    </label>
                 </td>
-                <td style="text-align:center;pointer-events:none;opacity:0.4;">
-                    <input type="radio" disabled>
+                <td style="text-align:center;vertical-align:middle;">
+                    <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                        <input type="radio" name="jawaban[<?= $el['id_elemen'] ?>]" value="BK"
+                               <?= $nilai_asesi === 'BK' ? 'checked' : '' ?>
+                               style="accent-color:#c00;width:16px;height:16px;">
+                    </label>
                 </td>
                 <td>
                     <textarea class="bukti-input" readonly
@@ -517,25 +546,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
 
     <div class="rek-box">
         <div class="rek-col">
-            <!-- <div class="col-title">Asesi :</div> -->
-              <div class="col-title">Ditinjau Oleh Asesor :</div>
-            <div style="font-size:13px;margin-bottom:8px;">
-                Asesmen dapat / tidak dapat dilanjutkan melalui :
+            <div class="col-title">Asesi :</div>
+            <div style="font-size:13px;margin-bottom:6px;">
+                <b>Nama :</b>
+                <span style="color:#1a237e;"><?= h($nama_asesi_db) ?></span>
             </div>
-            <div style="display:flex;gap:10px;margin-bottom:8px;pointer-events:none;opacity:0.5;">
-                <label style="font-size:13px;"><input type="radio" disabled> Dapat</label>
-                <label style="font-size:13px;"><input type="radio" disabled> Tidak Dapat</label>
-            </div>
-            <!-- <div style="margin-bottom:8px;">
-                <label class="small-text">Nama <span class="required">*</span></label>
-                <input type="text" name="nama_asesi_ttd" class="form-control"
-                       value="<?= h($nama_asesi_db) ?>"
-                       placeholder="Nama Asesi" required>
-            </div> -->
-            <!-- <div>
-                <label class="small-text">Tanda tangan / Tanggal</label>
-                <input type="date" name="tanggal_asesi" class="form-control">
-            </div> -->
+            <input type="hidden" name="nama_asesi_ttd" value="<?= h($nama_asesi_db) ?>">
         </div>
         <div class="rek-col">
             <div class="col-title">Ditinjau Oleh Asesor :</div>
@@ -546,7 +562,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                 No. Reg: <?= h($apl1['no_reg'] ?? '-') ?>
             </div>
             <div style="font-size:11px;color:#888;font-style:italic;">
-                * K/BK akan diisi Asesor setelah asesmen
+                Rekomendasi Dapat/Tidak Dapat diisi Asesor setelah Anda menyimpan.
             </div>
         </div>
     </div>
@@ -557,10 +573,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
     </div>
 </form>
 
-<?php else: ?>
+<?php elseif ($is_asesi && $apl2_selesai_asesi && !$mode_melihat): ?>
 <script>
 window.location.href = '../BERANDA/UTAMA.php?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $id_asesi ?>';
 </script>
+<?php else: ?>
+<div style="text-align:center;padding:24px;color:#666;">
+    Data tidak tersedia atau mode tidak dikenali.
+    <br><br>
+    <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+</div>
 <?php endif; ?>
 
 </div>

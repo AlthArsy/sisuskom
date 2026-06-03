@@ -59,19 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
     if (empty($errors)) {
 
-        // $password_hashed = password_hash($password, PASSWORD_DEFAULT);
         $password_hashed = $password;
 
-        $allowed_roles = ['Admin', 'Asesor', 'Asesi'];
-        // if (!in_array($role, $allowed_roles)) {
-        //     // Coba lowercase jika uppercase error
-        //     $role_lower = strtolower($role);
-        //     if (in_array($role_lower, array_map('strtolower', $allowed_roles))) {
-        //         $role = ucfirst($role_lower);
-        //     } else {
-        //         $errors[] = "Role tidak valid. Pilih antara: Admin, Asesor, atau Asesi";
-        //     }
-        // }
+        $allowed_roles = ['Admin_lsp', 'Asesor', 'Asesi'];
+
 
         if (empty($errors)) {
             $insert_sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
@@ -169,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                     </label>
                     <select id="role" name="role" required>
                         <option value="">Pilih Role</option>
-                        <option value="Admin" <?php echo (isset($_POST['role']) && $_POST['role'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
+                        <option value="Admin_lsp" <?php echo (isset($_POST['role']) && $_POST['role'] == 'Admin_lsp') ? 'selected' : ''; ?>>Admin LSP</option>
                         <option value="Asesor" <?php echo (isset($_POST['role']) && $_POST['role'] == 'Asesor') ? 'selected' : ''; ?>>Asesor</option>
                         <option value="Asesi" <?php echo (isset($_POST['role']) && $_POST['role'] == 'Asesi') ? 'selected' : ''; ?>>Asesi</option>
                     </select>
@@ -178,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
                 <div class="btn-container">
                     <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> kembali
                     </a>
                     <button type="submit" name="tambah" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Tambah User

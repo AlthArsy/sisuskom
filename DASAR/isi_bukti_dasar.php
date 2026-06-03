@@ -94,11 +94,6 @@ if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor') {
         <h2 class="jdm">Isi Bukti Dasar</h2>
     </div>
 
-    <form method="get" action="" class="cari">
-        <?php if (isset($_GET['page'])): ?>
-            <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
-        <?php endif; ?>
-    </form>
     <table>
         <thead>
             <tr>

@@ -52,17 +52,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($aksi === 'buat_ia06a') {
         $p_id_skema = intval($_POST['id_skema'] ?? 0);
+        $id_validator = intval($_POST['id_validator']  ?? 0);
         if ($p_id_skema && $id_asesor) {
             $cek = mysqli_fetch_assoc(mysqli_query($koneksi,
                 "SELECT id_ia06a FROM tb_ia06a
-                 WHERE id_asesor='$id_asesor' AND id_skema='$p_id_skema' LIMIT 1"));
+                 WHERE id_asesor='$id_asesor' AND id_skema='$p_id_skema' AND id_validator='$id_validator' LIMIT 1"));
             if ($cek) {
                 $p_id_ia06a = intval($cek['id_ia06a']);
                 $_SESSION['flash_soal'] = 'success|soal sudah ada, diarahkan ke sana.';
             } else {
                 mysqli_query($koneksi,
-                    "INSERT INTO tb_ia06a (id_asesor, id_skema)
-                     VALUES ('$id_asesor', '$p_id_skema')");
+                    "INSERT INTO tb_ia06a (id_asesor, id_skema, id_validator)
+                     VALUES ('$id_asesor', '$p_id_skema', '$id_validator')");
                 $p_id_ia06a = intval(mysqli_insert_id($koneksi));
                 $_SESSION['flash_soal'] = 'success|Soal baru berhasil dibuat.';
             }
@@ -72,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: {$base}?page=../list/soal_ia06a.php&id_ia06a=$p_id_ia06a");
     exit;
 }
+
 
 $list_ia06a = [];
 $res_ia = mysqli_query($koneksi,
@@ -89,9 +91,10 @@ if (!$id_ia06a && !empty($list_ia06a)) {
 $ia06a_info = null;
 if ($id_ia06a) {
     $ia06a_info = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT ia.*, s.judul_skema, s.nomor_skema
+        "SELECT ia.*, s.judul_skema, s.nomor_skema, v.username
          FROM tb_ia06a ia
          LEFT JOIN tb_skema s ON s.id_skema = ia.id_skema
+         LEFT JOIN tb_validator v ON v.id_validator = ia.id_validator
          WHERE ia.id_ia06a = '$id_ia06a' LIMIT 1"));
 }
 
@@ -101,6 +104,10 @@ if ($id_ia06a) {
         "SELECT * FROM tb_soal WHERE id_ia06a = '$id_ia06a' ORDER BY id_soal");
     while ($r = mysqli_fetch_assoc($res_soal)) $soal_list[] = $r;
 }
+
+$list_validator = [];
+$res_val = mysqli_query($koneksi, "SELECT id_validator, username, noreg FROM tb_validator ORDER BY username");
+while ($r = mysqli_fetch_assoc($res_val)) $list_validator[] = $r;
 
 $list_skema = [];
 $res_sk = mysqli_query($koneksi,
@@ -181,6 +188,12 @@ while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
         padding: 6px 10px; border: 1px solid #ccc; border-radius: 4px;
         font-size: 13px; min-width: 220px;
     }
+    .btn-cetak {
+        background: #4caf50; color: white; border: none;
+        padding: 5px 14px; border-radius: 5px; font-size: 12px;
+        cursor: pointer; text-decoration: none; white-space: nowrap;
+        margin-left: 4px;
+    }
 
     .empty-msg { color: #999; text-align: center; padding: 24px; font-size: 13px; }
 
@@ -211,6 +224,13 @@ while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
     <?php endif; ?>
 
     <button class="btn btn-blue" onclick="togglePanel()">+ Buat Soal Baru</button>
+   <?php if ($ia06a_info && !empty($soal_list)): ?>
+    <a class="btn-cetak" href="../pdf/cetak_ia6b.php?id_skema=<?= $ia06a_info['id_skema'] ?>&print=1" target="_blank">
+        Cetak PDF
+    </a>
+    <?php else: ?>
+        <span class="btn-cetak" style="background:#aaa; cursor:not-allowed;" title="Belum ada soal untuk dicetak">Cetak PDF</span>
+    <?php endif; ?>
 </div>
 
 <div class="panel-buat" id="panelBuat">
@@ -226,6 +246,14 @@ while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
             </option>
             <?php endforeach; ?>
         </select>
+        <select name="id_validator" required>
+            <option value="">-- Pilih Validator --</option>
+            <?php foreach ($list_validator as $v): ?>
+            <option value="<?= $v['id_validator'] ?>">
+                <?= h($v['username']) ?> (<?= h($v['noreg']) ?>)
+            </option>
+            <?php endforeach; ?>
+        </select>
         <button type="submit" class="btn btn-green">Buat</button>
         <button type="button" class="btn" style="background:#888;color:#fff;"
                 onclick="togglePanel()">Batal</button>
@@ -238,6 +266,9 @@ while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
     <b><?= h($ia06a_info['judul_skema']) ?></b>
     &nbsp;|&nbsp; Nomor : <?= h($ia06a_info['nomor_skema']) ?>
     &nbsp;|&nbsp; Total Soal : <b><?= count($soal_list) ?></b>
+    &nbsp;|&nbsp; Validator :
+    <b><?= h($ia06a_info['username']) ?></b>
+
 </div>
 
 <div class="form-tambah">

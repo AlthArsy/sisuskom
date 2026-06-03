@@ -91,7 +91,7 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
             if ($role === 'Admin_lsp') {
                 if (empty($user['id_admin']) || is_null($user['id_admin'])) {
                     if ($role === 'Admin_lsp') {
-                        echo "<script>alert('Silakan lengkapi profil terlebih dahulu.'); window.location.href='../Admin/input_profil.php';</script>";
+                        echo "<script>alert('Silakan lengkapi profil terlebih dahulu.'); window.location.href='../Admin_lsp/input_profil.php';</script>";
                         exit;
                     }
                 }

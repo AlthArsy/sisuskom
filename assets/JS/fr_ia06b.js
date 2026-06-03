@@ -1,12 +1,3 @@
-/**
- * fr_ia06b.js - FR.IA.06B Kunci Jawaban
- * Depends: lsp_common.js
- *
- * CARA KERJA:
- * Setelah skema dipilih → fetch soal + kunci dari ambil_soal.php
- * Render form input kunci per soal
- */
-
 function onSkemaSelected(s, res) {
     fetchSoalKunci(s.id_skema);
 }
@@ -21,15 +12,13 @@ function fetchSoalKunci(id_skema) {
         .then(function(r) { return r.json(); })
         .then(function(res) {
             if (!res.soal || res.soal.length === 0) {
-                if (ph) { ph.textContent = '⚠️ Belum ada soal untuk skema ini. Input soal di FR.IA.06A dulu.'; }
+                if (ph) { ph.textContent = 'Belum ada soal untuk skema ini. Input soal di FR.IA.06A dulu.'; }
                 return;
             }
             if (ph) ph.style.display = 'none';
 
-            // Set id_skema ke hidden input form
             document.getElementById('id_skema_hidden').value = id_skema;
 
-            // Render soal + input kunci
             var list = document.getElementById('kunci-list');
             list.innerHTML = '';
             res.soal.forEach(function(s) {
@@ -46,7 +35,6 @@ function fetchSoalKunci(id_skema) {
                 list.appendChild(div);
             });
 
-            // Render penyusun read-only
             var tbody = document.getElementById('penyusun-tbody');
             if (tbody) {
                 if (!res.penyusun || res.penyusun.length === 0) {
@@ -68,6 +56,6 @@ function fetchSoalKunci(id_skema) {
             if (form) form.style.display = 'block';
         })
         .catch(function() {
-            if (ph) { ph.textContent = '❌ Gagal memuat soal'; ph.style.display = 'block'; }
+            if (ph) { ph.textContent = 'Gagal memuat soal'; ph.style.display = 'block'; }
         });
 }

@@ -17,7 +17,7 @@ if (mysqli_connect_errno()) {
 $role_filter = isset($_GET['role_filter']) ? $_GET['role_filter'] : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-$allowed_roles = ['Admin', 'Asesor', 'Asesi'];
+$allowed_roles = ['Admin_lsp', 'Asesor', 'Asesi'];
 
 $sql = "SELECT * FROM users";
 $conditions = [];
@@ -85,6 +85,7 @@ function buildSearchUrl($params) {
 }
 ?>
 <link rel="stylesheet" href="../assets/CSS/manajeman_penguna.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <div class="konten-user">
     <h2 class="jdm">Data User</h2>
 
@@ -93,14 +94,17 @@ function buildSearchUrl($params) {
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
         <?php endif; ?>
 
-        <input
-            type="text"
-            name="search"
-            placeholder="Cari username"
-            value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        <div class="cari-field">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input
+                type="text"
+                name="search"
+                placeholder="Cari username..."
+                value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        </div>
 
-        <select name="role_filter">
-            <option value="">-- Semua Role --</option>
+        <select name="role_filter" class="cari-select" aria-label="Filter role">
+            <option value="">Semua Role</option>
             <?php
                 foreach ($allowed_roles as $role) {
                     $selected = ($role_filter === $role) ? 'selected' : '';
@@ -109,16 +113,14 @@ function buildSearchUrl($params) {
             ?>
         </select>
 
-        <button type="submit">Cari</button>
-
-        <?php if (!empty($search) || !empty($role_filter)): ?>
-            <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
-               class="btn-reset"
-               style="padding:7px 18px;font-size:14px;background:#95a5a6;border:none;border-radius:4px;color:#fff;text-decoration:none;display:inline-block;">
-                Reset
-            </a>
-        <?php endif; ?>
-        <div style="margin: 15px 0; text-align: right;">
+        <div class="cari-actions">
+            <button type="submit" class="btn-cari"><i class="fas fa-search"></i> Cari</button>
+            <?php if (!empty($search) || !empty($role_filter)): ?>
+                <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
+                   class="btn-reset">
+                    <i class="fas fa-times"></i> Reset
+                </a>
+            <?php endif; ?>
             <a href="../BERANDA/UTAMA.php?page=../PENAGATURAN/tambah-user-baru.php" class="Tambah">
                 <i class="fas fa-plus"></i> Tambah Data
             </a>

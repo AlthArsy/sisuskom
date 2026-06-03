@@ -1,3 +1,5 @@
+@import url('cari-shared.css');
+
 .jd {
     color: #14305c;
     margin-bottom: 18px;
@@ -114,10 +116,6 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
     background: #fff;
-}
-
-tbody tr:last-child td {
-    border-bottom: none;
 }
 
 .aksi a {
@@ -245,57 +243,5 @@ tbody tr:last-child td {
         flex-direction: column;
         gap: 10px;
         text-align: center;
-    }
-
-    table {
-        border: 0;
-    }
-
-    table thead {
-        display: none;
-    }
-
-    table tbody {
-        display: block;
-    }
-
-    table tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fff !important;
-    }
-
-    table td {
-        display: block;
-        text-align: right;
-        border: none;
-        border-bottom: 1px solid #eee;
-        padding: 10px;
-        position: relative;
-        padding-left: 50%;
-    }
-
-    table td:last-child {
-        border-bottom: none;
-    }
-
-    table td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-        color: #24365e;
-    }
-
-    .aksi {
-        text-align: center !important;
-        padding-left: 10px !important;
-    }
-
-    .aksi:before {
-        display: none;
     }
 }

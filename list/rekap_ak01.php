@@ -5,10 +5,12 @@ if (session_status() == PHP_SESSION_NONE) {
 include "../koneksi.php";
 
 $role = $_SESSION['role'] ?? '';
-if (!in_array($role, ['Admin_lsp', 'Admin_utm', 'Asesor'])) {
-    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Admin LSP, Admin UTM, dan Asesor.</p>";
+$id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
+if (!in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])) {
+    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Asesor, Admin LSP, dan Admin Utama.</p>";
     exit;
 }
+
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
 
@@ -27,7 +29,11 @@ $sql = "SELECT
         JOIN tb_asesi a ON a.id_asesi = ak.id_asesi
         JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
         LEFT JOIN tb_asesor asr ON asr.id_asesor = ak.id_asesor
-        ORDER BY ak.id_ak01 DESC";
+        WHERE 1=1";
+
+if ($role === 'Asesor' && $id_asesor_session) {
+    $sql .= " AND ak.id_asesor = '$id_asesor_session'";
+}
 
 $result = mysqli_query($koneksi, $sql);
 $rows = [];
@@ -36,16 +42,19 @@ while ($r = mysqli_fetch_assoc($result)) {
 }
 $total = count($rows);
 
+$f = $id_asesor_session ? "WHERE id_asesor='$id_asesor_session'" : "WHERE 1=1";
+
 $total_all = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_ak01"))['c'] ?? 0;
 
 $base = '../BERANDA/UTAMA.php';
 ?>
 <!DOCTYPE html>
 <html lang="id">
-<head>
+<head>FR_APL/fr_apl_cheks.php
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rekap FR.AK.01 - Persetujuan Asesmen</title>
+    <link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
     <style>
         .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
         .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
@@ -81,6 +90,13 @@ $base = '../BERANDA/UTAMA.php';
             display: inline-block;
         }
         .btn-lihat:hover { background: #325fd6; }
+        .btn-cetak {
+            background: #4caf50; color: white; border: none;
+            padding: 5px 14px; border-radius: 5px; font-size: 12px;
+            cursor: pointer; text-decoration: none; white-space: nowrap;
+            margin-left: 4px;
+        }
+    .btn-cetak:hover { background: #2e7d32; }
         .empty-msg {
             text-align: center; padding: 30px; background: #f9f9f9;
             border-radius: 8px; color: #666; margin-top: 20px;
@@ -102,7 +118,7 @@ $base = '../BERANDA/UTAMA.php';
 
     <div class="rekap-cards">
         <div class="rekap-card">
-            <div class="num"><?= $total_all ?></div>
+            <div class="num"><?= $total ?></div>
             <div class="lbl">Total Persetujuan Asesmen</div>
         </div>
     </div>
@@ -115,7 +131,7 @@ $base = '../BERANDA/UTAMA.php';
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <div style="overflow-x:auto;">
+        <div class="rekap-table-wrap">
             <table class="rekap-table">
                 <thead>
                     <tr>
@@ -133,21 +149,25 @@ $base = '../BERANDA/UTAMA.php';
                 <tbody>
                     <?php foreach ($rows as $i => $row): ?>
                         <tr>
-                            <td style="text-align:center;"><?= $i + 1 ?></td>
-                            <td><?= htmlspecialchars($row['nama_asesi']) ?></td>
-                            <td>
+                            <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                            <td data-label="Nama Asesi"><?= htmlspecialchars($row['nama_asesi']) ?></td>
+                            <td data-label="Skema Sertifikasi">
                                 <?= htmlspecialchars($row['judul_skema']) ?>
-                                <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($row['nomor_skema']) ?></div>
+                                <div class="rekap-skema-sub">No. <?= htmlspecialchars($row['nomor_skema']) ?></div>
                             </td>
-                            <td><?= htmlspecialchars($row['tuk'] ?: '-') ?></td>
-                            <td><?= htmlspecialchars($row['hari_tanggal'] ?: '-') ?></td>
-                            <td><?= htmlspecialchars($row['waktu'] ?: '-') ?></td>
-                            <td><?= htmlspecialchars($row['tuk_pelaksanaan'] ?: '-') ?></td>
-                            <td><?= htmlspecialchars($row['nama_asesor'] ?: '(belum ditentukan)') ?></td>
-                            <td style="text-align:center;">
+                            <td data-label="TUK"><?= htmlspecialchars($row['tuk'] ?: '-') ?></td>
+                            <td data-label="Hari / Tanggal"><?= htmlspecialchars($row['hari_tanggal'] ?: '-') ?></td>
+                            <td data-label="Waktu"><?= htmlspecialchars($row['waktu'] ?: '-') ?></td>
+                            <td data-label="TUK Pelaksanaan"><?= htmlspecialchars($row['tuk_pelaksanaan'] ?: '-') ?></td>
+                            <td data-label="Asesor"><?= htmlspecialchars($row['nama_asesor'] ?: '(belum ditentukan)') ?></td>
+                            <td data-label="Aksi" class="rekap-aksi" style="text-align:center;">
                                 <a class="btn-lihat" 
                                    href="<?= $base ?>?page=../FR_APL/FR_AK01.php&id_asesi=<?= $row['id_asesi'] ?>&view=1">
                                     Lihat Detail
+                                </a>
+                                <a class="btn-cetak" 
+                                href="../pdf/cetak_ak1.php?view=1&id_asesi=<?= $row['id_asesi'] ?>&print=1" target="_blank">
+                                Cetak PDF
                                 </a>
                             </td>
                         </tr>
@@ -155,7 +175,7 @@ $base = '../BERANDA/UTAMA.php';
                 </tbody>
             </table>
         </div>
-        <div style="font-size:12px; color:#888; margin-top:8px;">
+        <div class="rekap-foot">
             Menampilkan <?= $total ?> data
         </div>
     <?php endif; ?>

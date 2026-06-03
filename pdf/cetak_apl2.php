@@ -220,7 +220,7 @@ body { font-family: Calibri, Arial, sans-serif; font-size:10pt; background:#bbb;
 
     <span class="toolbar-sep"></span>
     <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
-    <a class="btn-back" href="javascript:history.back()">← Kembali</a>
+    <!-- <a class="btn-back" href="javascript:history.back()">← Kembali</a> -->
 </div>
 
 <div class="halaman">
@@ -328,8 +328,8 @@ body { font-family: Calibri, Arial, sans-serif; font-size:10pt; background:#bbb;
         </td>
         <td colspan="2" style="font-weight:bold;padding:4px 8px;">
             Asesi :
-            <span class="mode-badge badge-ttd"   id="badge-asesi-ttd">Tanda Tangan</span>
-            <span class="mode-badge badge-qr"     id="badge-asesi-qr"  style="display:none;">QR Code</span>
+            <span class="mode-badge badge-ttd"   id="badge-asesi-ttd"></span>
+            <span class="mode-badge badge-qr"     id="badge-asesi-qr"  style="display:none;"></span>
         </td>
     </tr>
     <tr>

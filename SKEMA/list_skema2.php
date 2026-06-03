@@ -102,24 +102,6 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
     }
 }
 
-function getUnitButtonColor($jumlah) {
-    $colors = [
-        0  => '#54b4bbff',
-        1  => '#00b9f1ff',
-        2  => '#6067c7ff',
-        3  => '#1947a8ff',
-        4  => '#082da7ff',
-        5  => '#b14b4bff',
-        6  => '#d13f3fff',
-        7  => '#cf3333ff',
-        8  => '#ab00eeff',
-        9  => '#4f0db8ff',
-        10 => '#1e023dff'
-    ];
-
-    if ($jumlah > 10) $jumlah = 10;
-    return $colors[$jumlah];
-}
 ?>
 <link rel="stylesheet" href="../assets/CSS/list_skema.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -148,28 +130,31 @@ function getUnitButtonColor($jumlah) {
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
         <?php endif; ?>
 
-        <input
-            type="text"
-            name="search"
-            placeholder="Cari Nomor Skema"
-            value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        <div class="cari-field">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input
+                type="text"
+                name="search"
+                placeholder="Cari nomor skema..."
+                value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        </div>
 
-        <button type="submit">Cari</button>
-
-        <?php if (!empty($search) || !empty($role_filter)): ?>
-            <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
-               class="btn-reset"
-               style="padding:7px 18px;font-size:14px;background:#95a5a6;border:none;border-radius:4px;color:#fff;text-decoration:none;display:inline-block;">
-                Reset
-            </a>
-        <?php endif; ?>
+        <div class="cari-actions">
+            <button type="submit" class="btn-cari">
+                <i class="fas fa-search"></i> Cari
+            </button>
+            <?php if (!empty($search)): ?>
+                <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
+                   class="btn-reset">
+                    <i class="fas fa-times"></i> Reset
+                </a>
+            <?php endif; ?>
+        </div>
     </form>
         <?php if (!empty($search)): ?>
-        <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <div class="filter-info">
             <strong>Filter aktif:</strong>
-            <?php if (!empty($search)): ?>
-                nomor skema : "<?php echo htmlspecialchars($search); ?>"
-            <?php endif; ?>
+            nomor skema: &ldquo;<?php echo htmlspecialchars($search); ?>&rdquo;
         </div>
     <?php endif; ?>
 
@@ -187,8 +172,6 @@ function getUnitButtonColor($jumlah) {
             <?php if (isset($result) && mysqli_num_rows($result) > 0):
                 $no = 1;
                 while ($row = mysqli_fetch_assoc($result)):
-                    $jumlah_unit = intval($row['jumlah_unit'] ?? 0);
-                    $color = getUnitButtonColor($jumlah_unit);
             ?>
                 <tr>
                     <td data-label='NO'><?= $no++ ?></td>
@@ -215,16 +198,6 @@ function getUnitButtonColor($jumlah) {
     </table>
 </div>
 
-<!-- <script>
-setTimeout(function() {
-    const messages = document.querySelectorAll('.message');
-    messages.forEach(message => {
-        message.style.opacity = '0';
-        message.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => message.remove(), 500);
-    });
-}, 5000);
-</script> -->
 
 <?php
 mysqli_close($koneksi);

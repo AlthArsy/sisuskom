@@ -11,7 +11,7 @@ function renderTabelMetode(units) {
     if (!tbody) return;
 
     if (!units || units.length === 0) {
-        if (ph) { ph.textContent = '⚠️ Tidak ada unit untuk skema ini'; ph.style.display = 'block'; }
+        if (ph) { ph.textContent = 'Tidak ada unit untuk skema ini'; ph.style.display = 'block'; }
         if (wrap) wrap.style.display = 'none';
         return;
     }

@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp'], true)) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesor'], true)) {
     header("Location: ../LOGIN/login.php");
     exit();
 }

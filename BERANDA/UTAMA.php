@@ -45,7 +45,7 @@ $roles_data = [
             [
                 'href' => '../Admin_lsp/Table_admin_lsp.php',
                 'icon' => 'fas fa-users',
-                'label' => 'Manajemen Admin'
+                'label' => 'Manajemen Admin LSP'
             ],
             [
                 'href' => '../ASESOR/Table_asesor.php',
@@ -57,11 +57,16 @@ $roles_data = [
                 'icon' => 'fas fa-user-graduate',
                 'label' => 'Manajemen Asesi'
             ],
+             [
+                'href' => '../SKEMA/list_skema2.php',
+                'icon' => 'fas fa-tasks',
+                'label' => 'Data Skema'
+            ],
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
-                'label' => 'Recap Note',
-                'has_dropdown' => true,
+                'label' => 'Catatan Rekap',
+                'has_dropdown' => true,                                                  
                 'submenu' => [
                          [
                             'href' => '../list/rekap_fr.php',
@@ -100,17 +105,7 @@ $roles_data = [
                         ]
                 ]
             ],
-            [
-                'href' => '../list/soal_ia06a.php',
-                'icon' => 'fas fa-question-circle',
-                'label' => 'Kelola Soal FR.IA.06A'
-            ],
-            [
-                'href' => '../SKEMA/list_skema2.php',
-                'icon' => 'fas fa-tasks',
-                'label' => 'Data Skema'
-            ]
-
+           
         ]
     ],
     'Admin_lsp' => [
@@ -124,7 +119,12 @@ $roles_data = [
                 'label' => 'Dashboard',
                 'active' => true
             ],
-                        [
+            [
+                'href' => '../MANAGEMENT/validator.php',
+                'icon' => 'fas fa-users',
+                'label' => 'Manajemen Validator'
+            ],
+            [
                 'href' => '../ASESOR/Table_asesor.php',
                 'icon' => 'fas fa-user-tie',
                 'label' => 'Manajemen Asesor'
@@ -137,7 +137,20 @@ $roles_data = [
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
-                'label' => 'Recap Note',
+                'label' => 'Manajemen Skema',
+                'has_dropdown' => true,
+                'submenu' => [
+                    [
+                        'href' => '../SKEMA/list_skema2.php',
+                        'icon' => 'fas fa-tasks',
+                        'label' => 'Data Skema'
+                    ]
+                ]
+            ],
+            [
+                'href' => '#',
+                'icon' => 'fa-solid fa-print',
+                'label' => 'Catatan Rekap',
                 'has_dropdown' => true,
                 'submenu' => [
                         [
@@ -177,6 +190,20 @@ $roles_data = [
                         ]
                 ]
             ],
+            
+        ]
+    ],
+    'Asesor' => [
+        'icon' => 'fas fa-user-tie',
+        'role_name' => '',
+        'role_desc' => 'Asesor',
+        'menu' => [
+            [
+                'href' => 'UTAMA.php',
+                'icon' => 'fas fa-home',
+                'label' => 'Dashboard',
+                'active' => true
+            ],
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
@@ -194,24 +221,11 @@ $roles_data = [
                         'label' => 'Data Skema'
                     ]
                 ]
-            ]
-        ]
-    ],
-    'Asesor' => [
-        'icon' => 'fas fa-user-tie',
-        'role_name' => '',
-        'role_desc' => 'Asesor',
-        'menu' => [
-            [
-                'href' => 'UTAMA.php',
-                'icon' => 'fas fa-home',
-                'label' => 'Dashboard',
-                'active' => true
             ],
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
-                'label' => 'Recap Note',
+                'label' => 'Catatan Rekap',
                 'has_dropdown' => true,
                 'submenu' => [
                         [
@@ -250,25 +264,7 @@ $roles_data = [
                 'href' => '../list/soal_ia06a.php',
                 'icon' => 'fas fa-question-circle',
                 'label' => 'Kelola Soal FR.IA.06A'
-            ],
-            [
-                'href' => '#',
-                'icon' => 'fas fa-book',
-                'label' => 'Manajemen Skema',
-                'has_dropdown' => true,
-                'submenu' => [
-                    [
-                        'href' => '../SKEMA/list_skema.php',
-                        'icon' => 'fas fa-book',
-                        'label' => 'Kelola Skema'
-                    ],
-                    [
-                        'href' => '../SKEMA/list_skema2.php',
-                        'icon' => 'fas fa-tasks',
-                        'label' => 'Data Skema'
-                    ]
-                ]
-            ]
+            ], 
         ]
     ],
     'Asesi' => [
@@ -284,7 +280,7 @@ $roles_data = [
             ],
             [
                 'href' => '../list/list_form.php',
-                'icon' => '',
+                'icon' => 'fa-solid fa-list',
                 'label' => 'Form Lsp',
             ]
         ]
@@ -367,12 +363,19 @@ $allowed_pages = [
     '../FR_APL/FR_IA06C.php',
     '../FR_APL/FR_IA06A.php',
     '../FR_APL/FR_AK02.php',
+//lainnya
+    '../Admin_lsp/Table_admin_lsp.php',
+    '../Admin_lsp/edit_admin_lsp.php',
+    '../Admin_lsp/hapus_admin_lsp.php',
+    '../MANAGEMENT/validator.php',
+    '../PENAGATURAN/tambah-val-baru.php',
+    '../PENAGATURAN/hapus_val.php',
+    '../PENAGATURAN/ubah_val.php',
+    '../ADM/hapus_ba.php',
+    '../',
+    '../',
+    '../',
 
-'../Admin_lsp/Table_admin_lsp.php',
-'../',
-    '../',
-    '../',
-    '../'
 ];
 
 $page_to_include = '';
@@ -465,7 +468,7 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
                     }
                 }
                 ?>
-                <?php if ($role === 'Admin_lsp' || $role === 'Asesor' || $role === 'Asesi'): ?>
+                <?php if ($role === 'Admin_utm' || $role === 'Admin_lsp' || $role === 'Asesor' || $role === 'Asesi'): ?>
                 <a href="UTAMA.php?page=../PROFIL/profil.php" class="<?= $page_to_include === '../PROFIL/profil.php' ? 'active' : '' ?>">
                     <div class="nav-item-content">
                         <i class="fas fa-cog"></i>

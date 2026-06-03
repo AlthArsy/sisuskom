@@ -16,7 +16,7 @@ if (mysqli_connect_errno()) {
 
 $role = $_SESSION['role'];
 $id_skema_param = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
-$can_manage = ($role === 'Admin_utm' || $role === 'Admin_lsp');
+$can_manage = ($role === 'Asesor');
 
 if ($role === 'Asesor') {
     if (!isset($_SESSION['id_asesor'])) {
@@ -73,6 +73,7 @@ if (!$hasil) {
 }
 ?>
 <link rel="stylesheet" href="../assets/CSS/manajeman_penguna.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <div class="konten-user">
     <h2 class="jdm">Bukti Dasar</h2>
 
@@ -86,31 +87,22 @@ if (!$hasil) {
         </div>
     <?php endif; ?>
 
-    <form method="get" action="" class="cari">
-        <?php if (isset($_GET['page'])): ?>
-            <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
-        <?php endif; ?>
-        <?php if ($id_skema_param > 0): ?>
-            <input type="hidden" name="id_skema" value="<?php echo (int) $id_skema_param; ?>">
-        <?php endif; ?>
-
+    <div class="cari cari--actions-only">
         <?php if ($can_manage && $id_skema_param > 0): ?>
-        <div style="margin: 15px 0; text-align: right;">
             <a href="../BERANDA/UTAMA.php?page=../DASAR/Tambah_bd.php&id_skema=<?php echo (int) $id_skema_param; ?>" class="Tambah">
                 <i class="fas fa-plus"></i> Tambah Data
             </a>
-        </div>
         <?php elseif ($can_manage && $id_skema_param <= 0): ?>
-        <div style="margin: 15px 0; padding: 10px; background: #fff3cd; border-radius: 4px; font-size: 14px;">
-            Untuk menambah data, buka Bukti Dasar dari daftar skema agar terikat ke skema yang benar.
-        </div>
+            <p style="margin:0;padding:10px;background:#fff3cd;border-radius:8px;font-size:14px;flex:1;">
+                Untuk menambah data, buka Bukti Dasar dari daftar skema agar terikat ke skema yang benar.
+            </p>
+        <?php else: ?>
+            <span></span>
         <?php endif; ?>
-            <div>
-            <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn-kembali">
-                <i class="fas fa-arrow-left"></i> Kembali ke Daftar Skema
-            </a>
-        </div>
-    </form>
+        <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn-kembali">
+            <i class="fas fa-arrow-left"></i> Kembali ke Daftar Skema
+        </a>
+    </div>
 
     <table>
         <thead>
@@ -136,13 +128,11 @@ if (!$hasil) {
                     if ($can_manage) {
                         $back = '&id_skema=' . (int) ($row['id_skema'] ?? $id_skema_param);
                         $aksi = "<td data-label='Aksi' class='aksi'>
-                        <a href='UTAMA.php?page=../DASAR/ubah_bd.php&id_bd=" . (int) $row['id_bd'] . $back . "' class='btn-ubah'>Ubah</a>
-                        <a href='UTAMA.php?page=../DASAR/hapus_bd.php&id_bd=" . (int) $row['id_bd'] . $back . "'
-                           class='btn-hapus'
-                           onclick=\"return confirm('Yakin ingin menghapus bukti dasar ini?');\">Hapus</a>
+                            <a href='../BERANDA/UTAMA.php?page=../DASAR/ubah_bd.php&id_bd=" . (int)$row['id_bd'] . $back . "' class='btn-ubah'>Ubah</a>
+                            <a href='../BERANDA/UTAMA.php?page=../DASAR/hapus_bd.php&id_bd=" . (int)$row['id_bd'] . $back . "'
+                               class='btn-hapus'
+                               onclick=\"return confirm('Yakin ingin menghapus bukti dasar ini?');\">Hapus</a>
                         </td>";
-                    } else {
-                        $aksi = "<td data-label='Aksi' class='aksi'>—</td>";
                     }
                     echo $aksi;
                     echo "</tr>";

@@ -1,8 +1,10 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm' && $_SESSION['role'] !== 'Admin_lsp') {
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesor'], true)) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -10,71 +12,78 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm' && $_SESSION[
 include '../koneksi.php';
 
 if (mysqli_connect_errno()) {
-    die("Gagal koneksi ke database: " . mysqli_error($koneksi));
+    die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
 
 $message = '';
 $message_type = '';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id_skema_form = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
+} else {
+    $id_skema_form = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $id_skema_form <= 0) {
+    $_SESSION['pesan'] = 'Tambah bukti adm harus melalui daftar skema (tombol Tambah dari halaman Bukti Adm).';
+    $_SESSION['tipe'] = 'error';
+    header('Location: ../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php');
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
     $bukti_adm = mysqli_real_escape_string($koneksi, $_POST['bukti_adm']);
-;
-
+    $id_skema_post = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
 
     $errors = [];
 
-    if (empty($bukti_adm)) {
+    if ($id_skema_post <= 0) {
+        $errors[] = "Skema wajib dipilih (buka dari daftar skema).";
+    }
+
+    if ($bukti_adm === '' || trim($_POST['bukti_adm'] ?? '') === '') {
         $errors[] = "Bukti ADM harus diisi";
     }
 
-    $check_sql = "SELECT id_ba FROM tb_bukti_adm WHERE bukti_adm = ?";
-    $check_stmt = mysqli_prepare($koneksi, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "s", $bukti_adm);
-    mysqli_stmt_execute($check_stmt);
-    mysqli_stmt_store_result($check_stmt);
+    if (empty($errors)) {
+        $check_sql = "SELECT id_ba FROM tb_bukti_adm WHERE id_skema = ? AND bukti_adm = ?";
+        $check_stmt = mysqli_prepare($koneksi, $check_sql);
+        mysqli_stmt_bind_param($check_stmt, "is", $id_skema_post, $bukti_adm);
+        mysqli_stmt_execute($check_stmt);
+        mysqli_stmt_store_result($check_stmt);
 
-    if (mysqli_stmt_num_rows($check_stmt) > 0) {
-        $errors[] = "Bukti ADM sudah digunakan, silakan pilih bukti dasar lain";
+        if (mysqli_stmt_num_rows($check_stmt) > 0) {
+            $errors[] = "Bukti ADM sudah digunakan, silakan pilih bukti adm lain";
+        }
+        mysqli_stmt_close($check_stmt);
     }
-    mysqli_stmt_close($check_stmt);
-
 
     if (empty($errors)) {
+        $insert_sql = "INSERT INTO tb_bukti_adm (id_skema, bukti_adm) VALUES (?, ?)";
+        $insert_stmt = mysqli_prepare($koneksi, $insert_sql);
 
-        if (empty($errors)) {
-            $insert_sql = "INSERT INTO tb_bukti_adm (bukti_adm) VALUES (?)";
-            $insert_stmt = mysqli_prepare($koneksi, $insert_sql);
+        if ($insert_stmt) {
+            mysqli_stmt_bind_param($insert_stmt, "is", $id_skema_post, $bukti_adm);
 
-            if ($insert_stmt) {
-                mysqli_stmt_bind_param($insert_stmt, "s", $bukti_adm);
-
-                try {
-                    if (mysqli_stmt_execute($insert_stmt)) {
-                        $message = "Bukti dasar baru berhasil ditambahkan!";
-                        $message_type = 'success';
-                        $_SESSION['pesan'] = $message;
-                        $_SESSION['tipe'] = $message_type;
-                        header("Location: ../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php");
-                        exit();
-
-
-                        $_POST = [];
-                    }
-                } catch (mysqli_sql_exception $e) {
-
-                    if (strpos($e->getMessage(), 'Data truncated for column') !== false) {
-                        $message = "Error: Nilai tidak valid untuk database. Silakan pilih sesuai.";
-                    } else {
-                        $message = "Gagal menambahkan Bukti: " . $e->getMessage();
-                    }
-                    $message_type = 'error';
+            try {
+                if (mysqli_stmt_execute($insert_stmt)) {
+                    $_SESSION['pesan'] = "Bukti adm baru berhasil ditambahkan!";
+                    $_SESSION['tipe'] = 'success';
+                    header("Location: ../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php&id_skema=" . $id_skema_post);
+                    exit();
                 }
-                mysqli_stmt_close($insert_stmt);
-            } else {
-                $message = "Gagal mempersiapkan statement: " . mysqli_error($koneksi);
+            } catch (mysqli_sql_exception $e) {
+                if (strpos($e->getMessage(), 'Data truncated for column') !== false) {
+                    $message = "Error: Nilai tidak valid untuk database. Silakan pilih sesuai.";
+                } else {
+                    $message = "Gagal menambahkan Bukti: " . $e->getMessage();
+                }
                 $message_type = 'error';
             }
+            mysqli_stmt_close($insert_stmt);
+        } else {
+            $message = "Gagal mempersiapkan statement: " . mysqli_error($koneksi);
+            $message_type = 'error';
         }
     } else {
         $message = implode("<br>", $errors);
@@ -88,8 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
         <div class="header">
             <i class="fas fa-user-plus"></i>
             <div>
-                <h1>Tambah Bukti Dasar Baru</h1>
-                <p>Tambahkan Bukti Dasar ke dalam sistem</p>
+                <h1>Tambah Bukti Adm Baru</h1>
+                <p>Tambahkan Bukti Adm ke dalam sistem</p>
             </div>
         </div>
         <?php if (!empty($message)): ?>
@@ -100,9 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
         <div class="form-container">
             <form method="post" action="" id="tambahUserForm">
+                <input type="hidden" name="id_skema" value="<?= (int) $id_skema_form ?>">
                 <div class="form-group">
                     <label for="bukti_adm" class="required">
-                         Bukti Dasar
+                         Bukti Adm
                     </label>
                     <input type="text"
                            id="bukti_adm"
@@ -110,16 +120,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                            value="<?php echo htmlspecialchars($_POST['bukti_adm'] ?? ''); ?>"
                            required
                            maxlength="50"
-                           placeholder="Masukkan Bukti Dasar">
+                           placeholder="Masukkan Bukti Adm">
 
                 </div>
 
                 <div class="btn-container">
-                    <a href="../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php" class="btn btn-secondary">
+                    <a href="../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php&id_skema=<?= (int) $id_skema_form ?>" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Batal
                     </a>
                     <button type="submit" name="tambah" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Tambah User
+                        <i class="fas fa-plus"></i> Tambah
                     </button>
                 </div>
             </form>
@@ -128,16 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
     <script>
         document.getElementById('tambahUserForm').addEventListener('submit', function(e) {
-            const bukti_dasar = document.getElementById('bukti_dasar').value.trim();
+            const bukti_adm = document.getElementById('bukti_adm').value.trim();
 
             let errors = [];
 
-            if (!bukti_dasar) {
-                errors.push('bukti dasar harus diisi');
-            } else if (bukti_dasar.length > 50) {
-                errors.push('bukti asar maksimal 50 karakter');
+            if (!bukti_adm) {
+                errors.push('Bukti adm harus diisi');
+            } else if (bukti_adm.length > 50) {
+                errors.push('Bukti adm maksimal 50 karakter');
             }
-
 
             if (errors.length > 0) {
                 e.preventDefault();
@@ -145,5 +154,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                 return false;
             }
         });
-
     </script>

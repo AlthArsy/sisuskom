@@ -1,0 +1,323 @@
+/* Rekap pages — mobile-friendly (APL, AK, IA) */
+
+.rekap-wrap {
+    padding: 10px 4px;
+    font-family: Arial, sans-serif;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.rekap-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1a237e;
+    margin-bottom: 16px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.rekap-cards {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.rekap-card {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.15s;
+    box-sizing: border-box;
+}
+
+.rekap-card:hover {
+    border-color: #4A7AFF;
+}
+
+.rekap-card.active {
+    border-color: #4A7AFF !important;
+}
+
+.rekap-card .num {
+    font-size: 1.6rem;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.rekap-card .lbl {
+    font-size: 0.75rem;
+    margin-top: 4px;
+    line-height: 1.3;
+}
+
+.rekap-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rekap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.rekap-table th {
+    background: #cadbfc;
+    padding: 9px 10px;
+    border: 1px solid #b0bec5;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.rekap-table td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.rekap-table tr:hover td {
+    background: #f5f7ff;
+}
+
+.rekap-foot {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+}
+
+.empty-msg {
+    text-align: center;
+    padding: 24px 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Tombol aksi — area sentuh lebih besar di mobile */
+.rekap-aksi .btn-lihat,
+.rekap-aksi .btn-edit,
+.rekap-aksi .btn-cetak,
+.rekap-aksi .btn-update,
+.rekap-aksi .btn-rek {
+    touch-action: manipulation;
+}
+
+.rekap-aksi .btn-edit {
+    background: #ff9800;
+    color: #fff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.rekap-aksi .btn-edit:hover {
+    background: #f57c00;
+}
+
+.komentar-textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+@media screen and (max-width: 768px) {
+    .rekap-wrap {
+        padding: 8px 2px 16px;
+    }
+
+    .rekap-title {
+        font-size: 1.05rem;
+        margin-bottom: 14px;
+    }
+
+    .rekap-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .rekap-card {
+        flex: none;
+        min-width: 0;
+        padding: 10px 8px;
+    }
+
+    .rekap-card .num {
+        font-size: 1.35rem;
+    }
+
+    .rekap-card .lbl {
+        font-size: 0.7rem;
+    }
+
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .filter-btn {
+        flex: 1 1 auto;
+        text-align: center;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .rekap-table-wrap {
+        overflow: visible;
+    }
+
+    .rekap-table {
+        border: 0;
+        font-size: 13px;
+    }
+
+    .rekap-table thead {
+        display: none;
+    }
+
+    .rekap-table tbody {
+        display: block;
+    }
+
+    .rekap-table tr {
+        display: block;
+        margin-bottom: 14px;
+        border: 1px solid #d8dee8;
+        border-radius: 10px;
+        background: #fff !important;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(36, 54, 94, 0.07);
+    }
+
+    .rekap-table tr:hover td {
+        background: transparent;
+    }
+
+    .rekap-table td {
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #eef1f6;
+        padding: 10px 12px 10px 44%;
+        position: relative;
+        box-sizing: border-box;
+        min-height: 40px;
+    }
+
+    .rekap-table td:not(.rekap-aksi) {
+        border-bottom: 1px solid #eef1f6;
+    }
+
+    .rekap-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 12px;
+        top: 10px;
+        width: 40%;
+        font-weight: 700;
+        font-size: 11px;
+        color: #24365e;
+        text-align: left;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .rekap-table td.rekap-aksi {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+        border-bottom: none;
+        border-top: 1px solid #dce4f0;
+        padding: 12px 10px !important;
+        text-align: center !important;
+        background: #f8fafc;
+        white-space: normal !important;
+    }
+
+    .rekap-table td.rekap-aksi:before {
+        display: none;
+    }
+
+    .rekap-aksi .btn-lihat,
+    .rekap-aksi .btn-edit,
+    .rekap-aksi .btn-cetak,
+    .rekap-aksi .btn-update,
+    .rekap-aksi .btn-rek {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 14px !important;
+        margin: 0 !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+        flex: 1 1 calc(50% - 8px);
+        max-width: 100%;
+        white-space: nowrap;
+    }
+
+    .rekap-aksi .btn-update {
+        flex: 1 1 100%;
+    }
+
+    .rekap-aksi .radio-group {
+        flex: 1 1 100%;
+        width: 100%;
+        text-align: left;
+        margin-bottom: 4px;
+    }
+
+    .rekap-aksi .radio-group label {
+        display: block;
+        margin: 4px 0;
+        font-size: 13px;
+    }
+
+    .rekap-table td .komentar-textarea {
+        width: 100% !important;
+        margin-top: 6px;
+        font-size: 13px;
+        min-height: 60px;
+    }
+
+    .rekap-table td .badge {
+        margin-top: 2px;
+    }
+
+    .rekap-skema-sub {
+        font-size: 11px;
+        color: #888;
+        margin-top: 2px;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .rekap-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .rekap-aksi .btn-lihat,
+    .rekap-aksi .btn-edit,
+    .rekap-aksi .btn-cetak,
+    .rekap-aksi .btn-rek {
+        flex: 1 1 100%;
+    }
+}

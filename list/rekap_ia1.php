@@ -5,30 +5,11 @@ if (session_status() == PHP_SESSION_NONE) {
 include "../koneksi.php";
 
 $role = $_SESSION['role'] ?? '';
+$id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
 if (!in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])) {
-    echo "<p style='color:red;padding:20px;'>Akses ditolak.</p>";
+    echo "<p style='color:red;padding:20px;'>Akses ditolak. Hanya untuk Asesor, Admin LSP, dan Admin Utama.</p>";
     exit;
 }
-
-// Fungsi update rekomendasi
-// if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi'])) {
-//     $id_ia01 = intval($_POST['id_ia01']);
-//     $rekomendasi = $_POST['rekomendasi'] ?? '';
-//     $catatan = $_POST['catatan'] ?? '';
-
-//     if (in_array($rekomendasi, ['Kompeten', 'Belum Kompeten'])) {
-//         $stmt = mysqli_prepare($koneksi, "UPDATE tb_ia01 SET rekomendasi = ?, umpan_balik = ? WHERE id_ia01 = ?");
-//         mysqli_stmt_bind_param($stmt, "ssi", $rekomendasi, $catatan, $id_ia01);
-//     } else {
-//         $stmt = mysqli_prepare($koneksi, "UPDATE tb_ia01 SET rekomendasi = NULL, umpan_balik = ? WHERE id_ia01 = ?");
-//         mysqli_stmt_bind_param($stmt, "si", $catatan, $id_ia01);
-//     }
-//     mysqli_stmt_execute($stmt);
-
-//     $filter_param = isset($_GET['filter']) ? '&filter=' . urlencode($_GET['filter']) : '';
-//     header("Location: {$base}?page=../list/rekap_ia1.php{$filter_param}");
-//     exit;
-// }
 
 $filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
 
@@ -37,41 +18,52 @@ if ($filter === 'belum') $where .= " AND (i.rekomendasi IS NULL OR i.rekomendasi
 if ($filter === 'kompeten') $where .= " AND i.rekomendasi = 'Kompeten'";
 if ($filter === 'belum_kompeten') $where .= " AND i.rekomendasi = 'Belum Kompeten'";
 
-$sql = "SELECT i.id_ia01, i.id_apl1, i.id_ak01, i.id_asesi,
+$sql = "SELECT i.id_ia01, i.id_apl1, i.id_ak01, i.id_asesi, i.id_asesor,
                i.rekomendasi, i.umpan_balik, ak.hari_tanggal, ak.tuk,
                s.judul_skema, s.nomor_skema, s.id_skema,
-               asi.nama_asesi
+               asi.nama_asesi, asr.nama_asesor
         FROM tb_ia01 i
         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = i.id_apl1
         LEFT JOIN tb_ak01 ak ON ak.id_ak01 = i.id_ak01
         LEFT JOIN tb_skema s  ON s.id_skema  = apl.id_skema
         LEFT JOIN tb_asesi asi ON asi.id_asesi = i.id_asesi
-        $where
-        GROUP BY i.id_asesi, apl.id_skema
-        ORDER BY i.id_ia01 DESC";
+        LEFT JOIN tb_asesor asr ON asr.id_asesor = ak.id_asesor
+        WHERE 1=1";
+
+if ($role === 'Asesor' && $id_asesor_session) {
+    $sql .= " AND i.id_asesor = '$id_asesor_session'";
+}
 
 $result = mysqli_query($koneksi, $sql);
 $rows = [];
 while ($r = mysqli_fetch_assoc($result)) $rows[] = $r;
 $total = count($rows);
 
+$f = $id_asesor_session ? "id_asesor='$id_asesor_session'" : "1=1";
+
 $total_all = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia01"))['c'] ?? 0;
+    "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia01 WHERE $f"))
+    ['c'] ?? 0;
 
 $total_belum = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia01
-     WHERE rekomendasi IS NULL OR rekomendasi=''"))['c'] ?? 0;
+     WHERE $f AND (rekomendasi IS NULL OR rekomendasi='')"))['c'] ?? 0;
 
 $total_kompeten = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia01
-     WHERE rekomendasi='Kompeten'"))['c'] ?? 0;
+     WHERE $f AND rekomendasi='Kompeten'"))['c'] ?? 0;
 
 $total_belum_kompeten = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT COUNT(DISTINCT id_asesi, id_apl1) c FROM tb_ia01
-     WHERE rekomendasi='Belum Kompeten'"))['c'] ?? 0;
+      WHERE $f AND rekomendasi='Belum Kompeten'"))['c'] ?? 0;
+    //  WHERE rekomendasi='Belum Kompeten'"))['c'] ?? 0;
 
 $base = '../BERANDA/UTAMA.php';
+
+$is_admin       = ($role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_asesor      = ($role === 'Asesor');
 ?>
+<link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
 <style>
     .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
     .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
@@ -130,7 +122,15 @@ $base = '../BERANDA/UTAMA.php';
         display: inline-block;
     }
     .btn-update:hover { background: #8f4646; }
+    .btn-cetak {
+        background: #4caf50; color: white; border: none;
+        padding: 5px 14px; border-radius: 5px; font-size: 12px;
+        cursor: pointer; text-decoration: none; white-space: nowrap;
+        margin-left: 4px;
+    }
+    .btn-cetak:hover { background: #2e7d32; }
     .aksi-form { display: contents; }
+    .empty-msg { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
     @media (max-width: 700px) {
         .komentar-textarea { width: 130px; }
         .rekap-table { font-size: 11px; }
@@ -165,9 +165,9 @@ $base = '../BERANDA/UTAMA.php';
     </div>
 
     <?php if (empty($rows)): ?>
-        <div class="empty-msg">Tidak ada data untuk filter ini.</div>
+        <div class="empty-msg">Tidak ada data FR.AK.01 untuk filter ini.</div>
     <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="rekap-table-wrap">
         <table class="rekap-table">
             <thead>
                 <tr>
@@ -192,15 +192,15 @@ $base = '../BERANDA/UTAMA.php';
                     <input type="hidden" name="update_rekomendasi" value="1">
                 <?php endif; ?>
                 <tr>
-                    <td style="text-align:center;"><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesi'] ?? '') ?></td>
-                    <td>
+                    <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                    <td data-label="Nama Asesi"><?= htmlspecialchars($r['nama_asesi'] ?? '') ?></td>
+                    <td data-label="Skema">
                         <?= htmlspecialchars($r['judul_skema'] ?? '') ?>
-                        <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema'] ?? '') ?></div>
+                        <div class="rekap-skema-sub">No. <?= htmlspecialchars($r['nomor_skema'] ?? '') ?></div>
                     </td>
-                    <td style="text-align:center;"><?= htmlspecialchars($r['tuk'] ?? '') ?></td>
-                    <td style="text-align:center;"><?= htmlspecialchars($r['hari_tanggal'] ?? '') ?></td>
-                    <td style="text-align:center;">
+                    <td data-label="TUK" style="text-align:center;"><?= htmlspecialchars($r['tuk'] ?? '') ?></td>
+                    <td data-label="Tanggal Observasi" style="text-align:center;"><?= htmlspecialchars($r['hari_tanggal'] ?? '') ?></td>
+                    <td data-label="Status Rekomendasi" style="text-align:center;">
                         <?php if ($is_belum): ?>
                             <span class="badge badge-belum">Belum Diproses</span>
                         <?php elseif ($r['rekomendasi'] === 'Kompeten'): ?>
@@ -209,37 +209,21 @@ $base = '../BERANDA/UTAMA.php';
                             <span class="badge badge-belum-kompeten">Belum Kompeten</span>
                         <?php endif; ?>
                     </td>
-                    <!-- <td style="max-width:200px;">
-                        <php if ($is_belum): ?>
-                            <= nl2br(htmlspecialchars($r['umpan_balik'] ?? '')) ?>
-                            <textarea name="catatan" class="komentar-textarea" placeholder="Umpan balik (opsional)"><?= htmlspecialchars($r['umpan_balik'] ?? '') ?></textarea>
-                        <php else: ?>
-                            <= nl2br(htmlspecialchars($r['umpan_balik'] ?? '')) ?>
-                        <php endif; ?>
-                    </td> -->
-                    <td style="text-align:left;">
+                    <td data-label="Aksi" class="rekap-aksi" style="text-align:center;">
+                            <?php if ($role === 'Asesor'): ?>
+                            <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_IA1.php&mode=edit&id_asesi=<?= $r['id_asesi'] ?>&id_skema=<?= $r['id_skema'] ?>">
+                                Lihat
+                            </a>
+                            <?php endif; ?>
+                        <?php if ($role === 'Admin_lsp' && $role === 'Admin_utm'): ?>
                             <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_IA1.php&mode=view&id_asesi=<?= $r['id_asesi'] ?>&id_skema=<?= $r['id_skema'] ?>">
                                 Lihat
                             </a>
-                        <!-- <?php if ($is_belum): ?>
-                            <div class="radio-group">
-                                <label>
-                                    <input type="radio" name="rekomendasi" value="Kompeten"
-                                        <?= ($r['rekomendasi'] === 'Kompeten') ? 'checked' : '' ?>>
-                                    Kompeten
-                                </label>
-                                <label>
-                                    <input type="radio" name="rekomendasi" value="Belum Kompeten"
-                                        <?= ($r['rekomendasi'] === 'Belum Kompeten') ? 'checked' : '' ?>>
-                                    Belum Kompeten
-                                </label>
-                            </div>
-                            <button type="submit" class="btn-update">Update</button>
-                        <?php else: ?>
-                            <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_IA1.php&mode=view&id_asesi=<?= $r['id_asesi'] ?>&id_skema=<?= $r['id_skema'] ?>">
-                                Lihat
-                            </a>
-                        <?php endif; ?> -->
+                        <?php endif; ?>
+                            <a class="btn-cetak" 
+                            href="../pdf/cetak_ia1.php?view=1&id_asesi=<?= $r['id_asesi'] ?>&print=1" target="_blank">
+                            Cetak PDF
+                         </a> 
                     </td>
                 </tr>
                 <?php if ($is_belum): ?>
@@ -249,7 +233,7 @@ $base = '../BERANDA/UTAMA.php';
             </tbody>
         </table>
     </div>
-    <div style="font-size:12px; color:#888; margin-top:8px;">
+    <div class="rekap-foot">
         Menampilkan <?= $total ?> data
     </div>
     <?php endif; ?>

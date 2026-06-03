@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 if (!isset($_SESSION['username']) || !in_array($_SESSION['role'] ?? '', ['Asesi', 'Asesor', 'Admin_lsp', 'Admin_utm'])) {
     header('Location: ../LOGIN/login.php');
@@ -20,6 +21,8 @@ function h($value)
 
 
 $is_asesi = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesi');
+$is_admin_lsp = (isset($_SESSION['role']) && $_SESSION['role'] === 'Admin_lsp');
+$is_admin_utm = (isset($_SESSION['role']) && $_SESSION['role'] === 'Admin_utm');
 $is_asesor = (isset($_SESSION['role']) && $_SESSION['role'] === 'Asesor');
 $id_asesi = isset($_GET['id_asesi'])
     ? intval($_GET['id_asesi'])
@@ -93,6 +96,10 @@ foreach ($saved_bukti as $b) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_ak01') {
+    if (!$is_asesi) {
+        echo "<script>alert('Hanya Asesi yang dapat mengisi FR.AK.01.'); history.back();</script>";
+        exit;
+    }
     if (!$id_asesi || mysqli_num_rows(mysqli_query($koneksi, "SELECT id_asesi FROM tb_asesi WHERE id_asesi = '$id_asesi'")) == 0) {
         echo "<script>alert('Error: ID Asesi tidak valid!'); history.back();</script>";
         exit;
@@ -129,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
             $res2 = mysqli_query($koneksi, $sql2);
             
             if ($res2) {
+                fr_apl_ensure_ia01_stub($koneksi, $id_asesi, $id_apl1, $id_ak01_new, $id_asesor_apl);
                 echo "<script>alert('FR.AK.01 berhasil disimpan!'); window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
             }
         } else {
@@ -275,6 +283,11 @@ if ($ak01_exist && !$mode_lihat) {
     <?php if ($is_asesi): ?>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">Kembali</a>
+    </div>
+    <?php endif; ?>
+    <?php if ($is_admin_lsp || $is_admin_utm): ?>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
+        <a href="../BERANDA/UTAMA.php?page=../list/rekap_ak01.php" class="btn-back">Kembali</a>
         <a href="../pdf/cetak_ak1.php?id_asesi=<?= $id_asesi ?>" 
            target="_blank" 
            class="btn-submit" 

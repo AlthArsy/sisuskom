@@ -6,6 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 $e = fn($s) => mysqli_real_escape_string($koneksi, (string)$s);
 $h = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
@@ -92,7 +93,7 @@ if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
     $mode = 'view';
 }
 
-$is_view = isset($_GET['view']) && $_GET['view'] == '1' && $data_ak03_saved;
+$is_view = (bool) $data_ak03_saved;
 
 $id_asesor_db   = 0;
 $nama_asesor_db = '';
@@ -111,6 +112,12 @@ if ($id_skema_db) {
     }
 }
 
+$role           = $_SESSION['role'] ?? '';
+$is_asesi       = ($role === 'Asesi');
+$is_asesor      = ($role === 'Asesor');
+$is_admin       = ($role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_view_only   = ($is_admin);
+
 $komponen = [
     1  => 'Saya mendapatkan penjelasan yang cukup memadai mengenai proses asesmen/uji kompetensi.',
     2  => 'Saya diberikan kesempatan untuk mempelajari standar kompetensi yang akan diujikan dan menilai diri sendiri terhadap pencapaiannya.',
@@ -125,6 +132,16 @@ $komponen = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$is_asesi) {
+        $_SESSION['alert'] = 'Hanya Asesi yang dapat mengisi FR.AK.03.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK03.php&id_asesi=$id_asesi&view=1");
+        exit;
+    }
+    if ($has_data) {
+        $_SESSION['alert'] = 'FR.AK.03 sudah diisi.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK03.php&id_asesi=$id_asesi&view=1");
+        exit;
+    }
 
     // $tgl_mulai    = trim($_POST['tgl_mulai']       ?? '');
     $tgl_selesai  = trim($_POST['tgl_selesai']     ?? '');
@@ -170,15 +187,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($gagal_detail) {
                 $_SESSION['alert'] = 'Header tersimpan, namun sebagian detail gagal: ' . mysqli_error($koneksi);
             } else {
+                fr_apl_ensure_ak02_stub($koneksi, $id_asesi, $id_apl1_db, $id_ak01_db, $id_asesor_db, $id_skema_db);
                 header("Location: ../BERANDA/UTAMA.php?page=../list/list_form.php&saved=ak03");
                 exit;
             }
         }
     }
 }
-$role = $_SESSION['role'] ?? '';
-$is_asesi       = ($role === 'Asesi');
-$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
 
 $dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
 $dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
@@ -350,11 +365,11 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 <td><?= htmlspecialchars($teks) ?></td>
                 <td style="text-align:center;">
                     <input type="radio" name="jwb_<?= $no ?>" value="Ya"
-                           <?= $jwb === 'Ya' ? 'checked' : '' ?> disabled>
+                           <?= $jwb === 'Ya' ? 'checked' : '' ?> disabled style="accent-color:#2e7d32;width:16px;height:16px;">
                 </td>
                 <td style="text-align:center;">
                     <input type="radio" name="jwb_<?= $no ?>" value="Tidak"
-                           <?= $jwb === 'Tidak' ? 'checked' : '' ?> disabled>
+                           <?= $jwb === 'Tidak' ? 'checked' : '' ?> disabled style="accent-color:#c00;width:16px;height:16px;">
                 </td>
                 <td>
                     <div class="field-readonly <?= $cat ? '' : 'empty' ?>"
@@ -386,9 +401,9 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
             Kembali
         </button>
     <?php endif; ?>
-    <?php if ($is_asesi): ?>
+    <?php if ($is_admin): ?>
         <button type="button" class="btn-back"
-                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ak3.php'">
             Kembali
         </button>
         <a href="../pdf/cetak_ak3.php?id_asesi=<?= $id_asesi ?>"
@@ -397,6 +412,12 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
            style="background:#1565c0; color:#fff; text-decoration:none; padding:8px 18px; border-radius:4px;">
            Cetak PDF
         </a>
+    <?php endif; ?>
+        <?php if ($is_asesi): ?>
+        <button type="button" class="btn-back"
+                onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+            Kembali
+        </button>
     <?php endif; ?>
 </div>
 
@@ -538,13 +559,15 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                             <input type="radio"
                                    name="jawaban[<?= $no ?>]"
                                    value="Ya"
-                                   <?= $val_jawaban === 'Ya' ? 'checked' : '' ?>>
+                                   <?= $val_jawaban === 'Ya' ? 'checked' : '' ?>
+                                   style="accent-color:#2e7d32;width:16px;height:16px;">
                         </td>
                         <td>
                             <input type="radio"
                                    name="jawaban[<?= $no ?>]"
                                    value="Tidak"
-                                   <?= $val_jawaban === 'Tidak' ? 'checked' : '' ?>>
+                                   <?= $val_jawaban === 'Tidak' ? 'checked' : '' ?>
+                                   style="accent-color:#c00;width:16px;height:16px;">
                         </td>
                         <td>
                             <textarea class="catatan-input"

@@ -4,6 +4,8 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 include "../koneksi.php";
 
+// $print_mode = isset($_GET['print']) && $_GET['print'] == 1;
+
  $role = $_SESSION['role'] ?? '';
 $id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
 if (!in_array($role, ['Asesor', 'Admin_lsp', 'Admin_utm'])) {
@@ -45,6 +47,7 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
 
  $base = '../BERANDA/UTAMA.php';
 ?>
+<link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
 <style>
     .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
     .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
@@ -92,6 +95,14 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
     .badge-belum { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
     .badge-diterima { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
     .badge-ditolak { background: #fce4ec; color: #c62828; border: 1px solid #f48fb1; }
+
+    .btn-cetak {
+        background: #4caf50; color: white; border: none;
+        padding: 5px 14px; border-radius: 5px; font-size: 12px;
+        cursor: pointer; text-decoration: none; white-space: nowrap;
+        margin-left: 4px;
+    }
+    .btn-cetak:hover { background: #2e7d32; }
 
     .btn-lihat {
         background: #4A7AFF; color: #fff; border: none;
@@ -145,7 +156,7 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
     <?php if (empty($rows)): ?>
         <div class="empty-msg">Tidak ada data untuk filter ini.</div>
     <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="rekap-table-wrap">
         <table class="rekap-table">
             <thead>
                 <tr>
@@ -160,14 +171,14 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
             <tbody>
                 <?php foreach ($rows as $i => $r): ?>
                 <tr>
-                    <td style="text-align:center;"><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesi'] ?: $r['nama_pemohon']) ?></td>
-                    <td>
+                    <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                    <td data-label="Nama Asesi"><?= htmlspecialchars($r['nama_asesi'] ?: $r['nama_pemohon']) ?></td>
+                    <td data-label="Skema">
                         <?= htmlspecialchars($r['judul_skema']) ?>
-                        <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
+                        <div class="rekap-skema-sub">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
                     </td>
-                    <td style="text-align:center;"><?= $r['tanggal_pemohon'] ?></td>
-                    <td style="text-align:center;">
+                    <td data-label="Tanggal Submit" style="text-align:center;"><?= $r['tanggal_pemohon'] ?></td>
+                    <td data-label="Status Rekomendasi" style="text-align:center;">
                         <?php if (empty($r['rekomendasi'])): ?>
                             <span class="badge badge-belum">Belum Diproses</span>
                         <?php elseif ($r['rekomendasi'] === 'Dapat'): ?>
@@ -176,24 +187,30 @@ $total_tolak  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FRO
                             <span class="badge badge-ditolak">Tidak Dapat</span>
                         <?php endif; ?>
                     </td>
-                    <td style="text-align:center; white-space:nowrap;">
+                    <td data-label="Aksi" class="rekap-aksi" style="text-align:center; white-space:nowrap;">
+                        <?php if ($role === 'Asesor'): ?>
+                        <a class="btn-lihat"
+                           href="<?= $base ?>?page=../FR_APL/FR_APL02.php&edit=1&id_asesi=<?= $r['id_asesi'] ?>">
+                            Lihat
+                        </a>
+                        <?php endif; ?>
+                        <?php if ($role === 'Admin_lsp' && $role === 'Admin_utm'): ?>
                         <a class="btn-lihat"
                            href="<?= $base ?>?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">
-                        Lihat
+                            Lihat
                         </a>
-                        <!-- <?php if (empty($r['rekomendasi'])): ?>
-                        <a class="btn-rek"
-                           href="<?= $base ?>?page=../FR_APL/FR_APL02.php&view=1&id_asesi=<?= $r['id_asesi'] ?>#form-rek">
-                        Isi Data
+                        <?php endif; ?>
+                        <a class="btn-cetak"
+                            href="../pdf/cetak_apl2.php?view=1&id_asesi=<?= $r['id_asesi'] ?>&print=1" target="_blank">
+                            Cetak PDF
                         </a>
-                        <?php endif; ?> -->
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
-    <div style="font-size:12px; color:#888; margin-top:8px;">
+    <div class="rekap-foot">
         Menampilkan <?= $total ?> data
     </div>
     <?php endif; ?>

@@ -118,11 +118,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="post" autocomplete="off">
             <div class="form-group">
                 <label for="no_reg">No Reg:<span class="required">*</span></label>
-                <input type="text" id="no_reg" name="no_reg" value="<?php echo isset($no_reg) ? htmlspecialchars($no_reg) : ''; ?>" required>
+                <input type="text" maxlength="30" id="no_reg" name="no_reg" value="<?php echo isset($no_reg) ? htmlspecialchars($no_reg) : ''; ?>" required>
             </div>
             <div class="form-group">
                 <label for="nama_asesor">Nama Asesor:<span class="required">*</span></label>
-                <input type="text" id="nama_asesor" name="nama_asesor" value="<?php echo isset($nama_asesor) ? htmlspecialchars($nama_asesor) : ''; ?>" required>
+                <input type="text" maxlength="100" id="nama_asesor" name="nama_asesor" value="<?php echo isset($nama_asesor) ? htmlspecialchars($nama_asesor) : ''; ?>" required>
             </div>
             <div class="form-group">
                 <label for="jenis_kelamin">Jenis Kelamin:<span class="required">*</span></label>
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="form-group">
                 <label for="alamat">Alamat:<span class="required">*</span></label>
-                <textarea id="alamat" name="alamat" required><?php echo isset($alamat) ? htmlspecialchars($alamat) : ''; ?></textarea>
+                <textarea id="alamat" maxlength="255" name="alamat" required><?php echo isset($alamat) ? htmlspecialchars($alamat) : ''; ?></textarea>
             </div>
             <button type="submit" class="btn-submit">Simpan Profil</button>
         </form>

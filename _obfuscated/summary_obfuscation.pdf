@@ -1,0 +1,83 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 4 0 R >> >> /MediaBox [0 0 612 792] /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1648 >>
+stream
+BT
+/F1 12 Tf
+50 740 Td
+(Ringkasan: Mengapa tidak terlihat struktur HTML di file PHP obfuscated?) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(1. Isi file) Tj
+0 -14 Td
+(Obfuscator menyimpan seluruh isi file asli \(HTML + PHP\) sebagai payload Base64 di variabel $__c, lalu menjalankan eval\('?>'.base64_decode\($__c\)\); Karena hanya wrapper yang terlihat, struktur HTML tampak hilang.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(2. Dari mana HTML diambil) Tj
+0 -14 Td
+(HTML berasal dari payload Base64 ? ini adalah salinan langsung dari file asli sebelum obfuscation.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(3. Cara melihat/restore) Tj
+0 -14 Td
+(Contoh decode:) Tj
+0 -14 Td
+(sed -n "s/.*\\$__c='\\\(.*\\\)';.*/\\1/p" _obfuscated/LOGIN/login.php | base64 --decode > /tmp/login_decoded.html) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(4. Mengapa eval\('?>'...\)) Tj
+0 -14 Td
+(Menambahkan '?>' memastikan PHP keluar dari konteks PHP sehingga payload yang dimulai dengan HTML diproses sebagai HTML. Tanpa ini, eval akan mem-parse HTML sebagai PHP dan menyebabkan error 500.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(5. Menghapus komentar) Tj
+0 -14 Td
+(sed -i "s@// Obfuscated by Copilot CLI@@g" _obfuscated/LOGIN/login.php) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(6. Perintah perbaikan wrapper di semua file PHP) Tj
+0 -14 Td
+(find _obfuscated -type f -name '*.php' -exec sed -i "s|eval\(base64_decode\(\\$__c\)\);|eval\('?>'.base64_decode\(\\$__c\)\);|g" {} +) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(7. Risiko & rekomendasi) Tj
+0 -14 Td
+(Eval berisiko \(RCE\). Jangan gunakan di produksi. Pertimbangkan mendekode ke file sementara, lakukan review manual, lalu include; atau gunakan enkripsi dengan verifikasi dan kunci aman.) Tj
+0 -14 Td
+() Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000000317 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2017
+%%EOF

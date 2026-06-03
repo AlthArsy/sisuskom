@@ -19,15 +19,12 @@ $id_asesi = isset($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
 $role     = $_SESSION['role'] ?? '';
 $is_asesi = ($role === 'Asesi');
-
-// $flash_msg  = $_SESSION['flash_ak02'] ?? '';
-// $flash_type = '';
-// if ($flash_msg) {
-//     [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
-//     unset($_SESSION['flash_ak02']); 
-// }
-
-
+$is_asesor = ($role === 'Asesor');
+$is_admin_lsp = ($role === 'Admin_lsp');
+$is_admin_utm = ($role === 'Admin_utm');
+// $is_admin_role = in_array($role, ['Admin_lsp', 'Admin_utm']);
+// $mode_melihat  = isset($_GET['view']) && $_GET['view'] == 1;
+// $mode_lihat  = $mode_melihat || $is_admin_role;
 
 $id_apl1_db     = 0;   
 $id_skema_db    = 0;
@@ -99,17 +96,6 @@ if ($id_asesi && $id_apl1_db) {
     }
 }
 
-$mode = 'create';
-$id_skema = $id_skema_db;
-if (isset($_GET['mode']) && in_array($_GET['mode'], ['view','create'])) {
-    $mode = $_GET['mode'];
-} elseif ($data_ak02_saved) {
-    $chk_rek = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT rekomendasi FROM tb_ak02
-         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
-         LIMIT 1"));
-    $mode = ($chk_rek && $chk_rek['rekomendasi']) ? 'view' : 'create';
-}
 
 $id_asesor_db   = 0;
 $nama_asesor_db = '';
@@ -137,11 +123,17 @@ if ($id_asesi && $id_skema_db) {
 }
 
 $mode = 'create';
-if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
-    $mode = $_GET['mode'];
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create', 'edit'], true)) {
+    $mode = $_GET['mode'] === 'edit' ? 'create' : $_GET['mode'];
 } elseif ($has_data) {
-    $mode = 'view';
+    $chk_rek = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT rekomendasi FROM tb_ak02
+         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
+         LIMIT 1"));
+    $mode = ($chk_rek && $chk_rek['rekomendasi']) ? 'view' : 'create';
 }
+$is_readonly = ($mode === 'view')
+    || (isset($_GET['view']) && (string) $_GET['view'] === '1');
 
 $list_unit = [];
 if ($id_skema_db) {
@@ -158,6 +150,17 @@ if ($id_skema_db) {
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$is_asesor) {
+        $_SESSION['alert'] = 'Hanya Asesor yang dapat mengisi FR.AK.02.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&mode=view");
+        exit;
+    }
+    if ($is_admin_lsp || $is_admin_utm) {
+        $_SESSION['alert'] = 'Admin LSP dan Admin UTM hanya dapat melihat dan mencetak PDF, tidak dapat mengedit.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&mode=view");
+        exit;
+    }
+    
     $p_id_skema = $id_skema_db;
     $p_id_apl1  = $id_apl1_db;
     $rekomendasi = isset($_POST['rekomendasi']) ? trim($_POST['rekomendasi']) : '';
@@ -245,8 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (!$ins) $gagal_detail = true;
                 }
 
-                    if ($gagal) {
-                    $_SESSION['alert'] = 'Header tersimpan, sebagian detail gagal.' . mysqli_error($koneksi);;
+                    if ($gagal_detail) {
+                    $_SESSION['alert'] = 'Header tersimpan, sebagian detail gagal: ' . mysqli_error($koneksi);
                 } else {
                     $_SESSION['alert'] = 'Data berhasil disimpan!';
                 }
@@ -261,11 +264,17 @@ function h($v) { return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 
 $role = $_SESSION['role'] ?? '';
 $is_asesi       = ($role === 'Asesi');
-$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_asesor      = ($role === 'Asesor');
+$is_admin_lsp   = ($role === 'Admin_lsp');
+$is_admin_utm   = ($role === 'Admin_utm');
+$is_admin_role  = $is_admin_lsp || $is_admin_utm;
+
+$can_edit = $is_asesor && !$is_readonly;
+$can_view_and_print = $is_admin_role || $is_asesor || $is_asesi;
 
 $dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
-$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
-$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb_untuk_asesor = $can_edit ? '' : 'disabled';
+$dsb_style        = $is_asesi || $is_admin_role || $is_readonly ? 'pointer-events:none; opacity:0.65;' : '';
 $dsb              = $dsb_untuk_asesor;  
 $lock_asesi       = $dsb_untuk_asesi;    
 
@@ -407,13 +416,6 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                             ? htmlspecialchars($nama_asesor_db)
                             : '— tidak ditemukan —' ?>
                     </div>
-                    <!-- <div style="font-size:11px; color:#888; margin-top:4px;">
-                        <php if ($noreg_asesor_db): ?>
-                            <span style="font-size:11px; color:#666;" id="asesor-ttd-noreg">
-                                &nbsp;No.Reg: <= htmlspecialchars($noreg_asesor_db) ?>
-                            </span>
-                        <php endif; ?>
-                    </div> -->
                 </div>
             </div>
             <div style="flex:2; min-width:180px;">
@@ -528,15 +530,16 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 </label>
                 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; <?= $dsb_style ?>">
                     <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>> <b>Kompeten</b>
+                        <input type="radio" name="rekomendasi" value="Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?> style="accent-color:#2e7d32;width:16px;height:16px;"> <b>Kompeten</b>
                     </label>
                     <label style="font-size:13px;">
-                        <input type="radio" name="rekomendasi" value="Belum Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Belum Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?>> <b>Belum Kompeten</b>
+                        <input type="radio" name="rekomendasi" value="Belum Kompeten" <?= ($data_ak02_saved['rekomendasi'] ?? '') === 'Belum Kompeten' ? 'checked' : '' ?> <?= $dsb_untuk_asesor ?> style="accent-color:#c00;width:16px;height:16px;"> <b>Belum Kompeten</b>
                     </label>
                 </div>
             </div>
             <div style="margin-bottom:12px;">
-                <label class="small-text">Tindak lanjut yang dibutuhkan :</label>
+                <label class="small-text">Tindak lanjut yang dibutuhkan :</label><br>
+                <span class="small-text"> (Masukkan pekerjaan tambahan dan asesmen yang diperlukan untuk mencapai kompetensi) </span>
                 <textarea name="tindak_lanjut" class="form-control" rows="3"
                           placeholder="Masukkan pekerjaan tambahan dan asesmen yang diperlukan..."
                           <?= $dsb_untuk_asesor ?> style="<?= $dsb_style ?>"><?= htmlspecialchars($data_ak02_saved['tindak_lanjut'] ?? '') ?></textarea>
@@ -557,22 +560,6 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                         <?php echo htmlspecialchars($nama_asesi_db); ?>
                     </span>
                 </div>
-                <!-- <div style="margin-bottom:8px;">
-                    <label class="small-text">Tanda tangan / Tanggal</label>
-                    <input type="date" name="tanggal_asesi" id="tanggal_asesi"
-                           class="form-control" onchange="scheduleQRAsesi()">
-                </div> -->
-                <!-- <div class="qr-box">
-                    <div class="qr-title">QR Tanda Tangan Asesi</div>
-                    <div class="qr-canvas-wrap" id="qr-asesi-canvas">
-                        <div class="qr-ph-sm" id="qr-asesi-ph">
-                        <span>Isi nama dulu</span>
-                        </div>
-                    </div>
-                    <div id="qr-asesi-badge" class="qr-badge">QR Siap</div><br>
-                    <button type="button" id="btn-dl-asesi" class="btn-dl-qr"
-                            onclick="dlQRAsesi()">Download</button>
-                </div> -->
             </div>
 
             <div class="ttd-col">
@@ -601,7 +588,23 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ak02.php'">
                 Kembali
             </button>
+            <?php if ($has_data && $is_readonly): ?>
+            <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=<?= $id_asesi ?>&mode=edit"
+               class="btn-submit" style="background:#ff9800;text-decoration:none;">EDIT</a>
+            <?php endif; ?>
+            <?php if ($has_data && !$is_readonly): ?>
+            <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=<?= $id_asesi ?>&mode=view"
+               class="btn-submit" style="background:#607d8b;text-decoration:none;">LIHAT</a>
+            <?php endif; ?>
+            <?php if ($can_edit): ?>
             <button type="submit" class="btn-submit">SIMPAN ✓</button>
+            <?php endif; ?>
+            <a href="../pdf/cetak_ak2.php?id_asesi=<?= $id_asesi ?>" 
+                       target="_blank" 
+                       class="btn-submit" 
+                       style="background:#1a237e;text-decoration:none;">
+                       Cetak PDF
+                    </a>
         <?php endif; ?>
         
         <?php if ($is_asesi): ?>
@@ -609,15 +612,23 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
-                    <a href="../pdf/cetak_ak2.php?id_asesi=<?= $id_asesi ?>" 
+            <?php if ($has_data): ?>
+            <!-- <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=<?= $id_asesi ?>&mode=view"
+               class="btn-submit" style="background:#4caf50;text-decoration:none;">LIHAT</a> -->
+            <?php endif; ?>
+        <?php endif; ?>
+        
+        <?php if ($is_admin_lsp || $is_admin_utm): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ak02.php'">
+                Kembali
+            </button>
+              <a href="../pdf/cetak_ak2.php?id_asesi=<?= $id_asesi ?>" 
                        target="_blank" 
                        class="btn-submit" 
                        style="background:#1a237e;text-decoration:none;">
                        Cetak PDF
                     </a>
-            <?php if (!$has_data): ?>
-                <button type="submit" class="btn-submit" >SIMPAN ✓</button>
-            <?php endif; ?>
         <?php endif; ?>
             
     </div>

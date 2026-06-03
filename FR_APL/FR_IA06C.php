@@ -13,7 +13,8 @@ $id_asesi = isset($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
 
 $role     = $_SESSION['role'] ?? '';
-$is_asesi = ($role === 'Asesi');
+$is_admin = ($role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_asesi = ($role === 'Asesi') && !$is_admin;
 
 $e = fn($v) => mysqli_real_escape_string($koneksi, (string)$v);
 
@@ -156,7 +157,14 @@ if ($id_ia06_db) {
 
 $ada_jawaban = !empty($jawaban_saved);
 $mode = isset($_GET['mode']) ? $_GET['mode'] : ($ada_jawaban ? 'view' : 'edit');
-if (!$is_asesi) $mode = 'view'; // asesor/admin selalu readonly
+if (!$is_asesi) $mode = 'view';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($is_admin) {
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA06C.php&id_asesi=$id_asesi&mode=view");
+        exit;
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
 
@@ -220,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $is_asesi) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$is_asesi
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($role === 'Asesor')
     && isset($_POST['aspek']) && isset($_POST['save_umpan_balik'])) {
 
     if (!$id_ia06_db) {
@@ -269,13 +277,15 @@ $saved_hdr = [
 ];
 
 $is_asesi       = ($role === 'Asesi');
-$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_asesor      = ($role === 'Asesor');
+$is_admin       = ($role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_view_only   = ($is_admin); 
 
 $dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
-$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
-$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb_untuk_asesor = ($is_asesor && !$is_view_only) ? '' : 'disabled';
+$dsb_style        = ($is_asesi || $is_view_only) ? 'pointer-events:none; opacity:0.65;' : '';
 $dsb              = $dsb_untuk_asesor;  
-$lock_asesi       = $dsb_untuk_asesi;    
+$lock_asesi       = $dsb_untuk_asesi;   
 
 $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
 
@@ -325,7 +335,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
         }
         .jawaban-textarea {
             width:100%; min-height:80px; resize:vertical;
-            font-size:13px; padding:7px 9px; line-height:1.6;
+            font-size:13px; padding:7px 9px;
             border:1px solid #b0bec5; border-radius:5px;
             box-sizing:border-box; font-family:inherit; background:#fff;
         }
@@ -337,7 +347,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
             padding:8px 10px; min-height:44px;
             border:1px solid #e0e0e0; border-radius:5px;
             background:#fff; font-size:13px; line-height:1.7;
-            white-space:pre-wrap; color:#222;
+             color:#222;
         }
         .jawaban-view.empty { color:#aaa; font-style:italic; }
 
@@ -530,6 +540,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                         </div>
                     <?php endif; ?>
                 </div>
+                <?php if ($role === 'Asesi'): ?>
                 <div class="hasil-wrap" style="margin-top:8px;">
                     <span class="hasil-label">Hasil :</span>
                         <?php if ($is_asesi): ?>
@@ -539,6 +550,7 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                         <?php else: ?>
                         <?php endif; ?>
                 </div>
+                <?php endif; ?>
                     
                 <?php if (!$is_asesi && $has_ans): ?>
                 <div class="hasil-wrap" style="margin-top:8px;">
@@ -547,14 +559,16 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                         <input type="radio"
                                name="hasil[<?= $sid ?>]"
                                value="Benar"
-                               <?= $hasil === 'Benar' ? 'checked' : '' ?>>
+                               <?= $hasil === 'Benar' ? 'checked' : '' ?>
+                               style="accent-color:#2e7d32;width:16px;height:16px;">
                         Benar
                     </label>
                     <label style="cursor:pointer;">
                         <input type="radio"
                                name="hasil[<?= $sid ?>]"
                                value="Salah"
-                               <?= $hasil === 'Salah' ? 'checked' : '' ?>>
+                               <?= $hasil === 'Salah' ? 'checked' : '' ?>
+                               style="accent-color:#c00;width:16px;height:16px;">
                         Salah
                     </label>
                 </div>
@@ -583,7 +597,8 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                            id="rek_kompeten"
                            <?= $saved_hdr['aspek'] === 'tercapai' ? 'checked' : '' ?>
                            <?= $dsb_untuk_asesor ?>
-                           onchange="toggleAlasanRek(this.value)">
+                           onchange="toggleAlasanRek(this.value)"
+                           style="accent-color:#2e7d32;width:16px;height:16px;">
                     <b>TERCAPAI</b>
                 </label>
                 <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
@@ -591,7 +606,8 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                            id="rek_belum"
                            <?= strtolower($saved_hdr['aspek'] ?? '') === 'belum_tercapai' ? 'checked' : '' ?>
                            <?= $dsb_untuk_asesor ?>
-                           onchange="toggleAlasanRek(this.value)">
+                           onchange="toggleAlasanRek(this.value)"
+                           style="accent-color:#c00;width:16px;height:16px;">
                     <b>BELUM TERCAPAI</b>
                 </label>
             </div>
@@ -658,6 +674,25 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                 Kembali
             </button>
             <button type="submit" class="btn-submit" name="save_umpan_balik">SIMPAN ✓</button>
+            <a href="../pdf/cetak_ia6a.php?id_asesi=<?= $id_asesi ?>"
+               target="_blank"
+               class="btn-submit"
+               style="background:#1565c0; text-decoration:none;">
+               Cetak PDF
+            </a>
+        <?php endif; ?>
+
+         <?php if ($is_admin): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ia06.php'">
+                Kembali
+            </button>
+            <a href="../pdf/cetak_ia6a.php?id_asesi=<?= $id_asesi ?>"
+               target="_blank"
+               class="btn-submit"
+               style="background:#1565c0; text-decoration:none;">
+               Cetak PDF
+            </a>
         <?php endif; ?>
         
         <?php if ($is_asesi): ?>
@@ -665,12 +700,6 @@ $tgl_form = $hari_tanggal_db ?: date('Y-m-d');
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
                 Kembali
             </button>
-            <a href="../pdf/cetak_ia6c.php?id_asesi=<?= $id_asesi ?>"
-               target="_blank"
-               class="btn-submit"
-               style="background:#1565c0; text-decoration:none;">
-               Cetak PDF
-            </a>
             <?php if (!$has_data): ?>
                 <button type="submit" class="btn-submit" >SIMPAN ✓</button>
             <?php endif; ?>

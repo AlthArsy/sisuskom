@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Input Profil Admin</title>
+    <title>Input Profil Admin LSP</title>
     <style>
         body {font-family: 'Segoe UI', Arial, sans-serif;background: #f5f7fb;margin: 0;padding: 0;}
         .form-container {max-width: 430px;width: 97vw;margin: 42px auto 0 auto;background: #fff;border-radius: 10px;box-shadow: 0 6px 25px #0002;padding: 30px 32px 22px 32px;}
@@ -107,20 +107,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="form-container">
-        <h2>Input Profil Admin</h2>
+        <h2>Input Profil Admin  LSP</h2>
 
-        <div class="info-box">
+        <div class="info-box"> 
             <strong>Informasi:</strong> Anda harus melengkapi profil ini sebelum dapat mengakses halaman lainnya.
         </div>
 
         <form method="post" autocomplete="off">
             <div class="form-group">
                 <label for="nik">No NIK:<span class="required">*</span></label>
-                <input type="text" id="nik" name="nik" value="<?php echo isset($nik) ? htmlspecialchars($nik) : ''; ?>" required>
+                <input type="text" maxlength="16" id="nik" name="nik" value="<?php echo isset($nik) ? htmlspecialchars($nik) : ''; ?>" required>
             </div>
             <div class="form-group">
-                <label for="nama_admin">Nama Admin:<span class="required">*</span></label>
-                <input type="text" id="nama_admin" name="nama_admin" value="<?php echo isset($nama_admin) ? htmlspecialchars($nama_admin) : ''; ?>" required>
+                <label for="nama_admin">Nama Admin LSP:<span class="required">*</span></label>
+                <input type="text" maxlength="100" id="nama_admin" name="nama_admin" value="<?php echo isset($nama_admin) ? htmlspecialchars($nama_admin) : ''; ?>" required>
             </div>
             <button type="submit" class="btn-submit">Simpan Profil</button>
         </form>

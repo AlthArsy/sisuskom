@@ -245,30 +245,5 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
             </div>
         <?php endif; ?>
     </div>
-
-    <!-- <script>
-        // Tambahkan efek hover pada info-value
-        document.querySelectorAll('.info-value').forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = '#e9ecef';
-                this.style.borderColor = '#007bff';
-            });
-
-            item.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = '#f8f9fa';
-                this.style.borderColor = '#e9ecef';
-            });
-        });
-
-        // Auto-hide alert setelah 5 detik
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.opacity = '0';
-                alert.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 5000);
-    </script> -->
 </body>
 </html>

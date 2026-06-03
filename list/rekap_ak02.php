@@ -61,7 +61,7 @@ $total_belum_komp = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c
 
 $base = '../BERANDA/UTAMA.php';
 ?>
-
+<link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
 <style>
     .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
     .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
@@ -114,6 +114,13 @@ $base = '../BERANDA/UTAMA.php';
         cursor: pointer; text-decoration: none; white-space: nowrap; margin-left: 4px;
     }
     .btn-rek:hover { background: #e65100; }
+    .btn-cetak {
+        background: #4caf50; color: white; border: none;
+        padding: 5px 14px; border-radius: 5px; font-size: 12px;
+        cursor: pointer; text-decoration: none; white-space: nowrap;
+        margin-left: 4px;
+    }
+    .btn-cetak:hover { background: #2e7d32; }
 
     .empty-msg { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
 
@@ -153,7 +160,7 @@ $base = '../BERANDA/UTAMA.php';
     <?php if (empty($rows)): ?>
         <div class="empty-msg">Tidak ada data FR.AK.02 untuk filter ini.</div>
     <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="rekap-table-wrap">
         <table class="rekap-table">
             <thead>
                 <tr>
@@ -178,30 +185,42 @@ $base = '../BERANDA/UTAMA.php';
                     $badge_text = $rekom ?: 'Belum Diproses';
                 ?>
                 <tr>
-                    <td style="text-align:center;"><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesi']) ?></td>
-                    <td>
+                    <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                    <td data-label="Nama Asesi"><?= htmlspecialchars($r['nama_asesi']) ?></td>
+                    <td data-label="Skema Sertifikasi">
                         <?= htmlspecialchars($r['judul_skema']) ?>
-                        <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
+                        <div class="rekap-skema-sub">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
                     </td>
-                    <td><?= htmlspecialchars($r['tuk_asesi'] ?: '-') ?></td>
-                    <td style="text-align:center;">
+                    <td data-label="TUK"><?= htmlspecialchars($r['tuk_asesi'] ?: '-') ?></td>
+                    <td data-label="Rekomendasi" style="text-align:center;">
                         <span class="badge <?= $badge_class ?>"><?= htmlspecialchars($badge_text) ?></span>
                     </td>
-                    <td style="max-width:200px;"><?= nl2br(htmlspecialchars($r['tindak_lanjut'] ?? '-')) ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesor_penilai'] ?: '-') ?></td>
-                    <td style="text-align:center; white-space:nowrap;">
+                    <td data-label="Tindak Lanjut" style="max-width:200px;"><?= nl2br(htmlspecialchars($r['tindak_lanjut'] ?? '-')) ?></td>
+                    <td data-label="Asesor Penilai"><?= htmlspecialchars($r['nama_asesor_penilai'] ?: '-') ?></td>
+                    <td data-label="Aksi" class="rekap-aksi" style="text-align:center; white-space:nowrap;">
+                        <?php if ($role === 'Asesor'): ?>
+                        <a class="btn-lihat"
+                           href="<?= $base ?>?page=../FR_APL/FR_AK02.php&id_asesi=<?= $r['id_asesi'] ?>&mode=edit">
+                            Lihat
+                        </a>
+                        <?php endif; ?>
+                        <?php if ($role === 'Admin_lsp' && $role === 'Admin_utm'): ?>
                         <a class="btn-lihat"
                            href="<?= $base ?>?page=../FR_APL/FR_AK02.php&id_asesi=<?= $r['id_asesi'] ?>&mode=view">
                             Lihat
                         </a>
+                        <?php endif; ?>
+                        <a class="btn-cetak" 
+                            href="../pdf/cetak_ak2.php?view=1&id_asesi=<?= $r['id_asesi'] ?>&print=1" target="_blank">
+                            Cetak PDF
+                         </a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
          </table>
     </div>
-    <div style="font-size:12px; color:#888; margin-top:8px;">
+    <div class="rekap-foot">
         Menampilkan <?= $total ?> data
     </div>
     <?php endif; ?>

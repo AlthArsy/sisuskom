@@ -18,15 +18,10 @@ function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 $id_asesi = isset($_GET['id_asesi'])
     ? intval($_GET['id_asesi'])
     : (isset($_SESSION['id_asesi']) ? intval($_SESSION['id_asesi']) : 0);
-$role     = $_SESSION['role'] ?? '';
-$is_asesi = ($role === 'Asesi');
-
-// $flash_msg  = $_SESSION['flash_ia01'] ?? '';
-// $flash_type = '';
-// if ($flash_msg) {
-//     [$flash_type, $flash_msg] = explode('|', $flash_msg, 2);
-//     unset($_SESSION['flash_ia01']);
-// }
+$role      = $_SESSION['role'] ?? '';
+$is_asesi  = ($role === 'Asesi');
+$is_asesor = ($role === 'Asesor');
+$is_admin  = ($role === 'Admin_lsp' || $role === 'Admin_utm');
 
 $asesi = null;
 if ($id_asesi) {
@@ -109,13 +104,25 @@ if ($id_asesi && $id_skema) {
 }
 
 $mode = 'create';
-if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create'])) {
-    $mode = $_GET['mode'];
+if (isset($_GET['mode']) && in_array($_GET['mode'], ['view', 'create', 'edit'], true)) {
+    $mode = $_GET['mode'] === 'edit' ? 'create' : $_GET['mode'];
 } elseif ($has_data) {
-    $mode = 'view';
+    $mode = ($is_asesor && isset($_GET['edit']) && $_GET['edit'] === '1') ? 'create' : 'view';
 }
+$is_readonly = ($mode === 'view')
+    || (isset($_GET['view']) && (string) $_GET['view'] === '1');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$is_asesor) {
+        $_SESSION['alert'] = 'Hanya Asesor yang dapat mengisi FR.IA.01.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$id_skema&mode=view");
+        exit;
+    }
+    if ($is_admin) {
+        $_SESSION['alert'] = 'error|Admin tidak dapat mengedit data. Hanya dapat melihat dan mencetak.';
+        header("Location: ../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&id_skema=$id_skema&mode=view");
+        exit;
+    }
 
     $p_id_skema          = intval($_POST['id_skema'] ?? 0);
     $p_id_apl1           = intval($_POST['id_apl1'] ?? 0);
@@ -208,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ok = false;
     }
 
-    if ($gagal) {
-        $_SESSION['alert'] = 'Sebagian Data gagal disimpan: ' . mysqli_error($koneksi);;
+    if (!$ok) {
+        $_SESSION['alert'] = 'Sebagian data gagal disimpan: ' . mysqli_error($koneksi);
     } else {
         $_SESSION['alert'] = 'Data berhasil disimpan!';
     }
@@ -250,15 +257,17 @@ if ($id_skema) {
 
 $saved_vals = [];
 $saved_hdr  = ['tanggal'=>'','rekomendasi'=>'','umpan_balik'=>'', 'alasan_rekomendasi'=>'']; 
-if ($mode === 'view' && $id_asesi && $id_skema) {
+
+// FIX: muat saved_vals saat view DAN saat edit (mode=create + has_data)
+if (($mode === 'view' || ($mode === 'create' && $has_data)) && $id_asesi && $id_skema) {
     $res_ed = mysqli_query($koneksi,
         "SELECT d.id_kuk, i.tanggal, i.rekomendasi, i.umpan_balik, i.belum_kompeten,
-                -- d.standar_industri,
                 d.pencapaian,
                 d.`Penilaian Lanjut` AS penilaian_lanjut
          FROM tb_ia01 i
          LEFT JOIN detail_ia01 d ON d.id_ia01 = i.id_ia01
-         WHERE i.id_asesi='{$e($id_asesi)}' AND i.id_apl1='{$e($id_apl1)}'");
+         WHERE i.id_asesi='{$e($id_asesi)}' AND i.id_apl1='{$e($id_apl1)}'
+         ORDER BY i.id_ia01 DESC");
     $first = true;
     while ($er = mysqli_fetch_assoc($res_ed)) {
         if ($first) {
@@ -270,21 +279,90 @@ if ($mode === 'view' && $id_asesi && $id_skema) {
             ];
             $first = false;
         }
-        $saved_vals[intval($er['id_kuk'])] = [
-            // 'standar'               => $er['standar_industri'],
-            'pencapaian'            => $er['pencapaian'],
-            'penilaian_lanjut'      => $er['penilaian_lanjut'],
-        ];
+        if ($er['id_kuk']) {
+            $saved_vals[intval($er['id_kuk'])] = [
+                'pencapaian'       => $er['pencapaian'],
+                'penilaian_lanjut' => $er['penilaian_lanjut'],
+            ];
+        }
+    }
+}
+if (($mode === 'view' || (!$is_readonly && $has_data)) && $id_asesi && $id_skema) {
+    $res_tidak = mysqli_query($koneksi,
+        "SELECT 
+            u.id_unit, u.kode_unit, u.judul_unit,
+            e.id_elemen, e.no_elemen, e.nama_elemen,
+            k.id_kuk, k.no_kuk, k.kuk AS kuk_teks,
+            d.pencapaian
+         FROM tb_ia01 i
+         JOIN detail_ia01 d ON d.id_ia01 = i.id_ia01
+         JOIN tb_kuk k ON k.id_kuk = d.id_kuk
+         JOIN tb_elemen e ON e.id_elemen = d.id_elemen
+         JOIN tb_unit_kompetensi u ON u.id_unit = d.id_unit
+         WHERE i.id_asesi='{$e($id_asesi)}' AND i.id_apl1='{$e($id_apl1)}'
+           AND d.pencapaian = 'Tidak'
+         ORDER BY u.id_unit, e.id_elemen, k.id_kuk");
+
+    $grp_unit = [];
+    $unit_no_map = [];
+    foreach ($units as $ui => $u) {
+        $unit_no_map[$u['id_unit']] = $ui + 1;
+    }
+
+    while ($tr = mysqli_fetch_assoc($res_tidak)) {
+        $uid = $tr['id_unit'];
+        $eid = $tr['id_elemen'];
+        if (!isset($grp_unit[$uid])) {
+            $grp_unit[$uid] = [
+                'no'        => $unit_no_map[$uid] ?? '?',
+                'kode'      => $tr['kode_unit'],
+                'judul'     => $tr['judul_unit'],
+                'elemen'    => []
+            ];
+        }
+        if (!isset($grp_unit[$uid]['elemen'][$eid])) {
+            $grp_unit[$uid]['elemen'][$eid] = [
+                'no'    => $tr['no_elemen'],
+                'nama'  => $tr['nama_elemen'],
+                'kuk'   => []
+            ];
+        }
+        $grp_unit[$uid]['elemen'][$eid]['kuk'][] = $tr['no_kuk'] . ' ' . $tr['kuk_teks'];
+    }
+    if (!empty($grp_unit)) {
+        $lines = [];
+        foreach ($grp_unit as $uid => $gu) {
+            $lines[] = 'KELOMPOK PENGERJAAN: UNIT KOMPETENSI KE ' . $gu['no'];
+            $lines[] = '  Unit = ' . $gu['no'] . ' (' . $gu['kode'] . ')';
+            foreach ($gu['elemen'] as $eid => $ge) {
+                $kuk_list = implode(', ', $ge['kuk']);
+                $lines[] = '    Elemen = ' . $ge['no'] . ' (' . $ge['nama'] . ')';
+                $lines[] = '      KUK = ' . $kuk_list;
+            }
+            $lines[] = '';
+        }
+        $auto_belum = trim(implode("\n", $lines));
+        if ($auto_belum !== trim((string)$saved_hdr['alasan_rekomendasi'])) {
+            $ia01_row = mysqli_fetch_assoc(mysqli_query($koneksi,
+                "SELECT id_ia01 FROM tb_ia01
+                 WHERE id_asesi='{$e($id_asesi)}' AND id_apl1='{$e($id_apl1)}'
+                 ORDER BY id_ia01 DESC LIMIT 1"));
+            if ($ia01_row) {
+                mysqli_query($koneksi,
+                    "UPDATE tb_ia01 SET belum_kompeten='{$e($auto_belum)}'
+                     WHERE id_ia01='" . intval($ia01_row['id_ia01']) . "'");
+            }
+            $saved_hdr['alasan_rekomendasi'] = $auto_belum;
+        }
     }
 }
 
 $nama_asesi_db  = $asesi['nama_asesi'] ?? '';
-$is_asesi       = ($role === 'Asesi');
-$is_asesor      = ($role === 'Asesor' || $role === 'Admin_lsp' || $role === 'Admin_utm');
+$is_view_only   = ($is_admin);
 
 $dsb_untuk_asesi  = $is_asesi  ? '' : 'readonly';
-$dsb_untuk_asesor = ($is_asesor) ? '' : 'disabled';
-$dsb_style        = $is_asesi ? 'pointer-events:none; opacity:0.65;' : '';
+$dsb_untuk_asesor = ($is_asesor && !$is_view_only && !$is_readonly) ? '' : 'disabled';
+$dsb_style        = ($is_asesi || $is_view_only || $is_readonly) ? 'pointer-events:none; opacity:0.65;' : '';
 $dsb              = $dsb_untuk_asesor;  
 $lock_asesi       = $dsb_untuk_asesi;    
 
@@ -325,7 +403,7 @@ $tgl_form = $mode === 'create'
                        value="<?= h($apl1['judul_skema'] ?? '') ?>"
                        readonly style="background:#f5f5f5; color:#1a237e;">
             </div>
-            <div class="info-col" style="flex:1; min-width:90px;">
+            <div class="info-col" style="flex:0.97; min-width:90px;">
                 <span class="small-text label">Nomor</span>
                 <input type="text" class="form-control"
                        value="<?= h($apl1['nomor_skema'] ?? '') ?>"
@@ -444,15 +522,17 @@ $tgl_form = $mode === 'create'
 
                     <td class="kuk-text"><?= h($kk['kuk']) ?></td>
 
-                    <td>
-                    <input type="text"
-                           name="standar[<?= $kuk_id ?>]"
+                    <?php if ($ki === 0): ?>
+                    <td rowspan="<?= $jml_kuk ?>">
+                    <div
+                           name="standar_elemen[<?= $el['id_elemen'] ?>]"
                            class="form-control"
                            style="font-size:12px;"
-                           value="<?= h($std_val ?: $standar_skema) ?>"
+                           value="<?= h($standar_skema) ?>"
                            placeholder="Standar industri..."
-                           <?= $lock_asesi ?>>
+                           <?= $lock_asesi ?>><?= h($standar_skema) ?></div>
                     </td>
+                    <?php endif; ?>
 
                     <td>
                         <div class="radio-yt">
@@ -482,17 +562,6 @@ $tgl_form = $mode === 'create'
                                   placeholder="Penilaian lanjut..."
                                   <?= $dsb_untuk_asesor ?>><?= h($pl_val) ?></textarea>
                     </td>
-
-                    <!-- <td>
-                        <php if ($mode === 'view'): ?>
-                            <span style="font-size:12px;"><= h($pl_val) ?></span>
-                        <php else: ?>
-                            <textarea name="penilaian_lanjut[<= $kuk_id ?>]"
-                                      class="obs-input"
-                                      placeholder="Penilaian lanjut..."
-                                      <= $dsb_untuk_asesor ?>><= h($pl_val) ?></textarea>
-                        <php endif; ?>
-                    </td> -->
                 </tr>
                 <?php endforeach; ?>
             <?php endforeach; ?>
@@ -538,15 +607,6 @@ $tgl_form = $mode === 'create'
             </div>
 
                 <?php if ($saved_hdr['rekomendasi'] === 'Belum Kompeten' && $saved_hdr['alasan_rekomendasi']): ?>
-                <!-- <div style="margin-top:10px; padding:10px 14px; background:#fff3f3;
-                            border:1px solid #ef9a9a; border-radius:6px;">
-                     <div style="font-size:12px; font-weight:700; color:#c62828; margin-bottom:4px;">
-                        Alasan Belum Kompeten (Rekomendasi) :
-                    </div> -->
-                    <!-- <div style="font-size:13px; color:#b71c1c;">
-                        <= nl2br(h($saved_hdr['alasan_rekomendasi'])) ?>
-                    </div>
-                </div> -->
                 <?php endif; ?>
                 <div id="alasan-rek-wrap"
                      style="<?= $saved_hdr['rekomendasi'] === 'Belum Kompeten' ? 'display:block;' : 'display:none;' ?>">
@@ -586,12 +646,28 @@ $tgl_form = $mode === 'create'
                     onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ia1.php'">
                 Kembali
             </button>
+            <?php if ($has_data && $is_readonly): ?>
+            <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=<?= $id_asesi ?>&id_skema=<?= $id_skema ?>&mode=edit"
+               class="btn-submit" style="background:#ff9800;text-decoration:none;">EDIT</a>
+            <?php endif; ?>
+            <?php if ($has_data && !$is_readonly): ?>
+            <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=<?= $id_asesi ?>&id_skema=<?= $id_skema ?>&mode=view"
+               class="btn-submit" style="background:#607d8b;text-decoration:none;">LIHAT</a>
+            <?php endif; ?>
+            <?php if (!$is_readonly): ?>
             <button type="submit" class="btn-submit">SIMPAN ✓</button>
+            <?php endif; ?>
+            <a href="../pdf/cetak_ia1.php?id_asesi=<?= $id_asesi ?>"
+               target="_blank"
+               class="btn-submit"
+               style="background:#1565c0; text-decoration:none;">
+               Cetak PDF
+            </a>
         <?php endif; ?>
-        
-        <?php if ($is_asesi): ?>
+
+        <?php if ($is_admin): ?>
             <button type="button" class="btn-back"
-                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_ia1.php'">
                 Kembali
             </button>
             <a href="../pdf/cetak_ia1.php?id_asesi=<?= $id_asesi ?>"
@@ -600,8 +676,16 @@ $tgl_form = $mode === 'create'
                style="background:#1565c0; text-decoration:none;">
                Cetak PDF
             </a>
-            <?php if (!$has_data): ?>
-                <button type="submit" class="btn-submit" style="background:blue;">SIMPAN ✓</button>
+        <?php endif; ?>
+        
+        <?php if ($is_asesi): ?>
+            <button type="button" class="btn-back"
+                    onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php'">
+                Kembali
+            </button>
+            <?php if ($has_data): ?>
+            <!-- <a href="../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=<?= $id_asesi ?>&id_skema=<?= $id_skema ?>&mode=view"
+               class="btn-submit" style="background:#4caf50;text-decoration:none;">LIHAT</a> -->
             <?php endif; ?>
         <?php endif; ?>
             
@@ -619,8 +703,6 @@ function toggleAlasanRek(val) {
         if (ta) ta.focus();
     } else {
         wrap.style.display = 'none';
-        var ta = wrap.querySelector('textarea');
-        if (ta) ta.value = '';
     }
 }
 </script>

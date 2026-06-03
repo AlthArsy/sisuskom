@@ -1,3 +1,5 @@
+@import url('cari-shared.css');
+
 .jdm {
     color: #14305c;
     margin-bottom: 18px;
@@ -69,10 +71,6 @@ tr:nth-child(odd) {
     background: #fff;
 }
 
-tbody tr:last-child td {
-    border-bottom: none;
-}
-
 .aksi {
     white-space: nowrap;
 }
@@ -106,7 +104,24 @@ tbody tr:last-child td {
 }
 
 .aksi a.btn-hapus:hover {
-    background: #e43d3d;
+    background: #19405aff;
+    color: #fff;
+}
+
+.aksi a.btn-bukti {
+    background: #6b3fa0;
+    color: #f8f4fd;
+    border-color: #dcc9f0;
+}
+/* .aksi a.btn-bukti {
+    background: #f8f4fd;
+    color: #6b3fa0;
+    border-color: #dcc9f0;
+} */
+
+
+.aksi a.btn-bukti:hover {
+    background: #19405aff;
     color: #fff;
 }
 
@@ -164,45 +179,11 @@ tbody tr:last-child td {
 .btn-lihat-unit i {
     margin-right: 5px;
 }
-.cari {
-        margin-bottom:20px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: center;
-    }
-    .cari input[type="text"] {
-        padding:7px 14px;
-        width: 500px;
-        border:1px solid #b0b6bd;
-        border-radius:50px;
-        font-size:14px;
-        color:#252525;
-        background:#fafbfc;
-        transition: border-color .22s;
-    }
-    .cari input[type="text"]:focus {
-        border-color: #549edb;
-        outline: none;
-    }
-    .cari button {
-        padding:7px 18px;
-        font-size:14px;
-        background:#4186e0;
-        border:none;
-        border-radius:4px;
-        color:#fff;
-        cursor:pointer;
-        font-weight:500;
-    }
-    .cari button:hover {
-        background: #2761ba;
-    }
 
 @media screen and (max-width: 768px) {
     .header-container {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: 15px;
     }
 
@@ -211,60 +192,7 @@ tbody tr:last-child td {
         text-align: center;
     }
 
-    table {
-        border: 0;
-    }
-
-    table thead {
-        display: none;
-    }
-
-    table tbody {
-        display: block;
-    }
-
-    table tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        background: #fff !important;
-    }
-
-    table td {
-        display: block;
-        text-align: right;
-        border: none;
-        border-bottom: 1px solid #eee;
-        padding: 10px;
-        position: relative;
-        padding-left: 50%;
-    }
-
-    table td:last-child {
-        border-bottom: none;
-    }
-
-    table td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        text-align: left;
-        color: #24365e;
-    }
-
-    .aksi {
-        text-align: center !important;
-        padding-left: 10px !important;
-    }
-
-    .aksi:before {
-        display: none;
-    }
-
-    .aksi a {
-        display: inline-block;
-        margin: 5px 3px;
+    .jdm {
+        font-size: 1.1em;
     }
 }

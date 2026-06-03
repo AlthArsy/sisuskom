@@ -5,6 +5,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 include "../koneksi.php";
+require_once __DIR__ . '/../FR_APL/fr_apl_helpers.php';
 
 if (!isset($_SESSION['username'])) {
     header("Location: ../LOGIN/login.php"); exit;
@@ -58,7 +59,8 @@ $forms = [
         'sub'    => 'Ceklis Observasi Aktivitas di Tempat Kerja',
         'isi'    => "../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi",
         'lihat'  => "../BERANDA/UTAMA.php?page=../FR_APL/FR_IA1.php&id_asesi=$id_asesi&view=1",
-        'done'   => sudahIsi($koneksi, 'tb_ia01', 'id_asesi', $id_asesi),
+        'done'   => sudahIsi($koneksi, 'tb_ia01', 'id_asesi', $id_asesi)
+                    || fr_apl_sudah_ak01($koneksi, $id_asesi),
     ],
     [
         'label'  => 'FR AK 3',
@@ -72,7 +74,8 @@ $forms = [
         'sub'    => 'Rekaman Asesmen Kompetensi',
         'isi'    => "../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi",
         'lihat'  => "../BERANDA/UTAMA.php?page=../FR_APL/FR_AK02.php&id_asesi=$id_asesi&view=1",
-        'done'   => sudahIsi($koneksi, 'tb_ak02', 'id_asesi', $id_asesi),
+        'done'   => sudahIsi($koneksi, 'tb_ak02', 'id_asesi', $id_asesi)
+                    || fr_apl_sudah_ak03_lengkap($koneksi, $id_asesi),
     ],
     [
         'label'  => 'FR IA 6',

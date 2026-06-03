@@ -192,10 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
                 <div class="button-group">
                     <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-times"></i> Kembali
                     </a>
                     <button type="submit" name="update" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Perubahan
+                        <i class="fas fa-arrow-left"></i> Simpan Perubahan
                     </button>
                 </div>
             </form>
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             Data skema tidak ditemukan. Silakan pilih skema yang valid.
             <br><br>
             <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn btn-secondary" style="padding: 10px 20px; display: inline-block;">
-                <i class="fas fa-arrow-left"></i> Kembali ke Daftar Skema
+                <i class="fas fa-arrow-left"></i> Kembali
             </a>
         </div>
     <?php endif; ?>

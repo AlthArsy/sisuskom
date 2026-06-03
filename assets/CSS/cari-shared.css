@@ -1,0 +1,394 @@
+/* Pencarian & tabel responsif — dipakai di skema, unit, elemen, kuk, bukti, manajemen, dll. */
+
+/* --- Form pencarian (.cari) --- */
+.cari {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f6f9ff 0%, #eef3fb 100%);
+    border: 1px solid #dce4f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(36, 54, 94, 0.06);
+}
+
+.cari.cari--actions-only {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cari-field {
+    flex: 1 1 220px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 0 14px;
+    background: #fff;
+    border: 1px solid #c5d0e0;
+    border-radius: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cari-field:focus-within {
+    border-color: #4186e0;
+    box-shadow: 0 0 0 3px rgba(65, 134, 224, 0.15);
+}
+
+.cari-field > i {
+    color: #7a8ba8;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.cari-field input[type="text"],
+.cari-field input[type="number"],
+.cari-field input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 11px 0;
+    border: none;
+    border-radius: 0;
+    font-size: 14px;
+    color: #252525;
+    background: transparent;
+    outline: none;
+}
+
+.cari-field input::placeholder {
+    color: #9aa5b8;
+}
+
+.cari select,
+.cari .cari-select {
+    flex: 0 1 auto;
+    min-width: 160px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #252525;
+    background: #fff;
+    border: 1px solid #c5d0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.cari select:focus,
+.cari .cari-select:focus {
+    border-color: #4186e0;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(65, 134, 224, 0.15);
+}
+
+.cari-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.cari .btn-cari,
+.cari button[type="submit"]:not(.btn-secondary) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 20px;
+    font-size: 14px;
+    background: #4186e0;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.cari .btn-cari:hover,
+.cari button[type="submit"]:not(.btn-secondary):hover {
+    background: #2761ba;
+}
+
+.cari .btn-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 18px;
+    font-size: 14px;
+    background: #95a5a6;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.cari .btn-reset:hover {
+    background: #7f8c8d;
+    color: #fff;
+}
+
+.cari .Tambah {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 18px;
+    background: #4186e0;
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cari .Tambah:hover {
+    background: #2761ba;
+}
+
+.filter-info {
+    margin-bottom: 15px;
+    padding: 10px 14px;
+    background: #e8f4f8;
+    border-left: 4px solid #3498db;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Pencarian multi-kolom (Asesi, Asesor, Admin LSP) */
+.search-form.cari-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+    margin-bottom: 0;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #f6f9ff 0%, #eef3fb 100%);
+    border: 1px solid #dce4f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(36, 54, 94, 0.06);
+}
+
+.cari-grid-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1 1 100%;
+}
+
+.cari-grid-fields .TBS-form-group,
+.cari-grid-fields .form-group {
+    flex: 1 1 180px;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.cari-grid-fields label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #24365e;
+}
+
+.cari-grid-fields .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #c5d0e0;
+    border-radius: 10px;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cari-grid-fields .form-control:focus {
+    border-color: #4186e0;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(65, 134, 224, 0.15);
+}
+
+.search-form.cari-grid .cari-actions,
+.search-form.cari-grid .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+    width: 100%;
+}
+
+.search-form.cari-grid .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 20px;
+    background: #4186e0;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.search-form.cari-grid .btn-primary:hover {
+    background: #2761ba;
+}
+
+.search-form.cari-grid .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 18px;
+    background: #95a5a6;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.search-form.cari-grid .btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.TBS-search-box {
+    margin-bottom: 24px;
+}
+
+/* --- Tabel: garis desktop --- */
+@media screen and (min-width: 769px) {
+    table.responsive-cards tbody tr:last-child td,
+    .konten-user table tbody tr:last-child td,
+    .s-container table tbody tr:last-child td {
+        border-bottom: none;
+    }
+}
+
+/* --- Tabel: kartu mobile --- */
+@media screen and (max-width: 768px) {
+    .cari {
+        flex-direction: column;
+        padding: 12px;
+    }
+
+    .cari.cari--actions-only {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cari-field {
+        flex: none;
+        width: 100%;
+    }
+
+    .cari select,
+    .cari .cari-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .cari-actions {
+        width: 100%;
+    }
+
+    .cari-actions .btn-cari,
+    .cari-actions .btn-reset,
+    .cari-actions button[type="submit"] {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .cari-grid-fields {
+        flex-direction: column;
+    }
+
+    .cari-grid-fields .TBS-form-group,
+    .cari-grid-fields .form-group {
+        flex: none;
+        width: 100%;
+    }
+
+    .search-form.cari-grid .cari-actions .btn-primary,
+    .search-form.cari-grid .cari-actions .btn-secondary,
+    .search-form.cari-grid .btn-group button {
+        flex: 1;
+        min-width: 0;
+    }
+
+    table {
+        border: 0;
+    }
+
+    table thead {
+        display: none;
+    }
+
+    table tbody {
+        display: block;
+    }
+
+    table tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff !important;
+        overflow: hidden;
+    }
+
+    table td {
+        display: block;
+        text-align: right;
+        border: none;
+        border-bottom: 1px solid #e8ecf1;
+        padding: 10px 12px 10px 50%;
+        position: relative;
+        box-sizing: border-box;
+    }
+
+    table td:not(.aksi) {
+        border-bottom: 1px solid #e8ecf1;
+    }
+
+    table td.aksi {
+        border-bottom: none;
+        border-top: 1px solid #dce4f0;
+        text-align: center !important;
+        padding: 14px 10px !important;
+        padding-left: 10px !important;
+        background: #fafbfd;
+    }
+
+    table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 12px;
+        width: 45%;
+        font-weight: bold;
+        text-align: left;
+        color: #24365e;
+        font-size: 13px;
+    }
+
+    table td.aksi:before,
+    .aksi:before {
+        display: none;
+    }
+
+    .aksi a {
+        display: inline-block;
+        margin: 5px 3px;
+    }
+}
