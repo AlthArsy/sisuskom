@@ -1,0 +1,239 @@
+.sisuskom-bot {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1200;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.sisuskom-bot-toggle {
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e88e5, #1565c0);
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(21, 101, 192, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sisuskom-bot-toggle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 28px rgba(21, 101, 192, 0.45);
+}
+
+.sisuskom-bot-panel {
+    position: absolute;
+    right: 0;
+    bottom: 76px;
+    width: 340px;
+    max-width: calc(100vw - 32px);
+    height: 460px;
+    max-height: calc(100vh - 120px);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: sisuskom-bot-slide-up 0.25s ease;
+}
+
+.sisuskom-bot-panel[hidden] {
+    display: none;
+}
+
+@keyframes sisuskom-bot-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sisuskom-bot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #1e88e5, #1565c0);
+    color: #fff;
+}
+
+.sisuskom-bot-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sisuskom-bot-header-info strong {
+    display: block;
+    font-size: 14px;
+}
+
+.sisuskom-bot-header-info small {
+    display: block;
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+.sisuskom-bot-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sisuskom-bot-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+}
+
+.sisuskom-bot-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f5f7fb;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sisuskom-bot-message {
+    display: flex;
+}
+
+.sisuskom-bot-message-user {
+    justify-content: flex-end;
+}
+
+.sisuskom-bot-message-bot {
+    justify-content: flex-start;
+}
+
+.sisuskom-bot-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.sisuskom-bot-message-user .sisuskom-bot-bubble {
+    background: #1e88e5;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.sisuskom-bot-message-bot .sisuskom-bot-bubble {
+    background: #fff;
+    color: #333;
+    border: 1px solid #e3e8f0;
+    border-bottom-left-radius: 4px;
+}
+
+.sisuskom-bot-bubble em {
+    font-style: italic;
+    color: #555;
+}
+
+.sisuskom-bot-form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid #e8edf5;
+    background: #fff;
+}
+
+.sisuskom-bot-form input {
+    flex: 1;
+    border: 1px solid #d5dce8;
+    border-radius: 24px;
+    padding: 10px 14px;
+    font-size: 13px;
+    outline: none;
+}
+
+.sisuskom-bot-form input:focus {
+    border-color: #1e88e5;
+    box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.15);
+}
+
+.sisuskom-bot-form button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #1e88e5;
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.sisuskom-bot-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sisuskom-bot-typing {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    min-height: 18px;
+}
+
+.sisuskom-bot-typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #90a4ae;
+    animation: sisuskom-bot-bounce 1.2s infinite ease-in-out;
+}
+
+.sisuskom-bot-typing span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.sisuskom-bot-typing span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes sisuskom-bot-bounce {
+    0%, 80%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .sisuskom-bot {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .sisuskom-bot-panel {
+        width: calc(100vw - 32px);
+        height: 70vh;
+    }
+}

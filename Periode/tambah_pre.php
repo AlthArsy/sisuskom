@@ -1,6 +1,6 @@
 <?php
-
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_lsp') {
+//megic , dari validator ini an
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_lsp' && $_SESSION['role'] !== 'Admin_utm') {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -16,37 +16,28 @@ $message_type = '';
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
-    $username = mysqli_real_escape_string($koneksi, $_POST['username']);
-    $noreg = mysqli_real_escape_string($koneksi, $_POST['noreg']);
+    $tahun_ajaran = mysqli_real_escape_string($koneksi, $_POST['tahun_ajaran']);
 
 
     $errors = [];
 
-    if (empty($username)) {
-        $errors[] = "Username harus diisi";
+    if (empty($tahun_ajaran)) {
+        $errors[] = "Tahun Ajaran harus diisi";
     }
 
-    if (empty($noreg)) {
-        $errors[] = "No Reg harus diisi"; 
-    }
-
-    if (strlen($username) > 64) {
-        $errors[] = "Username maksimal 64 karakter";
-    }
-
-    if (strlen($noreg) > 255) {
-        $errors[] = "No Reg terlalu panjang";
+    if (strlen($tahun_ajaran) > 64) {
+        $errors[] = "Tahun Ajaran maksimal 64 karakter";
     }
 
 
-    $check_sql = "SELECT id_validator FROM tb_validator WHERE username = ?";
+    $check_sql = "SELECT id_periode FROM tb_periode WHERE tahun_ajaran = ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "s", $username);
+    mysqli_stmt_bind_param($check_stmt, "s", $tahun_ajaran);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
 
     if (mysqli_stmt_num_rows($check_stmt) > 0) {
-        $errors[] = "Username sudah digunakan, silakan pilih username lain";
+        $errors[] = "Tahun Ajaran sudah digunakan, silakan pilih tahun ajaran lain";
     }
     mysqli_stmt_close($check_stmt);
 
@@ -54,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
     if (empty($errors)) {
 
         if (empty($errors)) {
-            $insert_sql = "INSERT INTO tb_validator (username, noreg) VALUES (?, ?)";
+            $insert_sql = "INSERT INTO tb_periode (tahun_ajaran) VALUES (?)";
             $insert_stmt = mysqli_prepare($koneksi, $insert_sql);
 
             if ($insert_stmt) {
-                mysqli_stmt_bind_param($insert_stmt, "ss", $username, $noreg);
+                mysqli_stmt_bind_param($insert_stmt, "s", $tahun_ajaran);
                 try {
                     if (mysqli_stmt_execute($insert_stmt)) {
-                        $message = "User baru berhasil ditambahkan!";
+                        $message = "Tahun ajaran baru berhasil ditambahkan!";
                         $message_type = 'success';
 
 
@@ -72,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                     if (strpos($e->getMessage(), 'Data truncated for column') !== false) {
                         $message = "Error: Nilai role tidak valid untuk database. Silakan pilih role yang sesuai.";
                     } else {
-                        $message = "Gagal menambahkan user: " . $e->getMessage();
+                        $message = "Gagal menambahkan tahun ajaran: " . $e->getMessage();
                     }
                     $message_type = 'error';
                 }
@@ -114,40 +105,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
         <div class="form-container">
             <form method="post" action="" id="tambahUserForm">
                 <div class="form-group">
-                    <label for="username" class="required">
-                        <i class="fas fa-user"></i> Username
+                    <label for="tahun_ajaran" class="required">
+                        <i class="fas fa-calendar-alt"></i> Tahun Ajaran
                     </label>
                     <input type="text"
-                           id="username"
-                           name="username"
-                           value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
+                           id="tahun_ajaran"
+                           name="tahun_ajaran"
+                           value="<?php echo htmlspecialchars($_POST['tahun_ajaran'] ?? ''); ?>"
                            required
-                           maxlength="100"
-                           placeholder="Masukkan username">
-                    <span class="form-hint">Username harus unik dan maksimal 100 karakter</span>
+                           maxlength="40"
+                           placeholder="Masukkan tahun ajaran">
+                    <span class="form-hint">Tahun ajaran harus unik dan maksimal 40 karakter</span>
                 </div>
-
-                <div class="form-group">
-                    <label for="noreg" class="required">
-                        <i class="fas fa-lock"></i> No Reg
-                    </label>
-                    <input type="text"
-                           id="noreg"
-                           name="noreg"
-                           value="<?php echo htmlspecialchars($_POST['noreg'] ?? ''); ?>"
-                           required
-                           maxlength="30"
-                           placeholder="Masukkan No Reg">
-                    <span class="form-hint">No Reg harus unik dan maksimal 30 karakter untuk validator</span>
-                    <div id="password-strength" class="password-strength"></div>
-                </div>
-
                 <div class="btn-container">
-                    <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/validator.php" class="btn btn-secondary">
+                    <a href="../BERANDA/UTAMA.php?page=../Periode/periode.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="tambah" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Tambah User
+                        <i class="fas fa-plus"></i> Tambah Tahun Ajaran
                     </button>
                 </div>
             </form>
@@ -156,23 +131,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
     <script>
         document.getElementById('tambahUserForm').addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value.trim();
-            const noreg = document.getElementById('noreg').value.trim();
+            const tahun_ajaran = document.getElementById('tahun_ajaran').value.trim();
 
             let errors = [];
 
-            if (!username) {
-                errors.push('Username harus diisi');
-            } else if (username.length > 64) {
-                errors.push('Username maksimal 64 karakter');
+            if (!tahun_ajaran) {
+                errors.push('Tahun ajaran harus diisi');
+            } else if (tahun_ajaran.length > 40) {
+                errors.push('Tahun ajaran maksimal 40 karakter');
             }
-
-            if (!noreg) {
-                errors.push('No Reg harus diisi');
-            } else if (noreg.length > 255) {
-                errors.push('No Reg terlalu panjang');
-            }
-
 
             if (errors.length > 0) {
                 e.preventDefault();

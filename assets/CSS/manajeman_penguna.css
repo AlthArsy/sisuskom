@@ -63,7 +63,7 @@ tr:nth-child(odd) {
 .btn-kembali {
     display: inline-block;
     padding: 7px 18px;
-    background: #95a5a6;
+    background: #14477a;
     color: white;
     text-decoration: none;
     border-radius: 5px;
@@ -71,7 +71,7 @@ tr:nth-child(odd) {
 }
 
 .btn-kembali:hover {
-    background: #7f8c8d;
+    background: #222575;
 }
 
 .message {

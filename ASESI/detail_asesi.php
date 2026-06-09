@@ -56,7 +56,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         .detail-container {max-width: 1200px;margin: 30px auto;padding: 0 20px;}
         .detail-header {text-align: center;margin-bottom: 30px;padding-bottom: 20px;border-bottom: 2px solid #007bff;}
         .detail-header h1 {font-size: 2.2em;color: #2c3e50;margin-bottom: 10px;}
-        .detail-header p {font-size: 1.1em;color: #7f8c8d;}
+        .detail-header p {font-size: 1.1em;color: #222575;}
         .user-info {background-color: #fff;padding: 15px;border-radius: 8px;margin-bottom: 20px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);display: flex;justify-content: space-between;align-items: center;}
         .user-info span {font-weight: 600;color: #2c3e50;}
         .alert {padding: 15px 20px;margin-bottom: 20px;border-radius: 6px;font-weight: 500;}

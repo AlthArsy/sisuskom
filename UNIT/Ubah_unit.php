@@ -175,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
                 <div class="button-group">
                     <a href="../BERANDA/UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?php echo $unit_data['id_skema']; ?>" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="update" class="btn btn-primary">
                         <i class="fas fa-save"></i> Simpan Perubahan

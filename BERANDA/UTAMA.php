@@ -32,10 +32,15 @@ $roles_data = [
         'role_desc' => 'Administrator Utama',
         'menu' => [
             [
-                'href' => '../BERANDA/UTAMA.php',
+                'href' => 'UTAMA.php',
                 'icon' => 'fas fa-home',
                 'label' => 'Dashboard',
                 'active' => true
+            ],
+            [
+                'href' => '../Periode/periode.php',
+                'icon' => 'fas fa-calendar',
+                'label' => 'Manajemen Periode'
             ],
             [
                 'href' => '../MANAGEMENT/tampil2.php',
@@ -102,6 +107,11 @@ $roles_data = [
                             'href' => '../list/rekap_ia06.php',
                             'icon' => 'fas fa-user-graduate',
                             'label' => 'Rekap FR IA06C'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak05.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK05'
                         ]
                 ]
             ],
@@ -114,10 +124,15 @@ $roles_data = [
         'role_desc' => 'Administrator LSP',
         'menu' => [
             [
-                'href' => '../BERANDA/UTAMA.php',
+                'href' => 'UTAMA.php',
                 'icon' => 'fas fa-home',
                 'label' => 'Dashboard',
                 'active' => true
+            ],
+            [
+                'href' => '../MANAGEMENT/tampil2.php',
+                'icon' => 'fas fa-users',
+                'label' => 'Manajemen User'
             ],
             [
                 'href' => '../MANAGEMENT/validator.php',
@@ -140,6 +155,11 @@ $roles_data = [
                 'label' => 'Manajemen Skema',
                 'has_dropdown' => true,
                 'submenu' => [
+                    [
+                        'href' => '../SKEMA/list_skema.php',
+                        'icon' => 'fas fa-book',
+                        'label' => 'Kelola Skema'
+                    ],
                     [
                         'href' => '../SKEMA/list_skema2.php',
                         'icon' => 'fas fa-tasks',
@@ -187,6 +207,11 @@ $roles_data = [
                             'href' => '../list/rekap_ia06.php',
                             'icon' => 'fas fa-user-graduate',
                             'label' => 'Rekap FR IA06C'
+                        ],
+                        [
+                            'href' => '../list/rekap_ak05.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK05'
                         ]
                 ]
             ],
@@ -257,8 +282,18 @@ $roles_data = [
                             'href' => '../list/rekap_ia06.php',
                             'icon' => 'fas fa-user-graduate',
                             'label' => 'Rekap FR IA06C'
-                        ]   
+                        ],
+                        [
+                            'href' => '../list/rekap_ak05.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR AK05'
+                        ]
                 ]
+            ],
+            [
+                'href' => '../FR_APL/FR_AK05.php',
+                'icon' => 'fas fa-file-alt',
+                'label' => 'FR AK05 Laporan'
             ],
             [
                 'href' => '../list/soal_ia06a.php',
@@ -295,6 +330,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $allowed_pages = [
     'UTAMA.php',
     '../MANAGEMENT/tampil2.php',
+    '../Periode/periode.php',
+    '../Periode/tambah_pre.php',
+    '../Periode/ubah_pre.php',
+    '../Periode/hapus_pre.php',
 //skema
     '../SKEMA/list_skema.php',
     '../SKEMA/list_skema2.php',
@@ -354,6 +393,7 @@ $allowed_pages = [
     '../list/rekap_ia1.php',
     '../list/rekap_ak3.php',
     '../list/rekap_ia06.php',
+    '../list/rekap_ak05.php',
 //frapl
     '../FR_APL/FR_APL1.php',
     '../FR_APL/FR_APL02.php',
@@ -363,6 +403,7 @@ $allowed_pages = [
     '../FR_APL/FR_IA06C.php',
     '../FR_APL/FR_IA06A.php',
     '../FR_APL/FR_AK02.php',
+    '../FR_APL/FR_AK05.php',
 //lainnya
     '../Admin_lsp/Table_admin_lsp.php',
     '../Admin_lsp/edit_admin_lsp.php',
@@ -606,5 +647,8 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
 
         initSidebar();
     </script>
+    <?php if (in_array($role, ['Admin_utm', 'Admin_lsp', 'Asesor'], true)): ?>
+        <?php include '../bot/widget.php'; ?>
+    <?php endif; ?>
 </body>
 </html>

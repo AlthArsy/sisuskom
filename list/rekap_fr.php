@@ -3,6 +3,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/rekap_helpers.php';
 
 $role = $_SESSION['role'] ?? '';
 if (!in_array($role, ['Admin_lsp', 'Admin_utm'])) {
@@ -10,7 +11,11 @@ if (!in_array($role, ['Admin_lsp', 'Admin_utm'])) {
     exit;
 }
 
-// Hanya Admin_lsp yang boleh melakukan update
+$base = '../BERANDA/UTAMA.php';
+$p      = rekap_params();
+$filter = $_POST['_filter'] ?? $p['filter'];
+$cari   = $_POST['_cari'] ?? $p['cari'];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi'])) {
     if ($role !== 'Admin_lsp') {
         header("Location: {$base}?page=../list/rekap_fr.php&error=forbidden");
@@ -29,17 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi'])
     }
     mysqli_stmt_execute($stmt);
 
-    $filter_param = isset($_GET['filter']) ? '&filter=' . urlencode($_GET['filter']) : '';
-    header("Location: {$base}?page=../list/rekap_fr.php{$filter_param}");
+    header("Location: {$base}?page=../list/rekap_fr.php&" . rekap_qs($filter, $cari));
     exit;
 }
 
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'semua';
-
-$where = "WHERE 1=1";
-if ($filter === 'belum')    $where .= " AND (a.rekomendasi IS NULL OR a.rekomendasi = '')";
-if ($filter === 'diterima') $where .= " AND a.rekomendasi = 'Diterima'";
-if ($filter === 'ditolak')  $where .= " AND a.rekomendasi = 'Tidak Diterima'";
+$where = "WHERE 1=1"
+    . rekap_sql_filter_status($filter, 'apl1')
+    // . rekap_sql_batas_2bulan('a.tanggal_pemohon')
+    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 'a.judul_skema', 'a.nomor_skema']);
 
 $sql = "SELECT a.id_apl1, a.id_asesi, a.judul_skema, a.nomor_skema,
                a.nama_pemohon, a.tanggal_pemohon, a.rekomendasi, a.catatan_admin,
@@ -51,115 +53,69 @@ $sql = "SELECT a.id_apl1, a.id_asesi, a.judul_skema, a.nomor_skema,
 
 $result = mysqli_query($koneksi, $sql);
 $rows   = [];
-while ($r = mysqli_fetch_assoc($result)) $rows[] = $r;
-$total  = count($rows);
+while ($r = mysqli_fetch_assoc($result)) {
+    $rows[] = $r;
+}
+$total = count($rows);
 
-$total_all     = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1"))['c'] ?? 0;
-$total_belum   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1 WHERE rekomendasi IS NULL OR rekomendasi=''"))['c'] ?? 0;
-$total_terima  = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1 WHERE rekomendasi='Diterima'"))['c'] ?? 0;
-$total_tolak   = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) c FROM tb_apl1 WHERE rekomendasi='Tidak Diterima'"))['c'] ?? 0;
+$cnt_base = "SELECT COUNT(*) c FROM tb_apl1 a
+             LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
+             WHERE 1=1"
+    // . rekap_sql_batas_2bulan('a.tanggal_pemohon')
+    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 'a.judul_skema', 'a.nomor_skema']);
 
-$base = '../BERANDA/UTAMA.php';
+$total_all    = rekap_count($koneksi, $cnt_base);
+$total_belum  = rekap_count($koneksi, $cnt_base . " AND (a.rekomendasi IS NULL OR a.rekomendasi='')");
+$total_terima = rekap_count($koneksi, $cnt_base . " AND a.rekomendasi='Diterima'");
+$total_tolak  = rekap_count($koneksi, $cnt_base . " AND a.rekomendasi='Tidak Diterima'");
+$total_selesai = rekap_count($koneksi, $cnt_base . " AND a.rekomendasi IS NOT NULL AND a.rekomendasi != ''");
+
+$qs = fn($f) => rekap_qs($f, $cari);
 ?>
-<style>
-    .rekap-wrap { padding: 10px 4px; font-family: Arial, sans-serif; }
-    .rekap-title { font-size: 20px; font-weight: bold; color: #1a237e; margin-bottom: 18px; }
-    .rekap-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-    .rekap-card {
-        flex: 1; min-width: 130px;
-        border-radius: 8px; padding: 14px 16px;
-        text-align: center; cursor: pointer;
-        text-decoration: none; display: block;
-        border: 2px solid transparent;
-        transition: border 0.15s;
-    }
-    .rekap-card:hover { border-color: #4A7AFF; }
-    .rekap-card.active { border-color: #4A7AFF !important; }
-    .rekap-card .num { font-size: 26px; font-weight: bold; }
-    .rekap-card .lbl { font-size: 12px; margin-top: 2px; }
-    .card-semua { background: #e8eaf6; color: #1a237e; }
-    .card-belum { background: #fff8e1; color: #e65100; }
-    .card-diterima { background: #e8f5e9; color: #2e7d32; }
-    .card-ditolak { background: #fce4ec; color: #c62828; }
-    .rekap-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .rekap-table th {
-        background: #cadbfc; padding: 9px 10px;
-        border: 1px solid #b0bec5; text-align: center;
-    }
-    .rekap-table td {
-        padding: 8px 10px; border: 1px solid #ddd; vertical-align: middle;
-    }
-    .rekap-table tr:hover td { background: #f5f7ff; }
-    .badge {
-        display: inline-block; padding: 2px 10px;
-        border-radius: 20px; font-size: 11px; font-weight: bold;
-    }
-    .badge-belum { background: #fff8e1; color: #e65100; border: 1px solid #ffe082; }
-    .badge-diterima { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-    .badge-ditolak { background: #fce4ec; color: #c62828; border: 1px solid #f48fb1; }
-    .radio-group { margin-bottom: 6px; }
-    .radio-group label { margin-right: 12px; font-size: 12px; cursor: pointer; }
-    .komentar-textarea {
-        width: 180px; padding: 5px; font-size: 11px;
-        border-radius: 4px; border: 1px solid #ccc;
-        resize: vertical; margin: 5px 0;
-    }
-    .btn-update {
-        background: #f35555; color: white; border: none;
-        padding: 5px 12px; border-radius: 4px; font-size: 11px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-    }
-    .btn-lihat, .btn-cetak {
-        background: #4A7AFF; color: white; border: none;
-        padding: 5px 12px; border-radius: 4px; font-size: 11px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 5px;
-    }
-    .btn-cetak { background: #28a745; }
-    .btn-update:hover { background: #8f4646; }
-    .btn-lihat:hover { background: #325fd6; }
-    .btn-cetak:hover { background: #1e7e34; }
-    .aksi-form { display: contents; }
-    @media (max-width: 700px) {
-        .komentar-textarea { width: 130px; }
-        .rekap-table { font-size: 11px; }
-    }
-</style>
+<link rel="stylesheet" href="../assets/CSS/rekap-shared.css">
 
 <div class="rekap-wrap">
     <div class="rekap-title">Rekap APL 1 — Formulir Permohonan Sertifikasi Kompetensi</div>
 
+    <?php rekap_render_cari($base, '../list/rekap_fr.php', $filter, $cari); ?>
+
     <div class="rekap-cards">
-        <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=semua"
-           class="rekap-card card-semua <?= $filter==='semua'?'active':'' ?>">
+        <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('semua') ?>"
+           class="rekap-card card-semua <?= $filter === 'semua' ? 'active' : '' ?>">
             <div class="num"><?= $total_all ?></div>
             <div class="lbl">Total Pengajuan</div>
         </a>
-        <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=belum"
-           class="rekap-card card-belum <?= $filter==='belum'?'active':'' ?>">
+        <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('belum') ?>"
+           class="rekap-card card-belum <?= $filter === 'belum' ? 'active' : '' ?>">
             <div class="num"><?= $total_belum ?></div>
             <div class="lbl">Belum Diproses</div>
         </a>
-        <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=diterima"
-           class="rekap-card card-diterima <?= $filter==='diterima'?'active':'' ?>">
+        <!-- <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('selesai') ?>"
+           class="rekap-card card-selesai <?= $filter === 'selesai' ? 'active' : '' ?>">
+            <div class="num"><?= $total_selesai ?></div>
+            <div class="lbl">Sudah Diproses</div>
+        </a> -->
+        <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('diterima') ?>"
+           class="rekap-card card-diterima <?= $filter === 'diterima' ? 'active' : '' ?>">
             <div class="num"><?= $total_terima ?></div>
             <div class="lbl">Diterima</div>
         </a>
-        <a href="<?= $base ?>?page=../list/rekap_fr.php&filter=ditolak"
-           class="rekap-card card-ditolak <?= $filter==='ditolak'?'active':'' ?>">
+        <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('ditolak') ?>"
+           class="rekap-card card-ditolak <?= $filter === 'ditolak' ? 'active' : '' ?>">
             <div class="num"><?= $total_tolak ?></div>
             <div class="lbl">Tidak Diterima</div>
         </a>
     </div>
 
     <?php if (empty($rows)): ?>
-        <div class="empty-msg">Tidak ada data untuk filter ini.</div>
+        <div class="empty-msg">
+            Tidak ada data untuk filter ini.
+            <?php if ($cari !== ''): ?>
+                <br>Coba kata kunci lain atau <a href="<?= $base ?>?page=../list/rekap_fr.php&<?= $qs('semua') ?>">reset pencarian</a>.
+            <?php endif; ?>
+        </div>
     <?php else: ?>
-    <div style="overflow-x:auto;">
+    <div class="rekap-table-wrap">
         <table class="rekap-table">
             <thead>
                 <tr>
@@ -174,7 +130,7 @@ $base = '../BERANDA/UTAMA.php';
             </thead>
             <tbody>
                 <?php foreach ($rows as $i => $r): ?>
-                <?php 
+                <?php
                     $is_belum = (is_null($r['rekomendasi']) || $r['rekomendasi'] === '');
                     $is_admin_utm = ($role === 'Admin_utm');
                 ?>
@@ -182,16 +138,18 @@ $base = '../BERANDA/UTAMA.php';
                 <form method="post" class="aksi-form">
                     <input type="hidden" name="id_apl1" value="<?= $r['id_apl1'] ?>">
                     <input type="hidden" name="update_rekomendasi" value="1">
+                    <input type="hidden" name="_filter" value="<?= htmlspecialchars($filter, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="_cari" value="<?= htmlspecialchars($cari, ENT_QUOTES, 'UTF-8') ?>">
                 <?php endif; ?>
                 <tr>
-                    <td style="text-align:center;"><?= $i + 1 ?></td>
-                    <td><?= htmlspecialchars($r['nama_asesi'] ?? $r['nama_pemohon']) ?></td>
-                    <td>
+                    <td data-label="No." style="text-align:center;"><?= $i + 1 ?></td>
+                    <td data-label="Nama Asesi"><?= htmlspecialchars($r['nama_asesi'] ?? $r['nama_pemohon']) ?></td>
+                    <td data-label="Skema">
                         <?= htmlspecialchars($r['judul_skema']) ?>
-                        <div style="font-size:11px; color:#888;">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
+                        <div class="rekap-skema-sub">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
                     </td>
-                    <td style="text-align:center;"><?= htmlspecialchars($r['tanggal_pemohon']) ?></td>
-                    <td style="text-align:center;">
+                    <td data-label="Tanggal Submit" style="text-align:center;"><?= htmlspecialchars($r['tanggal_pemohon']) ?></td>
+                    <td data-label="Status Rekomendasi" style="text-align:center;">
                         <?php if ($is_belum): ?>
                             <span class="badge badge-belum">Belum Diproses</span>
                         <?php elseif ($r['rekomendasi'] === 'Diterima'): ?>
@@ -200,17 +158,15 @@ $base = '../BERANDA/UTAMA.php';
                             <span class="badge badge-ditolak">Tidak Diterima</span>
                         <?php endif; ?>
                     </td>
-                    <td style="max-width:200px;">
-                        <?php if ($is_admin_utm): ?>
+                    <td data-label="Komentar Admin" style="max-width:200px;">
+                        <?php if ($is_admin_utm || !$is_belum): ?>
                             <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
-                        <?php elseif ($is_belum): ?>
-                            <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
-                            <textarea name="catatan" class="komentar-textarea" placeholder="Komentar admin (opsional)"><?= htmlspecialchars($r['catatan_admin'] ?? '') ?></textarea>
                         <?php else: ?>
                             <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
+                            <textarea name="catatan" class="komentar-textarea" placeholder="Komentar admin (opsional)"><?= htmlspecialchars($r['catatan_admin'] ?? '') ?></textarea>
                         <?php endif; ?>
                     </td>
-                    <td style="text-align:left;">
+                    <td data-label="Aksi" class="rekap-aksi" style="text-align:left;">
                         <?php if ($is_admin_utm): ?>
                             <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">Lihat</a>
                             <a class="btn-cetak" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&print=1&id_asesi=<?= $r['id_asesi'] ?>" target="_blank">Cetak</a>
@@ -241,8 +197,6 @@ $base = '../BERANDA/UTAMA.php';
             </tbody>
         </table>
     </div>
-    <div style="font-size:12px; color:#888; margin-top:8px;">
-        Menampilkan <?= $total ?> data
-    </div>
+    <div class="rekap-foot">Menampilkan <?= $total ?> data</div>
     <?php endif; ?>
 </div>

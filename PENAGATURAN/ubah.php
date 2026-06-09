@@ -59,9 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         $errors[] = "Username harus diisi";
     }
 
-    if (empty($password)) {
-        $errors[] = "Password harus diisi";
-    }
+    // if (empty($password)) {
+    //     $errors[] = "Password harus diisi";
+    // }
 
     if (empty($role)) {
         $errors[] = "Role harus dipilih";
@@ -83,12 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     if (empty($errors)) {
 
         if (!empty($password) && $password !== $user_data['password']) {
-
-            $password_hashed = $password;
+            $password_hashed = md5($password);
         } else {
-            $password_hashed = $password;
+            $password_hashed = $user_data['password'];
         }
-
+        
         $update_sql = "UPDATE users SET username = ?, password = ?, role = ? WHERE id_user = ?";
         $update_stmt = mysqli_prepare($koneksi, $update_sql);
 
@@ -159,15 +158,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                     </div>
 
                     <div class="form-group">
-                        <label for="password" class="required">
+                        <label for="password" >
                             <i class="fas fa-lock"></i> Password
                         </label>
-                        <input type="text"
-                               id="password"
-                               name="password"
-                               value="<?php echo htmlspecialchars($user_data['password']); ?>"
-                               required>
-                        <span class="form-hint">Password untuk login user</span>
+                        <input type="text" id="password" name="password" value="" placeholder="Isi jika ingin mengganti password">
+                        <span class="form-hint">Kosongkan jika tidak ingin mengubah password user</span>
                     </div>
 
                     <div class="form-group">
@@ -176,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                         </label>
                         <select id="role" name="role" required>
                             <option value="">Pilih Role</option>
-                            <option value="Admin" <?php echo ($user_data['role'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
+                            <option value="Admin_lsp" <?php echo ($user_data['role'] == 'Admin_lsp') ? 'selected' : ''; ?>>Admin LSP</option>
                             <option value="Asesor" <?php echo ($user_data['role'] == 'Asesor') ? 'selected' : ''; ?>>Asesor</option>
                             <option value="Asesi"  <?php echo ($user_data['role'] == 'Asesi') ? 'selected' : ''; ?>>Asesi</option>
                         </select>
@@ -185,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
                     <div class="btn-container">
                         <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Batal
+                            <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                         <button type="submit" name="update" class="btn btn-primary">
                             <i class="fas fa-save"></i> Simpan Perubahan
@@ -219,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
         document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
             const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
+            // const password = document.getElementById('password').value.trim();
             const role = document.getElementById('role').value;
 
             let errors = [];
@@ -228,9 +223,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 errors.push('Username harus diisi');
             }
 
-            if (!password) {
-                errors.push('Password harus diisi');
-            }
+            // if (!password) {
+            //     errors.push('Password harus diisi');
+            // }
 
             if (!role) {
                 errors.push('Role harus dipilih');

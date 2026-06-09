@@ -90,7 +90,7 @@ function buildSearchUrl($params) {
             <?php if (!empty($search)): ?>
                 <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
                    class="btn-reset">
-                    <i class="fas fa-times"></i> Reset
+                    <i class="fas fa-undo"></i> Reset
                 </a>
             <?php endif; ?>
             <a href="../BERANDA/UTAMA.php?page=../PENAGATURAN/tambah-val-baru.php" class="Tambah">

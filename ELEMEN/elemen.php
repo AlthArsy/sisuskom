@@ -245,16 +245,16 @@ if (isset($result) && $result) {
                                     Tambah KuK
                                 </a>
                             <?php else: ?>
-                                <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>"
+                                <!-- <a href="UTAMA.php?page=../KUK/From_kuk.php&id_elemen=<?= $row['id_elemen'] ?>"
                                    class="btn-elemen-badge"
                                    style="background-color: <?= $color ?>; border-color: <?= $color ?>;"
                                    title="Tambah KUK">
                                     <i class="fas fa-plus"></i>
-                                </a>
+                                </a> -->
                                 <a href="UTAMA.php?page=../KUK/KUK.php&id_elemen=<?= $row['id_elemen'] ?>"
                                    class="btn-lihat-elemen"
                                    title="Lihat KUK">
-                                    Lihat
+                                    Lihat Kuk
                                 </a>
                             <?php endif; ?>
                         </td>

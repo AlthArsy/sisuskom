@@ -26,11 +26,18 @@ $is_asesi = ($role === 'Asesi');
 $action = $_GET['action'] ?? '';
 $mode_lihat = isset($_GET['view']) && $_GET['view'] == 1;
 
+$asesi = null;
+if ($id_asesi) {
+    $asesi = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT * FROM tb_asesi WHERE id_asesi='{$id_asesi}' LIMIT 1"));
+}
+$nama_asesi_db  = $asesi['nama_asesi'] ?? '';
 
 $nama_admin_lsp = '';
+$nama_asesi = '';
 $id_user_session = intval($_SESSION['id_user'] ?? 0);
 
-if ($role === 'Admin_lsp' && $id_user_session) {
+if ($role === 'Admin_lsp' || $role === 'Asesi' && $id_user_session) {   
     $r = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT a.nama_admin FROM users u
          JOIN tb_admin a ON a.id_admin = u.id_admin
@@ -48,6 +55,7 @@ if (empty($nama_admin_lsp)) {
          ORDER BY a.id_admin ASC LIMIT 1"));
     $nama_admin_lsp = $r['nama_admin'] ?? '-';
 }
+
 
 $res_bd = false;
 $res_ba = false;
@@ -96,7 +104,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi_rekomendasi'])) 
          SET rekomendasi=" . ($rek ? "'$rek'" : "NULL") . ",
              catatan_admin=" . ($cat ? "'$cat'" : "NULL") . "
          WHERE id_apl1 = '$id_apl1_upd'");
-    echo "<script>alert('Rekomendasi berhasil diperbarui!'); window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_fr.php';</script>";
+
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    header('Location: ../BERANDA/UTAMA.php?page=' . urlencode('../list/rekap_fr.php'));
     exit;
 }
 
@@ -108,8 +120,13 @@ $is_admin_utm   = ($role === 'Admin_utm');
 $is_admin       = ($role === 'Admin_lsp' || $role === 'Admin_utm');
 // $is_view_only   = ($is_admin);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_skema = isset($_POST['id_skema']) ? intval($_POST['id_skema']) : 0;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi'])) {
+    $post_id_asesi = intval($_POST['id_asesi'] ?? 0);
+    if ($post_id_asesi > 0) {
+        $id_asesi = $post_id_asesi;
+    }
+
+    $id_skema = intval($_POST['id_skema'] ?? 0);
     $judul_skema = trim($_POST['judul_skema'] ?? '');
     $nomor_skema = trim($_POST['nomor_skema'] ?? '');
     $tujuan_asesmen = trim($_POST['tujuan_asesmen'] ?? '');
@@ -121,7 +138,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $kondisi_bd = $_POST['kondisi_bd'] ?? [];
     $kondisi_ba = $_POST['kondisi_ba'] ?? [];
 
-    if ($judul_skema && $nomor_skema && $tujuan_asesmen) {
+    $redirect_form = '../BERANDA/UTAMA.php?page=' . urlencode('../FR_APL/FR_APL1.php');
+    if ($id_asesi > 0) {
+        $redirect_form .= '&id_asesi=' . $id_asesi;
+    }
+
+    $errors = [];
+    if ($id_asesi <= 0) {
+        $errors[] = 'Data asesi tidak ditemukan. Silakan buka form dari menu Daftar Form.';
+    }
+    if ($id_skema <= 0) {
+        $errors[] = 'Pilih skema dari daftar dropdown (klik salah satu hasil pencarian), jangan hanya mengetik judul.';
+    }
+    if (!$judul_skema || !$nomor_skema) {
+        $errors[] = 'Judul dan nomor skema wajib diisi (pilih skema dari dropdown).';
+    }
+    if (!$tujuan_asesmen) {
+        $errors[] = 'Tujuan asesmen wajib dipilih.';
+    }
+    if (!$nama_pemohon) {
+        $errors[] = 'Nama pemohon wajib diisi.';
+    }
+    if (!$tanggal_pemohon) {
+        $errors[] = 'Tanggal pemohon wajib diisi.';
+    }
+
+    if (empty($errors)) {
         $a = fn($v) => mysqli_real_escape_string($koneksi, $v);
 
         $sql = "INSERT INTO tb_apl1
@@ -138,27 +180,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = mysqli_query($koneksi, $sql);
 
         if (!$result) {
-            $err = mysqli_error($koneksi);
-            echo "<script>alert('Gagal menyimpan!\\nError: " . addslashes($err) . "');</script>";
-        } else {
-            foreach ($kondisi_bd as $id_bd => $kondisi) {
-                $id_bd_i   = intval($id_bd);
-                $kond_esc  = mysqli_real_escape_string($koneksi, $kondisi);
-                mysqli_query($koneksi, "INSERT INTO tb_isi_bukti_dasar (id_bd, kondisi, id_asesi)
-                                        VALUES ('$id_bd_i','$kond_esc','$id_asesi')");
+            $_SESSION['alert'] = 'error|Gagal menyimpan: ' . mysqli_error($koneksi);
+            while (ob_get_level()) {
+                ob_end_clean();
             }
-            foreach ($kondisi_ba as $id_ba => $kondisi) {
-                $id_ba_i   = intval($id_ba);
-                $kond_esc  = mysqli_real_escape_string($koneksi, $kondisi);
-                mysqli_query($koneksi, "INSERT INTO tb_isi_bukti_adm (id_ba, kondisi, id_asesi)
-                                        VALUES ('$id_ba_i','$kond_esc','$id_asesi')");
-            }
-            echo "<script>alert('Formulir berhasil disimpan!'); window.location.href='../BERANDA/UTAMA.php?page=../list/list_form.php';</script>";
+            header('Location: ' . $redirect_form);
             exit;
         }
-    } else {
-        echo "<script>alert('Field bertanda * wajib diisi!');</script>";
+
+        foreach ($kondisi_bd as $id_bd => $kondisi) {
+            $id_bd_i  = intval($id_bd);
+            $kond_esc = mysqli_real_escape_string($koneksi, $kondisi);
+            mysqli_query($koneksi, "INSERT INTO tb_isi_bukti_dasar (id_bd, kondisi, id_asesi)
+                                    VALUES ('$id_bd_i','$kond_esc','$id_asesi')");
+        }
+        foreach ($kondisi_ba as $id_ba => $kondisi) {
+            $id_ba_i  = intval($id_ba);
+            $kond_esc = mysqli_real_escape_string($koneksi, $kondisi);
+            mysqli_query($koneksi, "INSERT INTO tb_isi_bukti_adm (id_ba, kondisi, id_asesi)
+                                    VALUES ('$id_ba_i','$kond_esc','$id_asesi')");
+        }
+
+        $_SESSION['alert'] = 'Formulir berhasil disimpan!';
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        header('Location: ../BERANDA/UTAMA.php?page=' . urlencode('../list/list_form.php'));
+        exit;
     }
+
+    $_SESSION['alert'] = 'error|' . implode(' ', $errors);
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    header('Location: ' . $redirect_form);
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -177,6 +233,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </head>
 <body>
+<?php if (!empty($_SESSION['alert'])):
+    $alert_msg = $_SESSION['alert'];
+    if (strpos($alert_msg, 'error|') === 0) {
+        $alert_msg = substr($alert_msg, 6);
+    }
+    unset($_SESSION['alert']);
+?>
+<script>alert('<?= addslashes($alert_msg) ?>');</script>
+<?php endif; ?>
 <?php if ($mode_lihat): ?>
 <div class="form-box">
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
@@ -329,26 +394,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </table>
         </div>
     </div>
+
     <div class="rekomendasi-box">
         <div class="rekomendasi-col">
+            <?php if ($role === 'Admin_lsp'): ?>
+            <form method="post" id="formRekomendasi">
+            <input type="hidden" name="aksi_rekomendasi" value="1">
+            <input type="hidden" name="id_apl1_upd" value="<?= $data_apl1['id_apl1'] ?>">
             <div class="col-title">Rekomendasi (diisi oleh LSP):</div>
             <div style="font-size:13px; margin-bottom:8px;">Berdasarkan ketentuan persyaratan dasar, maka pemohon :</div>
-            <div style="display:flex; gap:10px; margin-bottom:8px; pointer-events:none; opacity:0.8;">
-                <label style="font-size:13px;"><input type="radio" <?= $data_apl1['rekomendasi']==='Diterima' ? 'checked' : '' ?> disabled> Diterima</label>
-                <label style="font-size:13px;"><input type="radio" <?= $data_apl1['rekomendasi']==='Tidak Diterima' ? 'checked' : '' ?> disabled> Tidak Diterima</label>
+            <div style="display:flex; gap:10px; margin-bottom:8px;">
+                <label style="font-size:13px;"><input type="radio" name="rekomendasi" value="Diterima" <?= $data_apl1['rekomendasi']==='Diterima'?'checked':'' ?>> Diterima</label>
+                <label style="font-size:13px;"><input type="radio" name="rekomendasi" value="Tidak Diterima" <?= $data_apl1['rekomendasi']==='Tidak Diterima'?'checked':'' ?>> Tidak Diterima</label>
             </div>
             <div style="font-size:12px; color:#888; margin-bottom:8px;">sebagai peserta sertifikasi</div>
             <div>
                 <label class="small-text">Catatan :</label>
-                <textarea class="form-control" rows="3" readonly style="background:#f5f5f5;"><?= h($data_apl1['catatan_admin'] ?? '') ?></textarea>
+                <textarea name="catatan_admin" class="form-control" rows="3"><?= h($data_apl1['catatan_admin'] ?? '') ?></textarea>
             </div>
             <div style="margin-top:14px;">
                 <div class="col-title">Admin LSP :</div>
                 <div style="font-size:13px;"><b>Nama :</b> <span style="color:#1a237e;"><?= h($nama_admin_lsp) ?></span></div>
             </div>
-
-            <?php if ($is_admin_lsp): ?>
-            <div style="margin-top:16px; padding-top:12px; border-top:1px solid #ddd;">
+            </form>
+            <?php endif; ?>
+            <!-- <div style="margin-top:16px; padding-top:12px; border-top:1px solid #ddd;">
                 <div style="font-weight:bold; font-size:13px; color:#1a237e; margin-bottom:10px;">Ubah Rekomendasi</div>
                 <form method="post">
                     <input type="hidden" name="aksi_rekomendasi" value="1">
@@ -359,8 +429,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <textarea name="catatan_admin" class="form-control" rows="3" placeholder="Catatan..."
                     ><?= h($data_apl1['catatan_admin'] ?? '') ?></textarea>
-                    <button type="submit" class="btn-submit" style="margin-top:10px;">SIMPAN ✓</button>
                 </form>
+            </div> -->
+            <?php if ($role === 'Asesi'): ?>
+            <div class="col-title">Rekomendasi (diisi oleh LSP):</div>
+            <div style="font-size:13px; margin-bottom:8px;">Berdasarkan ketentuan persyaratan dasar, maka pemohon :</div>
+            <div style="display:flex; gap:10px; margin-bottom:8px; pointer-events:none; opacity:0.8;">
+                <label style="font-size:13px;"><input type="radio" <?= $data_apl1['rekomendasi']==='Diterima' ? 'checked' : '' ?> > Diterima</label>
+                <label style="font-size:13px;"><input type="radio" <?= $data_apl1['rekomendasi']==='Tidak Diterima' ? 'checked' : '' ?> > Tidak Diterima</label>
+            </div>
+            <div style="font-size:12px; color:#888; margin-bottom:8px;">sebagai peserta sertifikasi</div>
+            <div>
+                <label class="small-text">Catatan :</label>
+                <textarea class="form-control" rows="3"  style="background:#f5f5f5;"><?= h($data_apl1['catatan_admin'] ?? '') ?></textarea>
+            </div>
+            <div style="margin-top:14px;">
+                <div class="col-title">Admin LSP :</div>
+                <div style="font-size:13px;"><b>Nama :</b> <span style="color:#1a237e;"><?= h($nama_admin_lsp) ?></span></div>
             </div>
             <?php endif; ?>
         </div>
@@ -368,8 +453,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="rekomendasi-col">
             <div class="col-title">Pemohon/Kandidat :</div>
             <div style="margin-bottom:8px;">
-                <label class="small-text">Nama</label>
-                <input type="text" class="form-control" value="<?= h($data_apl1['nama_pemohon']) ?>" readonly style="background:#f5f5f5;">
+                <label class="small-text">Nama <span class="required">*</span></label>
+                <input type="text" name="nama_pemohon" id="nama_pemohon" class="form-control"
+                       placeholder="Nama Pemohon" oninput="scheduleQR()" value="<?= h($nama_asesi_db) ?>"
+                       <?= $is_asesi ? '' : '' ?>  readonly style="background:#f5f5f5;">
             </div>
             <div style="margin-bottom:12px;">
                 <label class="small-text">Tanggal</label>
@@ -390,6 +477,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/rekap_fr.php'">
             Kembali
         </button>
+        <button type="submit" form="formRekomendasi" class="btn-submit">SIMPAN ✓</button>
         <a href="../pdf/cetak_apl1.php?id_asesi=<?= $id_asesi ?>"
            target="_blank"
            class="btn-back"
@@ -404,20 +492,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </button>
     <?php endif; ?>
 </div>
-    <!-- <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
-        <button class="btn-back"
-            onclick="window.location.href='../BERANDA/UTAMA.php?page=../list/<?= $is_asesi ? 'list_form' : 'permohonan' ?>.php'">
-            Kembali
-        </button>
-    <a href="../pdf/cetak_apl1.php?id_asesi=<?= $id_asesi ?>" 
-       target="_blank"
-       class="btn-submit"
-       style="background:#1565c0; text-decoration:none;">
-       Cetak PDF
-    </a>
-    </div> -->
-    
-
     <?php endif; ?>
 </div>
 <?php else: ?>
@@ -599,12 +673,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div style="margin-top:14px;">
                 <div class="col-title">Admin LSP :</div>
-                <div style="font-size:13px;">
-                    <b>Nama :</b>
-                    <span id="nama-admin-lsp" style="color:#1a237e;">
-                        <?php echo htmlspecialchars($nama_admin_lsp); ?>
-                    </span>
-                </div>
+                <div style="font-size:13px;"><b>Nama :</b> <span style="color:#1a237e;"><?= h($nama_admin_lsp) ?></span></div>
             </div>
         </div>
 
@@ -613,29 +682,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="margin-bottom:8px;">
                 <label class="small-text">Nama <span class="required">*</span></label>
                 <input type="text" name="nama_pemohon" id="nama_pemohon" class="form-control"
-                       placeholder="Nama Pemohon" oninput="scheduleQR()"
-                       <?= $is_asesi ? '' : '' ?> required>
+                       placeholder="Nama Pemohon" oninput="scheduleQR()" value="<?= h($nama_asesi_db) ?>"
+                       <?= $is_asesi ? '' : '' ?>  readonly style="background:#f5f5f5;">
             </div>
             <div style="margin-bottom:12px;">
                 <label class="small-text">Tanggal <span class="required">*</span></label>
                 <input type="date" name="tanggal_pemohon" id="tanggal_pemohon" class="form-control"
                        onchange="scheduleQR()" required>
             </div>
-
-            <!-- <div class="qr-signature-box">
-                <div class="qr-title">QR Code</div>
-                <div id="qr-canvas">
-                    <div class="qr-placeholder" id="qr-placeholder">
-                        <span>Isi data dulu</span>
-                    </div>
-                </div>
-                <div id="qr-meta"  class="qr-meta"  style="display:none;"></div>
-                <div id="qr-badge" class="qr-badge"  style="display:none;">QR Siap Di-Scan</div>
-                <br>
-                <button type="button" id="btn-dl-qr" class="btn-dl-qr" onclick="downloadQR()">
-                    Download QR
-                </button>
-            </div> -->
         </div>
     </div>
 

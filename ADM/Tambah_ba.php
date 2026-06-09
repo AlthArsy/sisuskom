@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
                 <div class="btn-container">
                     <a href="../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php&id_skema=<?= (int) $id_skema_form ?>" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="tambah" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Tambah

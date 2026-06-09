@@ -35,7 +35,7 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
         if (strlen($user['password']) > 40) {
             $pass_ok = password_verify($password, $user['password']);
         } else {
-            $pass_ok = $password === $user['password'];
+            $pass_ok = md5($password) === $user['password'];
         }
 
         if ($pass_ok) {

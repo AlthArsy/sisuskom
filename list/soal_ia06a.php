@@ -256,7 +256,7 @@ while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
         </select>
         <button type="submit" class="btn btn-green">Buat</button>
         <button type="button" class="btn" style="background:#888;color:#fff;"
-                onclick="togglePanel()">Batal</button>
+                onclick="togglePanel()">Kembali</button>
     </form>
 </div>
 

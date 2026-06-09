@@ -442,7 +442,7 @@ small {display: block;margin-top: 5px;font-size: 12px;color: #718096;}
             <div class="btn-container">
                 <div>
                     <a href="../BERANDA/UTAMA.php?page=../ASESI/Table_asesi.php" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                 </div>
                 <div>

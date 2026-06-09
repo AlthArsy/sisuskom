@@ -210,7 +210,7 @@ if (isset($result) && $result) {
                     <th style="width: 50px;">No</th>
                     <th>Kode Unit</th>
                     <th>Judul Unit Kompetensi</th>
-                    <th style="width: 290px;">Aksi</th>
+                    <th style="width: 315px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>

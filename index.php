@@ -87,6 +87,7 @@ $routes = [
     'fr_apl/fr_ak01' => '/_obfuscated/FR_APL/FR_AK01.php',
     'fr_apl/fr_ak02' => '/_obfuscated/FR_APL/FR_AK02.php',
     'fr_apl/fr_ak03' => '/_obfuscated/FR_APL/FR_AK03.php',
+    'fr_apl/fr_ak05' => '/_obfuscated/FR_APL/FR_AK05.php',
     'fr_apl/fr_apl1' => '/_obfuscated/FR_APL/FR_APL1.php',
     'fr_apl/fr_apl02' => '/_obfuscated/FR_APL/FR_APL02.php',
     'fr_apl/fr_ia1' => '/_obfuscated/FR_APL/FR_IA1.php',
@@ -104,6 +105,7 @@ $routes = [
     'list/rekap_ak3' => '/_obfuscated/list/rekap_ak3.php',
     'list/rekap_ia1' => '/_obfuscated/list/rekap_ia1.php',
     'list/rekap_ia06' => '/_obfuscated/list/rekap_ia06.php',
+    'list/rekap_ak05' => '/_obfuscated/list/rekap_ak05.php',
     
     // MANAGEMENT
     'management/validator' => '/_obfuscated/MANAGEMENT/validator.php',
@@ -124,6 +126,7 @@ $routes = [
     'cetak/cetak_ak1' => '/_obfuscated/pdf/cetak_ak1.php',
     'cetak/cetak_ak2' => '/_obfuscated/pdf/cetak_ak2.php',
     'cetak/cetak_ak3' => '/_obfuscated/pdf/cetak_ak3.php',
+    'cetak/cetak_ak5' => '/_obfuscated/pdf/cetak_ak5.php',
     'cetak/cetak_apl1' => '/_obfuscated/pdf/cetak_apl1.php',
     'cetak/cetak_apl2' => '/_obfuscated/pdf/cetak_apl2.php',
     'cetak/cetak_ia1' => '/_obfuscated/pdf/cetak_ia1.php',

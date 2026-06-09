@@ -211,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['simpan'])) {
 
                 <div class="button-group">
                     <a href="UTAMA.php?page=../ELEMEN/elemen.php&id_unit=<?= $unit_data['id_unit'] ?>" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="simpan" class="btn btn-primary">
                         <i class="fas fa-save"></i> Simpan Semua Elemen

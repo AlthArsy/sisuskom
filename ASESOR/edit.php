@@ -371,7 +371,7 @@ if (empty($asesor) && empty($error_message)) {
             <div class="btn-container">
                 <div>
                     <a href="../BERANDA/UTAMA.php?page=../ASESOR/Table_asesor.php" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                 </div>
                 <div>

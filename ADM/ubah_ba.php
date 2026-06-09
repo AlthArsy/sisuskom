@@ -88,7 +88,7 @@ $val = htmlspecialchars($_POST['bukti_adm'] ?? $row['bukti_adm']);
             </div>
             <div class="btn-container">
                 <a href="../BERANDA/UTAMA.php?page=../ADM/bukti_adm.php&id_skema=<?= (int) $row['id_skema'] ?>" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Batal
+                    <i class="fas fa-arrow-left"></i> Kembali
                 </a>
                 <button type="submit" name="simpan" class="btn btn-primary">
                     <i class="fas fa-save"></i> Simpan

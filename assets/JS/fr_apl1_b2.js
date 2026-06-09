@@ -108,6 +108,25 @@ function doGenerateQR() {
 }
 
 function prepareQRData() {
+    var idSkema = getVal('id_skema_hidden');
+    var judul = getVal('judul_skema');
+    var nomor = getVal('nomor_skema');
+    var tujuan = document.querySelector('input[name="tujuan_asesmen"]:checked');
+    var tanggal = getVal('tanggal_pemohon');
+
+    if (!idSkema || !judul || !nomor) {
+        alert('Pilih skema dari daftar dropdown (klik salah satu hasil pencarian). Nomor skema akan terisi otomatis.');
+        return false;
+    }
+    if (!tujuan) {
+        alert('Pilih tujuan asesmen.');
+        return false;
+    }
+    if (!tanggal) {
+        alert('Isi tanggal pada bagian Pemohon/Kandidat.');
+        return false;
+    }
+
     doGenerateQR();
     return true;
 }

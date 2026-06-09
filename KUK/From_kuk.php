@@ -215,7 +215,7 @@ dengan konteks permasalahan"></textarea>
 
                 <div class="button-group">
                     <a href="UTAMA.php?page=../KUK/KUK.php&id_elemen=<?= $unit_data['id_elemen'] ?>" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Batal
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="simpan" class="btn btn-primary">
                         <i class="fas fa-save"></i> Simpan KUK

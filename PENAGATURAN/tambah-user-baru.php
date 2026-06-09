@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
     if (empty($errors)) {
 
-        $password_hashed = $password;
+        $password_hashed = md5($password);
 
         $allowed_roles = ['Admin_lsp', 'Asesor', 'Asesi'];
 

@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
                 <div class="button-group">
                     <a href="../BERANDA/UTAMA.php?page=../SKEMA/list_skema.php" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Kembali
+                        <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="update" class="btn btn-primary">
                         <i class="fas fa-arrow-left"></i> Simpan Perubahan

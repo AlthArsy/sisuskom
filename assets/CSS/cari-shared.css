@@ -124,7 +124,7 @@
     gap: 6px;
     padding: 11px 18px;
     font-size: 14px;
-    background: #95a5a6;
+    background: #14477a;
     border: none;
     border-radius: 10px;
     color: #fff;
@@ -135,7 +135,7 @@
 }
 
 .cari .btn-reset:hover {
-    background: #7f8c8d;
+    background: #222575;
     color: #fff;
 }
 
@@ -251,7 +251,7 @@
     justify-content: center;
     gap: 6px;
     padding: 11px 18px;
-    background: #95a5a6;
+    background: #14477a;
     border: none;
     border-radius: 10px;
     color: #fff;
@@ -260,7 +260,7 @@
 }
 
 .search-form.cari-grid .btn-secondary:hover {
-    background: #7f8c8d;
+    background: #222575;
 }
 
 .TBS-search-box {

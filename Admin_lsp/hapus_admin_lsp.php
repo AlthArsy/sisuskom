@@ -82,7 +82,7 @@ if (isset($_POST['confirm_delete']) && $_POST['confirm_delete'] == 'yes') {
             <input type="hidden" name="confirm_delete" value="yes">
             <div class="button-group">
                 <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-                <a href="UTAMA.php?page=../Admin_lsp/Table_admin_lsp.php" class="btn btn-secondary">Batal</a>
+                <a href="UTAMA.php?page=../Admin_lsp/Table_admin_lsp.php" class="btn btn-secondary">Kembali</a>
             </div>
         </form>
     </div>

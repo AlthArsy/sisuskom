@@ -22,7 +22,7 @@ if (isset($_GET['all']) && $_GET['all'] == '1') {
         echo '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Konfirmasi Hapus Semua Asesi</title></head><body>';
         echo '<h2>Konfirmasi: Hapus Semua Data Asesi</h2>';
         echo '<p>Semua data pada tabel <strong>tb_asesi</strong> akan dihapus dan referensi pada tabel <strong>users</strong> akan di-set NULL. Tindakan ini tidak dapat dibatalkan.</p>';
-        echo '<p><a href="?all=1&confirm=1">Ya, hapus semua</a> &nbsp; <a href="../ASESI/Table_asesi.php">Batal</a></p>';
+        echo '<p><a href="?all=1&confirm=1">Ya, hapus semua</a> &nbsp; <a href="../ASESI/Table_asesi.php">Kembali</a></p>';
         echo '</body></html>';
         exit;
     }

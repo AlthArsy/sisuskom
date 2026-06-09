@@ -109,7 +109,7 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
 <div class="s-container">
     <div class="header-container">
         <h2 class="jdm">Data Skema </h2>
-        <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Asesor'): ?>
+        <?php if (in_array($_SESSION['role'], ['Admin_lsp', 'Asesor'])): ?>
             <a href="UTAMA.php?page=../SKEMA/Form_Skema.php" class="btn-tambah">
                 <i class="fas fa-plus"></i> Tambah Skema
             </a>
@@ -146,7 +146,7 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
             <?php if (!empty($search)): ?>
                 <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
                    class="btn-reset">
-                    <i class="fas fa-times"></i> Reset
+                    <i class="fas fa-undo"></i> Reset
                 </a>
             <?php endif; ?>
         </div>

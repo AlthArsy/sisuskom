@@ -36,7 +36,6 @@
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
                     <option value="">Pilih Role</option>
-                    <option value="Admin_lsp" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='admin_lsp'){echo 'selected';} ?>>Admin LSP</option>
                     <option value="Asesor" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='asesor'){echo 'selected';} ?>>Asesor</option>
                     <option value="Asesi" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='asesi'){echo 'selected';} ?>>Asesi</option>
                 </select>

@@ -150,7 +150,7 @@
         display: block;
         margin-top: 5px;
         font-size: 12px;
-        color: #7f8c8d;
+        color: #222575;
     }
 
     .btn-add-more {
@@ -217,12 +217,12 @@
     }
 
     .btn-secondary {
-        background-color: #95a5a6;
+        background-color: #14477a;
         color: white;
     }
 
     .btn-secondary:hover {
-        background-color: #7f8c8d;
+        background-color: #222575;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
     }

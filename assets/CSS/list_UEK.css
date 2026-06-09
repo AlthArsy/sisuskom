@@ -17,7 +17,7 @@
 .btn-kembali {
     display: inline-block;
     padding: 10px 20px;
-    background: #95a5a6;
+    background: #14477a;
     color: white;
     text-decoration: none;
     border-radius: 6px;
@@ -27,7 +27,7 @@
 }
 
 .btn-kembali:hover {
-    background: #7f8c8d;
+    background: #222575;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
 }
@@ -164,16 +164,16 @@ tr:nth-child(odd) {
     opacity: 0.3;
 }
 .btn-elemen-empty {
-    background: #95a5a6;
+    background: #14477a;
     color: white;
-    border-color: #7f8c8d;
+    border-color: #222575;
     padding: 8px 16px;
     font-weight: 600;
     opacity: 0.7;
 }
 
 .btn-elemen-empty:hover {
-    background: #7f8c8d;
+    background: #222575;
 }
 
 .btn-elemen-badge {

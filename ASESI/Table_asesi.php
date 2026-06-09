@@ -182,7 +182,7 @@ function clearForm() {
                         <i class="fas fa-search"></i> Cari Data
                     </button>
                     <button type="button" onclick="clearForm()" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Bersihkan
+                        <i class="fa-solid fa-undo"></i> Reset
                     </button>
                 </div>
             </form>

@@ -150,7 +150,7 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
             <?php if (!empty($search)): ?>
                 <a href="<?php echo isset($_GET['page']) ? '?page=' . urlencode($_GET['page']) : $_SERVER['PHP_SELF']; ?>"
                    class="btn-reset">
-                    <i class="fas fa-times"></i> Reset
+                    <i class="fas fa-undo"></i> Reset
                 </a>
             <?php endif; ?>
         </div>
@@ -197,7 +197,7 @@ if ($_SESSION['role'] === 'Admin_utm' || $_SESSION['role'] === 'Admin_lsp') {
                         <?php if ($jumlah_unit == 0): ?>
                             <a href='UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>'
                                class='btn-unit-empty'>
-                                <i class='fas fa-plus'></i> Tambah Unit
+                            Tambah Unit
                             </a>
                         <?php else: ?>
                             <a href='UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>'
