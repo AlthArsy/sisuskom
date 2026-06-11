@@ -1,6 +1,6 @@
 <?php
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -14,11 +14,20 @@ if (mysqli_connect_errno()) {
 $message = '';
 $message_type = '';
 
+$periode_list = [];
+$q_periode = mysqli_query($koneksi, "SELECT id_periode, tahun_ajaran FROM tb_periode ORDER BY id_periode DESC");
+if ($q_periode) {
+    while ($p = mysqli_fetch_assoc($q_periode)) {
+        $periode_list[] = $p;
+    }
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
     $username = mysqli_real_escape_string($koneksi, $_POST['username']);
     $password = mysqli_real_escape_string($koneksi, $_POST['password']);
     $role = mysqli_real_escape_string($koneksi, $_POST['role']);
+    $id_periode = isset($_POST['id_periode']) ? (int) $_POST['id_periode'] : 0;
 
 
     $errors = [];
@@ -33,6 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
     if (empty($role)) {
         $errors[] = "Role harus dipilih";
+    }
+
+    if ($id_periode <= 0) {
+        $errors[] = "Tahun Ajaran harus dipilih";
     }
 
 
@@ -65,11 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
 
         if (empty($errors)) {
-            $insert_sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
+            $insert_sql = "INSERT INTO users (username, password, role, id_periode) VALUES (?, ?, ?, ?)";
             $insert_stmt = mysqli_prepare($koneksi, $insert_sql);
 
             if ($insert_stmt) {
-                mysqli_stmt_bind_param($insert_stmt, "sss", $username, $password_hashed, $role);
+                mysqli_stmt_bind_param($insert_stmt, "sssi", $username, $password_hashed, $role, $id_periode);
 
                 try {
                     if (mysqli_stmt_execute($insert_stmt)) {
@@ -167,6 +180,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
                     <span class="form-hint">Hak akses user dalam sistem</span>
                 </div>
 
+                <div class="form-group">
+                    <label for="id_periode" class="required">
+                        <i class="fas fa-calendar"></i> Tahun Ajaran
+                    </label>
+                    <select id="id_periode" name="id_periode" required>
+                        <option value="">Pilih Tahun Ajaran</option>
+                        <?php foreach ($periode_list as $p): ?>
+                            <option value="<?php echo (int) $p['id_periode']; ?>"
+                                <?php echo (isset($_POST['id_periode']) && (int) $_POST['id_periode'] === (int) $p['id_periode']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($p['tahun_ajaran']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="form-hint">Periode tetap user; hanya Admin yang dapat mengubahnya</span>
+                </div>
+
                 <div class="btn-container">
                     <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> kembali
@@ -184,6 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const role = document.getElementById('role').value;
+            const idPeriode = document.getElementById('id_periode').value;
 
             let errors = [];
 
@@ -201,6 +231,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah'])) {
 
             if (!role) {
                 errors.push('Role harus dipilih');
+            }
+
+            if (!idPeriode) {
+                errors.push('Tahun Ajaran harus dipilih');
             }
 
             if (errors.length > 0) {

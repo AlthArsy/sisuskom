@@ -93,6 +93,97 @@ tr:nth-child(odd) {
     border: 1px solid #f5c6cb;
 }
 
+.import-user-box {
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+    border: 1px solid #d5e3f5;
+    border-radius: 12px;
+}
+
+.import-user-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.import-user-head i {
+    font-size: 22px;
+    color: #1f6f43;
+    margin-top: 2px;
+}
+
+.import-user-head p {
+    margin: 4px 0 0;
+    color: #5b6b82;
+    font-size: 14px;
+}
+
+.import-user-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.import-periode-select {
+    min-width: 180px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #252525;
+    background: #fff;
+    border: 1px solid #c5d0e0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.btn-template,
+.btn-import,
+.import-file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-template {
+    background: #fff;
+    color: #14477a;
+    border: 1px solid #c5d0e0;
+    text-decoration: none;
+}
+
+.btn-template:hover {
+    background: #f4f8fd;
+}
+
+.import-file-label {
+    background: #fff;
+    color: #333;
+    border: 1px dashed #9eb4d3;
+    cursor: pointer;
+}
+
+.import-file-label input[type="file"] {
+    display: none;
+}
+
+.btn-import {
+    background: #1f6f43;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-import:hover {
+    background: #185a36;
+}
+
 @media screen and (max-width: 768px) {
     .jdm {
         font-size: 1.1em;

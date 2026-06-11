@@ -7,7 +7,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 include "../koneksi.php";
 
-if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesi','Admin_lsp','Admin_utm'])) {
+if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesi','Admin_lsp','Admin_utm','Asesor'])) {
     echo "<script>alert('Akses ditolak!'); window.location.href='../LOGIN/login.php';</script>";
     exit;
 }

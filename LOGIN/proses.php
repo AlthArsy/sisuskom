@@ -4,31 +4,33 @@ include "../koneksi.php";
 $username = isset($_POST['username']) ? trim($_POST['username']) : (isset($_GET['username']) ? trim($_GET['username']) : '');
 $password = isset($_POST['password']) ? trim($_POST['password']) : (isset($_GET['password']) ? trim($_GET['password']) : '');
 $role_raw = isset($_POST['role']) ? trim($_POST['role']) : (isset($_GET['role']) ? trim($_GET['role']) : '');
-
+$id_periode_login = isset($_POST['tahun_ajaran']) ? (int) $_POST['tahun_ajaran'] : 0;
 
 $role_map = [
-    'admin_utm'  => 'Admin_utm',
-    'admin_lsp'  => 'Admin_lsp',
+    'admin_utm' => 'Admin_utm',
+    'admin_lsp' => 'Admin_lsp',
     'asesor' => 'Asesor',
-    'asesi'  => 'Asesi'
+    'asesi' => 'Asesi',
 ];
 $role_key = strtolower($role_raw);
+$role = isset($role_map[$role_key]) ? $role_map[$role_key] : '';
 
-if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
-        (($role_map[$role_key] == 'Admin_utm' || $role_map[$role_key] == 'Admin_lsp' || $role_map[$role_key] == 'Asesor' || $role_map[$role_key] == 'Asesi') && !empty($username))
-    )) {
+if ($role !== '' && $role !== 'Admin_utm' && $id_periode_login <= 0) {
+    echo "<script>alert('Silakan pilih Tahun Ajaran terlebih dahulu!'); window.location.href='../LOGIN/login.php';</script>";
+    exit;
+}
 
-    $role = $role_map[$role_key];
-    $role_esc = mysqli_real_escape_string($koneksi, $role);
+if (!empty($role_key) && $role !== '' && !empty($password) && !empty($username)) {
 
-    if ($role === '') {
-        $sql = "SELECT * FROM users WHERE role='$role_esc' LIMIT 1" && $role === 'Admin_utm' ? "SELECT * FROM users_admin WHERE role='$role_esc' LIMIT 1" : "SELECT * FROM users WHERE role='$role_esc' LIMIT 1";
+    if ($role === 'Admin_utm') {
+        $stmt = mysqli_prepare($koneksi, "SELECT * FROM users_admin WHERE username = ? AND role = ? LIMIT 1");
     } else {
-        $username_esc = mysqli_real_escape_string($koneksi, $username);
-        $sql = "SELECT * FROM users WHERE username='$username_esc' AND role='$role_esc' LIMIT 1" && $role === 'Admin_utm' ? "SELECT * FROM users_admin WHERE username='$username_esc' AND role='$role_esc' LIMIT 1" : "SELECT * FROM users WHERE username='$username_esc' AND role='$role_esc' LIMIT 1";
+        $stmt = mysqli_prepare($koneksi, "SELECT * FROM users WHERE username = ? AND role = ? LIMIT 1");
     }
 
-    $result = mysqli_query($koneksi, $sql);
+    mysqli_stmt_bind_param($stmt, "ss", $username, $role);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
 
@@ -42,10 +44,37 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
             session_start();
             $_SESSION['username'] = $user['username'] ?? '';
             $_SESSION['role'] = $user['role'];
-            $_SESSION['id_user'] = $user['id_user'] ?? 0;
+            $_SESSION['id_user'] = $user['id_user'] ?? ($user['id_user_admin'] ?? 0);
             $_SESSION['id_asesor'] = $user['id_asesor'] ?? null;
             $_SESSION['id_asesi'] = $user['id_asesi'] ?? null;
             $_SESSION['id_admin'] = $user['id_admin'] ?? null;
+
+            if ($role !== 'Admin_utm') {
+                $id_periode_user = isset($user['id_periode']) ? (int) $user['id_periode'] : 0;
+
+                if ($id_periode_user <= 0) {
+                    echo "<script>alert('Akun belum memiliki Tahun Ajaran. Hubungi Admin untuk mengatur periode user.'); window.location.href='../LOGIN/login.php';</script>";
+                    exit;
+                }
+
+                if ($id_periode_user !== $id_periode_login) {
+                    echo "<script>alert('Tahun Ajaran tidak sesuai dengan periode akun Anda. Pilih tahun ajaran yang benar atau hubungi Admin.'); window.location.href='../LOGIN/login.php';</script>";
+                    exit;
+                }
+
+                $_SESSION['id_periode'] = $id_periode_user;
+
+                $stmt_periode = mysqli_prepare($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE id_periode = ? LIMIT 1");
+                if ($stmt_periode) {
+                    mysqli_stmt_bind_param($stmt_periode, "i", $id_periode_user);
+                    mysqli_stmt_execute($stmt_periode);
+                    $r_periode = mysqli_stmt_get_result($stmt_periode);
+                    if ($r_periode && ($data_periode = mysqli_fetch_assoc($r_periode))) {
+                        $_SESSION['tahun_ajaran'] = $data_periode['tahun_ajaran'];
+                    }
+                    mysqli_stmt_close($stmt_periode);
+                }
+            }
 
             if (!empty($user['id_admin']) && !is_null($user['id_admin'])) {
                 $id_admin = $user['id_admin'];
@@ -131,6 +160,10 @@ if (!empty($role_key) && isset($role_map[$role_key]) && !empty($password) && (
         }
     } else {
         echo "<script>alert('Username atau Role tidak sesuai!'); window.location.href='../LOGIN/login.php';</script>";
+    }
+
+    if (isset($stmt)) {
+        mysqli_stmt_close($stmt);
     }
 } else {
     if (isset($role) && $role === 'Admin_lsp' && empty($password)) {

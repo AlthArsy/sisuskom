@@ -19,7 +19,15 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 $allowed_roles = ['Admin_lsp', 'Asesor', 'Asesi'];
 
-$sql = "SELECT * FROM users";
+$periode_map = [];
+$q_periode = mysqli_query($koneksi, "SELECT id_periode, tahun_ajaran FROM tb_periode ORDER BY id_periode DESC");
+if ($q_periode) {
+    while ($p = mysqli_fetch_assoc($q_periode)) {
+        $periode_map[(int) $p['id_periode']] = $p['tahun_ajaran'];
+    }
+}
+
+$sql = "SELECT users.*, tb_periode.tahun_ajaran FROM users LEFT JOIN tb_periode ON users.id_periode = tb_periode.id_periode";
 $conditions = [];
 $params = [];
 $types = "";
@@ -95,6 +103,16 @@ function buildSearchUrl($params) {
 <div class="konten-user">
     <h2 class="jdm">Data User</h2>
 
+    <?php if (isset($_SESSION['pesan'])): ?>
+        <div class="message <?php echo htmlspecialchars($_SESSION['tipe'] ?? 'success'); ?>">
+            <?php
+                echo htmlspecialchars($_SESSION['pesan']);
+                unset($_SESSION['pesan']);
+                unset($_SESSION['tipe']);
+            ?>
+        </div>
+    <?php endif; ?>
+
     <form method="get" action="" class="cari">
         <?php if (isset($_GET['page'])): ?>
             <input type="hidden" name="page" value="<?php echo htmlspecialchars($_GET['page']); ?>">
@@ -132,6 +150,36 @@ function buildSearchUrl($params) {
             </a>
         </div>
     </form>
+
+    <div class="import-user-box">
+        <div class="import-user-head">
+            <i class="fas fa-file-excel"></i>
+            <div>
+                <strong>Import User dari Excel</strong>
+                <p>Unggah file .ods berisi kolom Username, Password, dan Role. Pilih Tahun Ajaran untuk semua user yang diimport.</p>
+            </div>
+        </div>
+        <form method="post" action="../MANAGEMENT/post_user.php" enctype="multipart/form-data" class="import-user-form">
+            <select name="id_periode" class="cari-select import-periode-select" required aria-label="Tahun Ajaran import">
+                <option value="">Pilih Tahun Ajaran</option>
+                <?php foreach ($periode_map as $pid => $tahun): ?>
+                    <option value="<?php echo (int) $pid; ?>"><?php echo htmlspecialchars($tahun); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <a href="../Exel/Contoh-Post%20manajemanAsesi.ods" class="btn-template" download>
+                <i class="fas fa-download"></i> Download Contoh
+            </a>
+            <label class="import-file-label">
+                <i class="fas fa-upload"></i>
+                <span>Pilih file .ods</span>
+                <input type="file" name="file_user" accept=".ods" required>
+            </label>
+            <button type="submit" class="btn-import">
+                <i class="fas fa-paper-plane"></i> Kirim
+            </button>
+        </form>
+    </div>
+
 <!-- 
     <?php if (!empty($search) || !empty($role_filter)): ?>
         <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
@@ -153,6 +201,7 @@ function buildSearchUrl($params) {
                 <th>Username</th>
                 <th>Password</th>
                 <th>Role</th>
+                <th>Tahun Ajaran</th>
                 <th style="width: 175px;">Aksi</th>
             </tr>
         </thead>
@@ -170,6 +219,8 @@ function buildSearchUrl($params) {
                     echo "<td data-label='Username'>" . htmlspecialchars($row['username'] ?? '') . "</td>";
                     echo "<td data-label='Password'>" . htmlspecialchars($row['password']) . "</td>";
                     echo "<td data-label='Role'>" . strtoupper(htmlspecialchars($row['role'])) . "</td>";
+                    $tahun_label = !empty($row['tahun_ajaran']) ? $row['tahun_ajaran'] : '—';
+                    echo "<td data-label='Tahun Ajaran'>" . htmlspecialchars($tahun_label) . "</td>";
                     echo "<td data-label='Aksi' class='aksi'>
                         <a href='UTAMA.php?page=../PENAGATURAN/ubah.php&id=" . $row['id_user'] . "' class='btn-ubah'>Ubah</a>
                         <a href='../BERANDA/UTAMA.php?page=../PENAGATURAN/hapus.php&id=" . $row['id_user'] . "'
@@ -179,7 +230,7 @@ function buildSearchUrl($params) {
                     echo "</tr>";
                 }
             } else {
-                echo "<tr><td colspan='5' style='text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;border-radius:7px;'>
+                echo "<tr><td colspan='6' style='text-align:center;color:#8692af;padding:32px;background:#fcfdff;font-size:16px;border-radius:7px;'>
                     Tidak ada data user yang sesuai dengan pencarian.
                     </td></tr>";
             }
@@ -190,11 +241,21 @@ function buildSearchUrl($params) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('.cari');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            console.log('Form submitted');
+    const fileInput = document.querySelector('.import-user-form input[type="file"]');
+    const fileLabel = document.querySelector('.import-file-label span');
+
+    if (fileInput && fileLabel) {
+        fileInput.addEventListener('change', function() {
+            fileLabel.textContent = this.files.length ? this.files[0].name : 'Pilih file .ods';
         });
     }
+
+    setTimeout(function() {
+        document.querySelectorAll('.message').forEach(function(message) {
+            message.style.opacity = '0';
+            message.style.transition = 'opacity 0.5s ease';
+            setTimeout(function() { message.remove(); }, 500);
+        });
+    }, 6000);
 });
 </script>

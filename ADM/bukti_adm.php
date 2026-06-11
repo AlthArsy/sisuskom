@@ -1,10 +1,11 @@
 <?php
+//kau bolos yeee kau itu
 
 if (session_status() == PHP_SESSION_NONE) {
 session_start();
 }
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesor'])) {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp', 'Asesor'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -16,7 +17,7 @@ if (mysqli_connect_errno()) {
 
 $role = $_SESSION['role'];
 $id_skema_param = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
-$can_manage = ($role === 'Asesor');
+$can_manage = ($role === 'Asesor' || $role === 'Admin_lsp');
 
 if ($role === 'Asesor') {
     if (!isset($_SESSION['id_asesor'])) {

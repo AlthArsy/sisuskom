@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_lsp') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp'])) {
     echo "<script>alert('Akses ditolak! Silakan login sebagai Admin_lsp.'); window.location.href='../LOGIN/login.php';</script>";
     exit();
 }

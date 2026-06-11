@@ -110,6 +110,7 @@ $routes = [
     // MANAGEMENT
     'management/validator' => '/_obfuscated/MANAGEMENT/validator.php',
     'management/tampil2' => '/_obfuscated/MANAGEMENT/tampil2.php',
+    'management/post_user' => '/_obfuscated/MANAGEMENT/post_user.php',
     
     // PENAGATURAN (Settings)
     'penagaturan/ubah' => '/_obfuscated/PENAGATURAN/ubah.php',
@@ -160,3 +161,6 @@ http_response_code(404);
 echo "404 - Page Not Found: $request";
 exit;
 
+if (!class_exists('ZipArchive')) {
+    throw new RuntimeException('Ekstensi ZipArchive tidak tersedia di server.');
+}

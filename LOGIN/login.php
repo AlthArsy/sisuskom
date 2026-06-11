@@ -1,3 +1,13 @@
+<?php
+session_start();
+include '../koneksi.php';
+if (mysqli_connect_errno()) {
+    die("Gagal koneksi ke database: " . mysqli_connect_error());
+}
+$query_periode = "SELECT id_periode, tahun_ajaran FROM tb_periode ORDER BY id_periode DESC";
+$result_periode = mysqli_query($koneksi, $query_periode);
+
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -16,7 +26,7 @@
         <h1>LSP Mudikal</h1>
     </div>
     <div class="form-container">
-        <form action="proses.php" method="POST" autocomplete="off">
+        <form action="proses.php" method="POST" autocomplete="off"> 
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" placeholder="Masukkan username" required
@@ -36,13 +46,32 @@
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
                     <option value="">Pilih Role</option>
+                    <option value="Admin_lsp" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='admin_lsp'){echo 'selected';} ?>>Admin LSP</option>
                     <option value="Asesor" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='asesor'){echo 'selected';} ?>>Asesor</option>
                     <option value="Asesi" <?php if(isset($_GET['role']) && strtolower($_GET['role'])=='asesi'){echo 'selected';} ?>>Asesi</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label for="tahun_ajaran">Tahun Ajaran</label>
+                <select id="tahun_ajaran" name="tahun_ajaran" required>
+                    <option value="">Pilih Tahun Ajaran</option>
+                    <?php
+                    if ($result_periode && mysqli_num_rows($result_periode) > 0) {
+                        while ($row = mysqli_fetch_assoc($result_periode)) {
+                            $selected = (isset($_GET['tahun_ajaran']) && $_GET['tahun_ajaran'] == $row['id_periode']) ? 'selected' : '';
+                            echo "<option value='" . $row['id_periode'] . "' $selected>" . htmlspecialchars($row['tahun_ajaran']) . "</option>";
+                        }
+                    } else {
+                        echo "<option value='' disabled>Tidak ada data periode</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+
             <div class="btn-container">
                 <button type="submit" class="btn-primary">Masuk</button>
             </div>
+            
             <div>
                 <p style="margin-top: 15px; font-size: 14px; color: #555; text-align: center;">LOGIN SEBAGAI<a href="login_admin.php" style="color: #3730a3; text-decoration: none;"> ADMIN</a></p>
             </div>

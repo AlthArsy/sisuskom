@@ -17,6 +17,17 @@ if (mysqli_connect_errno()) {
     die("Gagal koneksi ke database: " . mysqli_connect_error());
 }
 
+$role = $_SESSION['role'];
+$id_periode_session = isset($_SESSION['id_periode']) ? intval($_SESSION['id_periode']) : 0;
+
+$periode_nama = '-';
+if ($id_periode_session > 0) {
+    $q_periode = mysqli_query($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE id_periode = $id_periode_session");
+    if ($q_periode && $row = mysqli_fetch_assoc($q_periode)) {
+        $periode_nama = htmlspecialchars($row['tahun_ajaran']);
+    }
+}
+
 $message = '';
 $message_type = '';
 $skema_data = [];
@@ -38,15 +49,20 @@ if (isset($_GET['id'])) {
         if ($result && mysqli_num_rows($result) > 0) {
             $skema_data = mysqli_fetch_assoc($result);
 
-            if ($_SESSION['role'] === 'Asesor') {
-                $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
+            if ($role === 'Admin_lsp') {
 
-                if ($skema_data['id_asesor'] != $id_asesor_login) {
-                    $message = "Anda tidak memiliki akses untuk mengubah skema ini.";
+                if ($skema_data['id_periode'] != $id_periode_session) {
+                    $message = "Anda hanya dapat mengubah skema pada periode aktif saat ini ($periode_nama).";
                     $message_type = 'error';
                     $skema_data = [];
                 }
+            } elseif ($role === 'Asesor') {
+
+                $message = "Anda tidak memiliki akses untuk mengubah skema.";
+                $message_type = 'error';
+                $skema_data = [];
             }
+      
         } else {
             $message = "Data skema tidak ditemukan.";
             $message_type = 'error';
@@ -69,11 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     if (empty($nomor_skema)) {
         $errors[] = "Nomor skema harus diisi";
     }
-
     if (empty($judul_skema)) {
         $errors[] = "Judul skema harus diisi";
     }
-
     if (empty($standar_kompetensi)) {
         $errors[] = "Standar kompetensi harus diisi";
     }
@@ -83,19 +97,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     mysqli_stmt_bind_param($check_stmt, "si", $nomor_skema, $id);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
-
     if (mysqli_stmt_num_rows($check_stmt) > 0) {
         $errors[] = "Nomor skema sudah digunakan";
     }
     mysqli_stmt_close($check_stmt);
 
     if (empty($errors)) {
+   
         $update_sql = "UPDATE tb_skema SET nomor_skema = ?, judul_skema = ?, standar_kompetensi_kerja = ? WHERE id_skema = ?";
         $update_stmt = mysqli_prepare($koneksi, $update_sql);
-
         if ($update_stmt) {
             mysqli_stmt_bind_param($update_stmt, "sssi", $nomor_skema, $judul_skema, $standar_kompetensi, $id);
-
             if (mysqli_stmt_execute($update_stmt)) {
                 $_SESSION['pesan'] = "Data skema berhasil diperbarui!";
                 $_SESSION['tipe'] = 'success';
@@ -122,9 +134,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     </div>
 
     <div class="user-info">
-         Logged in sebagai:
+        Logged in sebagai:
         <span><?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?></span>
-        (Role: <span><?php echo htmlspecialchars($_SESSION['role'] ?? ''); ?></span>)
+        (Role: <span><?php echo htmlspecialchars($role); ?></span>)
+        <?php if ($role !== 'Admin_utm'): ?>
+            | Periode aktif: <strong><?php echo $periode_nama; ?></strong>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($message)): ?>
@@ -138,55 +153,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             <form method="post" action="" id="editSkemaForm">
                 <input type="hidden" name="id" value="<?php echo $skema_data['id_skema']; ?>">
 
+             
                 <div class="form-group">
-                    <label for="nomor_skema" class="required">
-                        Nomor Skema
-                    </label>
-                    <input type="text"
-                           id="nomor_skema"
-                           name="nomor_skema"
-                           class="form-control"
+                    <label>Periode Skema</label>
+                    <input type="text" class="form-control" value="<?php 
+        
+                        $periode_skema = '-';
+                        if (!empty($skema_data['id_period'])) {
+                            $q = mysqli_query($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE id_periode = " . intval($skema_data['id_period']));
+                            if ($q && $r = mysqli_fetch_assoc($q)) $periode_skema = htmlspecialchars($r['tahun_ajaran']);
+                        }
+                        echo $periode_skema;
+                    ?>" readonly>
+                    <span class="form-hint">Periode skema tidak dapat diubah</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="nomor_skema" class="required">Nomor Skema</label>
+                    <input type="text" id="nomor_skema" name="nomor_skema" class="form-control"
                            value="<?php echo htmlspecialchars($skema_data['nomor_skema']); ?>"
-                           required
-                           maxlength="100">
+                           required maxlength="100">
                     <span class="form-hint">Nomor unik identifikasi skema</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="judul_skema" class="required">
-                        Judul Skema
-                    </label>
-                    <input type="text"
-                           id="judul_skema"
-                           name="judul_skema"
-                           class="form-control"
+                    <label for="judul_skema" class="required">Judul Skema</label>
+                    <input type="text" id="judul_skema" name="judul_skema" class="form-control"
                            value="<?php echo htmlspecialchars($skema_data['judul_skema']); ?>"
-                           required
-                           maxlength="100">
+                           required maxlength="100">
                     <span class="form-hint">Nama lengkap skema sertifikasi</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="standar_kompetensi_kerja" class="required">
-                        Standar Kompetensi Kerja
-                    </label>
-                    <textarea
-                        id="standar_kompetensi_kerja"
-                        name="standar_kompetensi_kerja"
-                        class="form-control"
-                        required><?php echo htmlspecialchars($skema_data['standar_kompetensi_kerja']); ?></textarea>
+                    <label for="standar_kompetensi_kerja" class="required">Standar Kompetensi Kerja</label>
+                    <textarea id="standar_kompetensi_kerja" name="standar_kompetensi_kerja" class="form-control" required><?php echo htmlspecialchars($skema_data['standar_kompetensi_kerja']); ?></textarea>
                     <span class="form-hint">Deskripsi standar kompetensi yang digunakan</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="nama_asesor">
-                        Asesor
-                    </label>
-                    <input type="text"
-                           id="nama_asesor"
-                           class="form-control"
-                           value="<?php echo htmlspecialchars($skema_data['nama_asesor'] ?? '-'); ?>"
-                           readonly>
+                    <label for="nama_asesor">Asesor</label>
+                    <input type="text" id="nama_asesor" class="form-control"
+                           value="<?php echo htmlspecialchars($skema_data['nama_asesor'] ?? '-'); ?>" readonly>
                     <span class="form-hint">Asesor yang bertanggung jawab (tidak dapat diubah)</span>
                 </div>
 
@@ -195,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     <button type="submit" name="update" class="btn btn-primary">
-                        <i class="fas fa-arrow-left"></i> Simpan Perubahan
+                        <i class="fas fa-save"></i> Simpan Perubahan
                     </button>
                 </div>
             </form>
@@ -228,18 +235,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         const standar = document.getElementById('standar_kompetensi_kerja').value.trim();
 
         let errors = [];
-
-        if (!nomor_skema) {
-            errors.push('Nomor skema harus diisi');
-        }
-
-        if (!judul_skema) {
-            errors.push('Judul skema harus diisi');
-        }
-
-        if (!standar) {
-            errors.push('Standar kompetensi harus diisi');
-        }
+        if (!nomor_skema) errors.push('Nomor skema harus diisi');
+        if (!judul_skema) errors.push('Judul skema harus diisi');
+        if (!standar) errors.push('Standar kompetensi harus diisi');
 
         if (errors.length > 0) {
             e.preventDefault();

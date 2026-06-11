@@ -1,3 +1,11 @@
+// JavaScript for AK01 - Asesor
+// This file is included in ak01.php and ak01_print.php
+// This script handles the dynamic generation of QR codes for both Asesor and Asesi based on the input data.
+// It also manages the display of additional input fields when "Lainnya" is selected.
+// Author: M. Irfan Maulana ( sopo anjir ) ga tau njir
+// License: MIT License
+// Repository:
+//   - apl wooy
 
 function onSkemaSelected(s, res) {
     scheduleQRAsesor();

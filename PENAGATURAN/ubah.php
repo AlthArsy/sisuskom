@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_utm') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp'])) {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -20,6 +20,14 @@ if (mysqli_connect_errno()) {
 $message = '';
 $message_type = '';
 $user_data = [];
+
+$periode_list = [];
+$q_periode = mysqli_query($koneksi, "SELECT id_periode, tahun_ajaran FROM tb_periode ORDER BY id_periode DESC");
+if ($q_periode) {
+    while ($p = mysqli_fetch_assoc($q_periode)) {
+        $periode_list[] = $p;
+    }
+}
 
 
 if (isset($_GET['id'])) {
@@ -51,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
     $username = mysqli_real_escape_string($koneksi, $_POST['username']);
     $password = mysqli_real_escape_string($koneksi, $_POST['password']);
     $role = mysqli_real_escape_string($koneksi, $_POST['role']);
+    $id_periode = isset($_POST['id_periode']) ? (int) $_POST['id_periode'] : 0;
 
 
     $errors = [];
@@ -65,6 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
     if (empty($role)) {
         $errors[] = "Role harus dipilih";
+    }
+
+    if ($id_periode <= 0) {
+        $errors[] = "Tahun Ajaran harus dipilih";
     }
 
     // Cek jika username sudah digunakan(kecuali yang lagi ngubah)
@@ -88,11 +101,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             $password_hashed = $user_data['password'];
         }
         
-        $update_sql = "UPDATE users SET username = ?, password = ?, role = ? WHERE id_user = ?";
+        $update_sql = "UPDATE users SET username = ?, password = ?, role = ?, id_periode = ? WHERE id_user = ?";
         $update_stmt = mysqli_prepare($koneksi, $update_sql);
 
         if ($update_stmt) {
-            mysqli_stmt_bind_param($update_stmt, "sssi", $username, $password_hashed, $role, $id);
+            mysqli_stmt_bind_param($update_stmt, "sssii", $username, $password_hashed, $role, $id_periode, $id);
 
             if (mysqli_stmt_execute($update_stmt)) {
                 $message = "Data user berhasil diperbarui!";
@@ -102,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                 $user_data['username'] = $username;
                 $user_data['password'] = $password;
                 $user_data['role'] = $role;
+                $user_data['id_periode'] = $id_periode;
             } else {
                 $message = "Gagal memperbarui data: " . mysqli_error($koneksi);
                 $message_type = 'error';
@@ -178,6 +192,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                         <span class="form-hint">Hak akses user dalam sistem</span>
                     </div>
 
+                    <div class="form-group">
+                        <label for="id_periode" class="required">
+                            <i class="fas fa-calendar"></i> Tahun Ajaran
+                        </label>
+                        <select id="id_periode" name="id_periode" required>
+                            <option value="">Pilih Tahun Ajaran</option>
+                            <?php foreach ($periode_list as $p): ?>
+                                <option value="<?php echo (int) $p['id_periode']; ?>"
+                                    <?php echo ((int) ($user_data['id_periode'] ?? 0) === (int) $p['id_periode']) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($p['tahun_ajaran']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <span class="form-hint">Hanya Admin yang dapat mengubah periode user</span>
+                    </div>
+
                     <div class="btn-container">
                         <a href="../BERANDA/UTAMA.php?page=../MANAGEMENT/tampil2.php" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Kembali
@@ -216,6 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
             const username = document.getElementById('username').value.trim();
             // const password = document.getElementById('password').value.trim();
             const role = document.getElementById('role').value;
+            const idPeriode = document.getElementById('id_periode').value;
 
             let errors = [];
 
@@ -229,6 +260,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
 
             if (!role) {
                 errors.push('Role harus dipilih');
+            }
+
+            if (!idPeriode) {
+                errors.push('Tahun Ajaran harus dipilih');
             }
 
             if (errors.length > 0) {

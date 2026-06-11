@@ -16,7 +16,7 @@ if (mysqli_connect_errno()) {
 
 $role = $_SESSION['role'];
 $id_skema_param = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
-$can_manage = ($role === 'Asesor');
+$can_manage = ($role === 'Asesor' || $role === 'Admin_lsp');
 
 if ($role === 'Asesor') {
     if (!isset($_SESSION['id_asesor'])) {

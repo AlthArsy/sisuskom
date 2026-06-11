@@ -340,6 +340,8 @@ $allowed_pages = [
     '../SKEMA/simpan_skema.php',
     '../SKEMA/Form_Skema.php',
     '../SKEMA/Ubah_Skema.php',
+    '../SKEMA/pilih_skema.php',
+    '../SKEMA/Hapus_Skema.php',
 //unit kompetensi
     '../UNIT/unit_kompetensi.php',
     '../UNIT/Ubah_unit.php',
