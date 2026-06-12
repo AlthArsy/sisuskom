@@ -162,5 +162,30 @@ if ($action === 'apl2') {
     echo json_encode(['status' => 'ok', 'skema' => $skema, 'units' => $units]);
     exit;
 }
+if ($action === 'search_dp') {
+    $id_periode  = intval($_GET['id_periode'] ?? 0);
+    $keyword     = trim($_GET['q'] ?? '');
+    $keyword_esc = mysqli_real_escape_string($koneksi, $keyword);
+
+    $sql = "SELECT dp.id_det_periode, dp.id_skema,
+                   s.judul_skema, s.nomor_skema, s.standar_kompetensi_kerja,
+                   a.nama_asesor
+            FROM tb_det_periode dp
+            JOIN tb_skema s ON s.id_skema = dp.id_skema
+            JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+            WHERE dp.id_periode = '$id_periode'
+              AND (s.judul_skema LIKE '%{$keyword_esc}%'
+                OR s.nomor_skema LIKE '%{$keyword_esc}%')
+            ORDER BY s.judul_skema ASC
+            LIMIT 10";
+
+    $result = mysqli_query($koneksi, $sql);
+    $data   = [];
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) $data[] = $row;
+    }
+    echo json_encode(['status' => 'ok', 'data' => $data]);
+    exit;
+}
 
 echo json_encode(['status' => 'error', 'message' => 'Action tidak dikenal']);

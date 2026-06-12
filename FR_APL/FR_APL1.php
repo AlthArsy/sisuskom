@@ -26,6 +26,30 @@ $is_asesi = ($role === 'Asesi');
 $action = $_GET['action'] ?? '';
 $mode_lihat = isset($_GET['view']) && $_GET['view'] == 1;
 
+$id_periode = isset($_SESSION['id_periode']) ? intval($_SESSION['id_periode']) : 0;
+
+// echo '<pre style="background:#ffe;border:1px solid red;padding:8px;font-size:12px;">';
+// echo 'SESSION keys: ' . implode(', ', array_keys($_SESSION)) . "\n";
+// echo 'id_periode dari session: ' . $id_periode . "\n";
+// $cek = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM tb_det_periode");
+// $cek_row = mysqli_fetch_assoc($cek);
+// echo 'Total baris tb_det_periode: ' . $cek_row['total'] . "\n";
+// echo '</pre>';
+
+$det_periode_options = [];
+if ($id_periode > 0) {
+    $res_dp = mysqli_query($koneksi,
+        "SELECT dp.id_det_periode, dp.id_skema, s.judul_skema, s.nomor_skema, a.nama_asesor
+         FROM tb_det_periode dp
+         JOIN tb_skema s ON s.id_skema = dp.id_skema
+         JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+         WHERE dp.id_periode = '$id_periode'
+         ORDER BY s.judul_skema ASC");
+    while ($row = mysqli_fetch_assoc($res_dp)) {
+        $det_periode_options[] = $row;
+    }
+}
+
 $asesi = null;
 if ($id_asesi) {
     $asesi = mysqli_fetch_assoc(mysqli_query($koneksi,
@@ -60,21 +84,16 @@ if (empty($nama_admin_lsp)) {
 $res_bd = false;
 $res_ba = false;
 $id_skema_req = isset($_GET['id_skema']) ? intval($_GET['id_skema']) : 0;
+if (!$mode_lihat && $id_skema_req <= 0 && isset($_GET['id_det_periode'])) {
+    $dp_tmp = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT id_skema FROM tb_det_periode WHERE id_det_periode='" . intval($_GET['id_det_periode']) . "' LIMIT 1"));
+    $id_skema_req = intval($dp_tmp['id_skema'] ?? 0);
+}
 if (!$mode_lihat && $id_skema_req > 0) {
-    $res_bd = mysqli_query(
-        $koneksi, 
-        "SELECT id_bd, bukti_dasar
-         FROM tb_bukti_dasar
-         WHERE id_skema = '$id_skema_req'
-         ORDER BY id_bd ASC"
-    );
-    $res_ba = mysqli_query(
-        $koneksi,
-        "SELECT id_ba, bukti_adm
-         FROM tb_bukti_adm
-         WHERE id_skema = '$id_skema_req'
-         ORDER BY id_ba ASC"
-    );
+    $res_bd = mysqli_query($koneksi,
+        "SELECT id_bd, bukti_dasar FROM tb_bukti_dasar WHERE id_skema='$id_skema_req' ORDER BY id_bd ASC");
+    $res_ba = mysqli_query($koneksi,
+        "SELECT id_ba, bukti_adm FROM tb_bukti_adm WHERE id_skema='$id_skema_req' ORDER BY id_ba ASC");
 }
 
 
@@ -126,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
         $id_asesi = $post_id_asesi;
     }
 
-    $id_skema = intval($_POST['id_skema'] ?? 0);
+    $id_skema = intval($_POST['id_skema'] ?? 0);// ganti juga
     $judul_skema = trim($_POST['judul_skema'] ?? '');
     $nomor_skema = trim($_POST['nomor_skema'] ?? '');
     $tujuan_asesmen = trim($_POST['tujuan_asesmen'] ?? '');
@@ -147,11 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
     if ($id_asesi <= 0) {
         $errors[] = 'Data asesi tidak ditemukan. Silakan buka form dari menu Daftar Form.';
     }
-    if ($id_skema <= 0) {
-        $errors[] = 'Pilih skema dari daftar dropdown (klik salah satu hasil pencarian), jangan hanya mengetik judul.';
-    }
-    if (!$judul_skema || !$nomor_skema) {
-        $errors[] = 'Judul dan nomor skema wajib diisi (pilih skema dari dropdown).';
+    if ($id_det_periode <= 0) {
+        $errors[] = 'Pilih skema dan asesor dari dropdown.';
     }
     if (!$tujuan_asesmen) {
         $errors[] = 'Tujuan asesmen wajib dipilih.';
@@ -167,11 +183,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
         $a = fn($v) => mysqli_real_escape_string($koneksi, $v);
 
         $sql = "INSERT INTO tb_apl1
-            (id_skema, id_asesi, judul_skema, nomor_skema, tujuan_asesmen, tujuan_lainnya,
+            (id_det_periode, id_asesi, tujuan_asesmen, tujuan_lainnya,
              nama_pemohon, tanggal_pemohon, catatan_admin, rekomendasi)
             VALUES (
-                '$id_skema', '$id_asesi',
-                '{$a($judul_skema)}', '{$a($nomor_skema)}',
+                '$id_det_periode', '$id_asesi',
                 '{$a($tujuan_asesmen)}', '{$a($tujuan_lainnya)}',
                 '{$a($nama_pemohon)}', '{$a($tanggal_pemohon)}',
                 " . ($catatan_admin ? "'{$a($catatan_admin)}'" : "NULL") . ",
@@ -230,6 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
     <script>
         var ID_ASESI       = <?php echo $id_asesi; ?>;
         var NAMA_ADMIN_LSP = <?php echo json_encode($nama_admin_lsp); ?>;
+        var ID_PERIODE = <?php echo $id_periode; ?>;
     </script>
 </head>
 <body>
@@ -251,7 +267,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
     <?php if (!$data_apl1): ?>
         <p style="text-align:center; color:#c00; padding:20px;">Data tidak ditemukan.</p>
     <?php else:
-    $id_skema_view = intval($data_apl1['id_skema']); ?>
+    $dp_view = mysqli_fetch_assoc(mysqli_query($koneksi,
+        "SELECT dp.id_skema, s.judul_skema, s.nomor_skema, a.nama_asesor
+         FROM tb_det_periode dp
+         JOIN tb_skema s ON s.id_skema = dp.id_skema
+         JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+         WHERE dp.id_det_periode = '{$data_apl1['id_det_periode']}' LIMIT 1"));
+    $id_skema_view     = intval($dp_view['id_skema'] ?? 0);
+    $judul_skema_view  = $dp_view['judul_skema'] ?? '-';
+    $nomor_skema_view  = $dp_view['nomor_skema'] ?? '-';
+    $nama_asesor_view  = $dp_view['nama_asesor'] ?? '-'; ?> 
+
     <div class="section-title" style="margin:18px 0 10px 0;">
         Bagian 2 : Data Sertifikasi<br>
         <span class="small-text">Tuliskan Judul dan Nomor Skema Sertifikasi yang anda ajukan.</span>
@@ -262,11 +288,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <div style="flex:2; min-width:180px;">
                     <label class="small-text">Judul</label>
-                    <input type="text" class="form-control" value="<?= h($data_apl1['judul_skema']) ?>" readonly style="background:#f5f5f5;">
+                    <input type="text" class="form-control" value="<?= h($judul_skema_view) ?>" readonly style="background:#f5f5f5;">
                 </div>
                 <div style="flex:1; min-width:140px;">
                     <label class="small-text">Nomor</label>
-                    <input type="text" class="form-control" value="<?= h($data_apl1['nomor_skema']) ?>" readonly style="background:#f5f5f5;">
+                    <input type="text" class="form-control" value="<?= h($nomor_skema_view) ?>" readonly style="background:#f5f5f5;">
                 </div>
             </div>
         </div>
@@ -497,8 +523,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
 <?php else: ?>
 <div class="form-box">
 <form method="post" autocomplete="off" id="mainForm">
-    <input type="hidden" name="id_asesi"  value="<?php echo $id_asesi; ?>">
-    <input type="hidden" name="id_skema"  id="id_skema_hidden">
+    <input type="hidden" name="id_asesi"       value="<?php echo $id_asesi; ?>">
+    <input type="hidden" name="id_det_periode" id="id_det_periode_hidden">
+    <input type="hidden" id="id_skema_hidden">
+    <input type="hidden" id="judul_skema_hidden">
+    <input type="hidden" id="nomor_skema_hidden">
 
     <h2 style="text-align:center; background:#cadbfc; padding:18px 0 12px 0; border-radius:6px 6px 0 0;">
         FORMULIR PERMOHONAN SERTIFIKASI KOMPETENSI
@@ -515,38 +544,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
         <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff;">
             <div class="label" style="margin-bottom:8px;">
                 Skema Sertifikasi <span style="font-size:12px; color:#555;">(KKNI/Okupasi/Klaster)</span>
-            </div>
+        </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
 
                 <div style="flex:2; min-width:180px;">
                     <label class="small-text">Judul <span class="required">*</span></label>
                     <div class="skema-wrap">
                         <input type="text"
-                               name="judul_skema"
                                id="judul_skema"
                                class="form-control"
                                placeholder="Ketik judul skema..."
                                autocomplete="off"
-                               oninput="searchSkema(this.value)"
+                               oninput="searchSkemaDP(this.value)"
                                required>
                         <div class="skema-dropdown" id="skema-dropdown"></div>
                     </div>
-                    <div class="skema-selected-badge" id="skema-badge">Skema dipilih</div> 
+                    <div class="skema-selected-badge" id="skema-badge">Skema dipilih</div>
                 </div>
 
                 <div style="flex:1; min-width:140px;">
                     <label class="small-text">Nomor <span class="required">*</span></label>
                     <input type="text"
-                           name="nomor_skema"
                            id="nomor_skema"
                            class="form-control"
                            placeholder="Otomatis terisi"
                            readonly
-                           style="background:#f5f5f5;"
-                           required>
+                           style="background:#f5f5f5;">
                 </div>
-            </div>
+
         </div>
+    </div>
 
         <div>
             <div class="label" style="margin-bottom:6px;">Tujuan Asesmen <span class="required">*</span></div>
