@@ -38,28 +38,61 @@ if (!empty($id_asesor)) {
     header("Location: $redirect_home");
     exit();
 }
+
+// Fetch available schedules for the dropdown
+$jadwal_list = [];
+$id_periode_session = isset($_SESSION['id_periode']) ? (int)$_SESSION['id_periode'] : 0;
+
+if ($id_periode_session > 0) {
+    $stmt_jadwal = mysqli_prepare($koneksi, "SELECT j.id_jadwal, j.hari, j.tanggal, j.waktu, j.tuk, s.judul_skema 
+                                          FROM tb_jadwal j 
+                                          JOIN tb_skema s ON j.id_skema = s.id_skema 
+                                          WHERE j.id_periode = ? 
+                                          ORDER BY j.tanggal ASC, j.waktu ASC");
+    if ($stmt_jadwal) {
+        mysqli_stmt_bind_param($stmt_jadwal, 'i', $id_periode_session);
+        mysqli_stmt_execute($stmt_jadwal);
+        $result_jadwal = mysqli_stmt_get_result($stmt_jadwal);
+        if ($result_jadwal) {
+            while ($j = mysqli_fetch_assoc($result_jadwal)) {
+                $jadwal_list[] = $j;
+            }
+        }
+        mysqli_stmt_close($stmt_jadwal);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $no_reg = isset($_POST['no_reg']) ? trim($_POST['no_reg']) : '';
     $nama_asesor = isset($_POST['nama_asesor']) ? trim($_POST['nama_asesor']) : '';
     $jenis_kelamin = isset($_POST['jenis_kelamin']) ? trim($_POST['jenis_kelamin']) : '';
     $alamat = isset($_POST['alamat']) ? trim($_POST['alamat']) : '';
+    $id_jadwal = isset($_POST['id_jadwal']) ? intval($_POST['id_jadwal']) : 0;
 
-    if ($no_reg && $nama_asesor && $jenis_kelamin && $alamat) {
+    if ($no_reg && $nama_asesor && $jenis_kelamin && $alamat && $id_jadwal > 0) {
         $sql = "INSERT INTO tb_asesor (no_reg, nama_asesor, jenis_kelamin, alamat) VALUES (?, ?, ?, ?)";
         $stmt = mysqli_prepare($koneksi, $sql);
         if ($stmt) {
             mysqli_stmt_bind_param($stmt, 'ssss', $no_reg, $nama_asesor, $jenis_kelamin, $alamat);
             if (mysqli_stmt_execute($stmt)) {
-                $id_asesor = mysqli_insert_id($koneksi);
+                $new_id_asesor = mysqli_insert_id($koneksi);
                 mysqli_stmt_close($stmt);
-                if ($id_asesor > 0) {
+                if ($new_id_asesor > 0) {
+                    $stmt_jadwal_up = mysqli_prepare($koneksi, "UPDATE tb_jadwal SET id_asesor = ? WHERE id_jadwal = ? AND id_periode = ?");
+                    if ($stmt_jadwal_up) {
+                        mysqli_stmt_bind_param($stmt_jadwal_up, 'iii', $new_id_asesor, $id_jadwal, $id_periode_session);
+                        mysqli_stmt_execute($stmt_jadwal_up);
+                        mysqli_stmt_close($stmt_jadwal_up);
+                    }
+
+                    // UPDATE USER TABLE
                     $stmt_up = mysqli_prepare($koneksi, "UPDATE users SET id_asesor = ? WHERE id_user = ?");
                     if ($stmt_up) {
-                        mysqli_stmt_bind_param($stmt_up, 'ii', $id_asesor, $id_user);
+                        mysqli_stmt_bind_param($stmt_up, 'ii', $new_id_asesor, $id_user);
                         if (mysqli_stmt_execute($stmt_up)) {
-                            $_SESSION['id_asesor'] = $id_asesor;
-                            $_SESSION['id_referensi'] = $id_asesor;
-                            echo "<script>alert('Profil berhasil disimpan.'); window.location.href='$redirect_home';</script>";
+                            $_SESSION['id_asesor'] = $new_id_asesor;
+                            $_SESSION['id_referensi'] = $new_id_asesor;
+                            echo "<script>alert('Profil dan Jadwal berhasil disimpan.'); window.location.href='$redirect_home';</script>";
                             exit();
                         }
                         $err = mysqli_stmt_error($stmt_up);
@@ -80,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<script>alert('Prepare error: " . addslashes(mysqli_error($koneksi)) . "');</script>";
         }
     } else {
-        echo "<script>alert('Semua field wajib diisi!');</script>";
+        echo "<script>alert('Semua field termasuk jadwal wajib diisi!');</script>";
     }
 }
 ?>
@@ -112,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2>Input Profil Asesor</h2>
 
         <div class="info-box">
-            <strong>Informasi:</strong> Anda harus melengkapi profil ini sebelum dapat mengakses halaman lainnya.
+            <strong>Informasi:</strong> Anda harus melengkapi profil dan memilih jadwal sertifikasi sebelum dapat mengakses halaman lainnya.
         </div>
 
         <form method="post" autocomplete="off">
@@ -136,7 +169,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="alamat">Alamat:<span class="required">*</span></label>
                 <textarea id="alamat" maxlength="255" name="alamat" required><?php echo isset($alamat) ? htmlspecialchars($alamat) : ''; ?></textarea>
             </div>
-            <button type="submit" class="btn-submit">Simpan Profil</button>
+
+            <div class="form-group">
+                <label for="id_jadwal">Pilih Jadwal / Skema Sertifikasi<span class="required">*</span></label>
+                <select id="id_jadwal" name="id_jadwal" required>
+                    <option value="">Pilih Jadwal yang Tersedia</option>
+                    <?php foreach ($jadwal_list as $j): ?>
+                        <option value="<?php echo (int) $j['id_jadwal']; ?>">
+                            <?php echo $j['judul_skema'] . ' - ' . $j['hari'] . ', ' . $j['tanggal'] . ' (' . $j['waktu'] . ') - ' . $j['tuk']; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit">Simpan Profil & Jadwal</button>
         </form>
     </div>
 </body>

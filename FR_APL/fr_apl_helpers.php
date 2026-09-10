@@ -43,7 +43,6 @@ function fr_apl_sudah_ak03_lengkap($koneksi, $id_asesi)
         "SELECT id_ak03 FROM tb_ak03
          WHERE id_asesi = '$id_asesi'
            AND tgl_selesai IS NOT NULL
-           AND tgl_selesai != ''
          ORDER BY id_ak03 DESC LIMIT 1"
     ));
     return (bool) $r;
@@ -131,4 +130,76 @@ function fr_apl_ensure_ak02_stub($koneksi, $id_asesi, $id_apl1, $id_ak01, $id_as
     }
 
     return true;
+}
+
+function fr_apl_normalize_date($v)
+{
+    $v = trim((string) $v);
+    if ($v === '' || $v === '0000-00-00') {
+        return '';
+    }
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $v, $m)) {
+        return $m[1] . '-' . $m[2] . '-' . $m[3];
+    }
+    if (preg_match('/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/', $v, $m)) {
+        return sprintf('%04d-%02d-%02d', (int) $m[3], (int) $m[2], (int) $m[1]);
+    }
+    return '';
+}
+
+function fr_apl2_load_nilai($koneksi, $id_apl2)
+{
+    $out = [];
+    $id_apl2 = intval($id_apl2);
+    if ($id_apl2 <= 0) {
+        return $out;
+    }
+    $rj = mysqli_query(
+        $koneksi,
+        "SELECT id_elemen, nilai FROM detail_apl2
+         WHERE id_apl2 = '$id_apl2'
+           AND nilai IN ('K', 'BK')
+         ORDER BY id_detail_apl2 ASC"
+    );
+    if (!$rj) {
+        return $out;
+    }
+    while ($j = mysqli_fetch_assoc($rj)) {
+        $eid = intval($j['id_elemen']);
+        $val = strtoupper(trim((string) $j['nilai']));
+        if ($eid > 0 && in_array($val, ['K', 'BK'], true)) {
+            $out[$eid] = $val;
+        }
+    }
+    return $out;
+}
+
+function fr_apl2_sync_kuk($koneksi, $id_apl2, $id_skema, array $units)
+{
+    $id_apl2  = intval($id_apl2);
+    $id_skema = intval($id_skema);
+    if ($id_apl2 <= 0 || $id_skema <= 0) {
+        return;
+    }
+    foreach ($units as $u) {
+        $id_unit = intval($u['id_unit']);
+        foreach ($u['elemen'] as $el) {
+            $id_el = intval($el['id_elemen']);
+            foreach ($el['kuk'] as $k) {
+                $id_kuk = intval($k['id_kuk']);
+                $cek = mysqli_fetch_assoc(mysqli_query(
+                    $koneksi,
+                    "SELECT id_detail_apl2 FROM detail_apl2
+                     WHERE id_apl2='$id_apl2' AND id_kuk='$id_kuk' LIMIT 1"
+                ));
+                if (!$cek) {
+                    mysqli_query(
+                        $koneksi,
+                        "INSERT INTO detail_apl2 (id_apl2, id_skema, id_unit, id_elemen, id_kuk, nilai)
+                         VALUES ('$id_apl2','$id_skema','$id_unit','$id_el','$id_kuk','')"
+                    );
+                }
+            }
+        }
+    }
 }

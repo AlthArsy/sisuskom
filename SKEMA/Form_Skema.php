@@ -22,6 +22,14 @@ $q_periode = mysqli_query($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE i
 if ($q_periode && $row = mysqli_fetch_assoc($q_periode)) {
     $periode_nama = htmlspecialchars($row['tahun_ajaran']);
 }
+
+$asesor_options = [];
+$q_asesor = mysqli_query($koneksi, "SELECT id_asesor, nama_asesor, no_reg FROM tb_asesor ORDER BY nama_asesor ASC");
+if ($q_asesor) {
+    while ($asesor = mysqli_fetch_assoc($q_asesor)) {
+        $asesor_options[] = $asesor;
+    }
+}
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="../assets/CSS/From_skema.css">
@@ -32,7 +40,7 @@ if ($q_periode && $row = mysqli_fetch_assoc($q_periode)) {
         <p style="font-size:14px; margin-top:5px;">Periode aktif: <strong><?php echo $periode_nama; ?></strong></p>
     </div>
     <div class="form-container">
-        <form action="../SKEMA/simpan_skema.php" method="POST" autocomplete="off">
+        <form action="../BERANDA/UTAMA.php?page=../SKEMA/simpan_skema.php" method="POST" autocomplete="off">
             <input type="hidden" name="id_periode" value="<?php echo $id_periode_session; ?>">
             
             <div class="form-group">

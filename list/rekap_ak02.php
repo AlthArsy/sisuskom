@@ -26,13 +26,15 @@ $sql = "SELECT
             asi.nama_asesi,
             s.judul_skema,
             s.nomor_skema,
-            ak01.tuk AS tuk_asesi,
-            ak01.hari_tanggal,
+            " . rekap_sql_tuk('j', 'ak01') . " AS tuk_asesi,
+            " . rekap_sql_hari_tanggal('j', 'ak01.hari_tanggal') . " AS hari_tanggal,
             asr.nama_asesor AS nama_asesor_penilai
         FROM tb_ak02 ak
         LEFT JOIN tb_asesi asi ON asi.id_asesi = ak.id_asesi
         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
-        LEFT JOIN tb_skema s ON s.id_skema = apl.id_skema
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+        LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
         LEFT JOIN tb_ak01 ak01 ON ak01.id_ak01 = ak.id_ak01
         LEFT JOIN tb_asesor asr ON asr.id_asesor = ak.id_asesor
         WHERE 1=1"
@@ -53,7 +55,9 @@ $total = count($rows);
 $cnt_base = "SELECT COUNT(*) c FROM tb_ak02 ak
              LEFT JOIN tb_asesi asi ON asi.id_asesi = ak.id_asesi
              LEFT JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
-             LEFT JOIN tb_skema s ON s.id_skema = apl.id_skema
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+             LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
              LEFT JOIN tb_ak01 ak01 ON ak01.id_ak01 = ak.id_ak01
              WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'ak.id_asesor')

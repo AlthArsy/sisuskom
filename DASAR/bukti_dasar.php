@@ -44,7 +44,7 @@ if ($role === 'Asesor') {
         header('Location: ../LOGIN/login.php');
         exit();
     }
-    $chk = mysqli_prepare($koneksi, "SELECT id_skema FROM tb_skema WHERE id_skema = ? AND id_asesor = ? LIMIT 1");
+    $chk = mysqli_prepare($koneksi, "SELECT id_skema FROM tb_det_periode WHERE id_skema = ? AND id_asesor = ? LIMIT 1");
     mysqli_stmt_bind_param($chk, "ii", $id_skema_param, $id_asesor_login);
     mysqli_stmt_execute($chk);
     mysqli_stmt_store_result($chk);

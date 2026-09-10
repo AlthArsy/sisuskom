@@ -25,9 +25,12 @@ function searchSkemaDP(val) {
                 res.data.forEach(function (s) {
                     var item = document.createElement('div');
                     item.className = 'skema-item';
+                    var jadwal = [s.hari, s.tanggal, s.waktu].filter(Boolean).join(', ');
                     item.innerHTML =
                         '<div class="sk-judul">' + escHtml(s.judul_skema) + '</div>' +
                         '<div class="sk-nomor">No: ' + escHtml(s.nomor_skema) +
+                        ' &nbsp;|&nbsp; Jadwal: ' + escHtml(jadwal || '-') +
+                        ' &nbsp;|&nbsp; TUK: ' + escHtml(s.tuk || '-') +
                         ' &nbsp;|&nbsp; Asesor: ' + escHtml(s.nama_asesor) + '</div>';
                     item.onclick = function () { pilihSkemaDP(s); };
                     dd.appendChild(item);
@@ -49,11 +52,15 @@ function pilihSkemaDP(s) {
     if (elNomor) elNomor.value = s.nomor_skema;
     if (dd)      dd.style.display = 'none';
     if (elBadge) {
+        var jadwal = [s.hari, s.tanggal, s.waktu].filter(Boolean).join(', ');
         elBadge.textContent = ' ' + s.judul_skema +
-            ' (No. ' + s.nomor_skema + ') — Asesor: ' + s.nama_asesor;
+            ' (No. ' + s.nomor_skema + ') - Jadwal: ' + (jadwal || '-') +
+            ' - TUK: ' + (s.tuk || '-') +
+            ' - Asesor: ' + s.nama_asesor;
         elBadge.style.display = 'inline-block';
     }
 
+    setValIfExists('id_jadwal_hidden',      s.id_jadwal);
     setValIfExists('id_det_periode_hidden', s.id_det_periode);
     setValIfExists('id_skema_hidden',       s.id_skema);
     setValIfExists('judul_skema_hidden',    s.judul_skema);
@@ -161,7 +168,7 @@ function buildQRContent() {
     var idSkema  = getVal('id_skema_hidden')     || '-';
     var judul    = getVal('judul_skema_hidden')  || getVal('judul_skema') || '-';
     var nama     = getVal('nama_pemohon')        || '';
-    var tanggal  = getVal('tanggal_pemohon')     || '';
+    var tanggal  = getVal('tanggal_pemohon') || getVal('tanggal') || '';
     var adminLsp = (typeof NAMA_ADMIN_LSP !== 'undefined') ? NAMA_ADMIN_LSP : '-';
     var ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return 'LSP MUDIKAL | APL1B2' +
@@ -176,7 +183,7 @@ function buildQRContent() {
 
 function doGenerateQR() {
     var nama    = getVal('nama_pemohon');
-    var tanggal = getVal('tanggal_pemohon');
+    var tanggal = getVal('tanggal_pemohon') || getVal('tanggal');
     if (!nama || !tanggal) {
         generateQR('qr-canvas', 'qr-placeholder', 'qr-badge', 'btn-dl-qr', 'qr_data_input', '');
         return;
@@ -186,12 +193,13 @@ function doGenerateQR() {
 
 function prepareQRData() {
     var idDetPeriode = getVal('id_det_periode_hidden');
+    var idJadwal     = getVal('id_jadwal_hidden');
     var idSkema      = getVal('id_skema_hidden');
     var tujuan       = document.querySelector('input[name="tujuan_asesmen"]:checked');
-    var tanggal      = getVal('tanggal_pemohon');
+    var tanggal      = getVal('tanggal_pemohon') || getVal('tanggal');
 
-    if (!idDetPeriode || !idSkema) {
-        alert('Pilih skema dari daftar pencarian (klik salah satu hasil). Skema dan asesor akan terisi otomatis.');
+    if (!idJadwal || !idDetPeriode || !idSkema) {
+        alert('Pilih jadwal dari daftar pencarian (klik salah satu hasil). Jadwal, skema, dan asesor akan terisi otomatis.');
         return false;
     }
     if (!tujuan) {

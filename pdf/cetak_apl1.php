@@ -26,7 +26,11 @@ if ($id_asesi) {
 $apl1 = null;
 if ($id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT * FROM tb_apl1 WHERE id_asesi='$id_asesi' ORDER BY id_apl1 DESC LIMIT 1"));
+        "SELECT a.*, COALESCE(j.id_skema, dp.id_skema) AS id_skema
+         FROM tb_apl1 a
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         WHERE a.id_asesi='$id_asesi' ORDER BY a.id_apl1 DESC LIMIT 1"));
 }
 $id_skema = intval($apl1['id_skema'] ?? 0);
 

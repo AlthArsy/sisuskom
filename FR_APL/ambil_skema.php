@@ -1,5 +1,8 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 include "../koneksi.php";
 
 $action = isset($_GET['action']) ? trim($_GET['action']) : '';
@@ -41,7 +44,8 @@ if ($action === 'detail') {
                          s.standar_kompetensi_kerja,
                          a.nama_asesor, a.no_reg
                   FROM tb_skema s
-                  LEFT JOIN tb_asesor a ON a.id_asesor = s.id_asesor
+                  LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+                  LEFT JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
                   WHERE s.id_skema = '$id_skema'
                   LIMIT 1";
     $res_skema = mysqli_query($koneksi, $sql_skema);
@@ -126,7 +130,8 @@ if ($action === 'apl2') {
     $res_sk = mysqli_query($koneksi,
         "SELECT s.*, a.nama_asesor, a.no_reg
          FROM tb_skema s
-         LEFT JOIN tb_asesor a ON a.id_asesor = s.id_asesor
+         LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+         LEFT JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
          WHERE s.id_skema = '$id_skema' LIMIT 1");
     $skema = mysqli_fetch_assoc($res_sk);
     if (!$skema) {
@@ -166,17 +171,38 @@ if ($action === 'search_dp') {
     $id_periode  = intval($_GET['id_periode'] ?? 0);
     $keyword     = trim($_GET['q'] ?? '');
     $keyword_esc = mysqli_real_escape_string($koneksi, $keyword);
+    $role = $_SESSION['role'] ?? '';
+    $id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
 
-    $sql = "SELECT dp.id_det_periode, dp.id_skema,
+    $sql = "SELECT j.id_jadwal, j.hari, j.tanggal, j.waktu, j.tuk,
+                   dp.id_det_periode, dp.id_skema,
                    s.judul_skema, s.nomor_skema, s.standar_kompetensi_kerja,
-                   a.nama_asesor
-            FROM tb_det_periode dp
-            JOIN tb_skema s ON s.id_skema = dp.id_skema
+                   a.nama_asesor, p.tahun_ajaran
+            FROM tb_jadwal j
+            JOIN tb_det_periode dp
+              ON dp.id_periode = j.id_periode
+             AND dp.id_skema = j.id_skema
+             AND (
+                    dp.id_asesor = j.id_asesor
+                    OR j.id_asesor IS NULL
+                    OR j.id_asesor = 0
+                 )
+            JOIN tb_skema s ON s.id_skema = j.id_skema
             JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
-            WHERE dp.id_periode = '$id_periode'
+            LEFT JOIN tb_periode p ON p.id_periode = j.id_periode
+            WHERE 1=1
+              " . ($id_periode > 0 ? "AND j.id_periode = '$id_periode'" : "") . "
               AND (s.judul_skema LIKE '%{$keyword_esc}%'
-                OR s.nomor_skema LIKE '%{$keyword_esc}%')
-            ORDER BY s.judul_skema ASC
+                OR s.nomor_skema LIKE '%{$keyword_esc}%'
+                OR j.tanggal LIKE '%{$keyword_esc}%'
+                OR j.tuk LIKE '%{$keyword_esc}%')";
+
+    if ($role === 'Asesor') {
+        $sql .= " AND (dp.id_asesor = '$id_asesor_session')";
+    }
+
+    $sql .= "
+            ORDER BY j.tanggal ASC, j.waktu ASC, s.judul_skema ASC
             LIMIT 10";
 
     $result = mysqli_query($koneksi, $sql);

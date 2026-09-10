@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 if (!isset($_SESSION['username'])) {
     header('Location: ../LOGIN/login.php');
@@ -32,12 +33,15 @@ if ($id_asesi) {
 $ak01 = null;
 if ($id_asesi) {
     $sql_ak01 = "SELECT a.*, 
-                        apl.id_skema,
+                        COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                        COALESCE(CONVERT(j.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT(a.tuk_pelaksanaan USING utf8mb4) COLLATE utf8mb4_unicode_ci) AS tuk,
                         s.judul_skema, s.nomor_skema,
                         asr.nama_asesor, asr.no_reg, asr.id_asesor
                  FROM tb_ak01 a
                  LEFT JOIN tb_apl1 apl ON a.id_apl1 = apl.id_apl1
-                 LEFT JOIN tb_skema s   ON apl.id_skema = s.id_skema
+                 LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+                 LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+                 LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
                  LEFT JOIN tb_asesor asr ON a.id_asesor = asr.id_asesor
                  WHERE a.id_asesi = '$id_asesi'
                  ORDER BY a.id_ak01 DESC LIMIT 1";
@@ -70,14 +74,17 @@ if (!empty($_GET['id_skema'])) {
 
 if (!$id_skema && $id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.*, s.judul_skema, s.nomor_skema 
+        "SELECT a.*, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema 
          FROM tb_apl1 a
-         LEFT JOIN tb_skema s ON a.id_skema = s.id_skema
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
          WHERE a.id_asesi='{$e($id_asesi)}'
          ORDER BY a.id_apl1 DESC LIMIT 1"));
     if ($apl1) {
         $id_apl1  = intval($apl1['id_apl1']);
-        $id_skema = intval($apl1['id_skema']);
+        $id_skema = intval($apl1['id_skema'] ?? 0);
     }
 }
 
@@ -87,10 +94,13 @@ if (!$id_skema && $ak01) {
 
 if (!$apl1 && $id_asesi && $id_skema) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.*, s.judul_skema, s.nomor_skema
+        "SELECT a.*, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema
          FROM tb_apl1 a
-         LEFT JOIN tb_skema s ON a.id_skema = s.id_skema
-         WHERE a.id_asesi='{$e($id_asesi)}' AND a.id_skema='{$e($id_skema)}'
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+         WHERE a.id_asesi='{$e($id_asesi)}' AND COALESCE(j.id_skema, dp.id_skema)='{$e($id_skema)}'
          LIMIT 1"));
     if ($apl1) $id_apl1 = intval($apl1['id_apl1']);
 }
@@ -126,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $p_id_skema          = intval($_POST['id_skema'] ?? 0);
     $p_id_apl1           = intval($_POST['id_apl1'] ?? 0);
-    $p_tanggal           = trim($_POST['tanggal'] ?? '');
+    $p_tanggal           = fr_apl_normalize_date($_POST['tanggal'] ?? '');
     $p_rekomendasi       = trim($_POST['rekomendasi'] ?? '');
     $p_umpan_balik       = trim($_POST['umpan_balik'] ?? '');
     $p_alasan_rekomendasi = trim($_POST['alasan_rekomendasi'] ?? '');

@@ -48,24 +48,37 @@ $roles_data = [
                 'label' => 'Manajemen User'
             ],
             [
-                'href' => '../Admin_lsp/Table_admin_lsp.php',
-                'icon' => 'fas fa-users',
-                'label' => 'Manajemen Admin LSP'
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Manajemen Profile User',
+                'has_dropdown' => true,                                                  
+                'submenu' => [
+                        [
+                            'href' => '../Admin_lsp/Table_admin_lsp.php',
+                            'icon' => 'fas fa-users',
+                            'label' => 'Manajemen Admin LSP'
+                        ],
+                        [
+                            'href' => '../ASESOR/Table_asesor.php',
+                            'icon' => 'fas fa-user-tie',
+                            'label' => 'Manajemen Asesor'
+                        ],
+                        [
+                            'href' => '../ASESI/Table_asesi.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Manajemen Asesi'
+                        ],
+                ]
             ],
             [
-                'href' => '../ASESOR/Table_asesor.php',
-                'icon' => 'fas fa-user-tie',
-                'label' => 'Manajemen Asesor'
-            ],
-            [
-                'href' => '../ASESI/Table_asesi.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Manajemen Asesi'
-            ],
-             [
                 'href' => '../SKEMA/list_skema2.php',
                 'icon' => 'fas fa-tasks',
                 'label' => 'Data Skema'
+            ],
+            [
+                'href' => '../Jadwal/jadwal.php',
+                'icon' => 'fas fa-users',
+                'label' => 'Jadwal Asesmen'
             ],
             [
                 'href' => '#',
@@ -140,15 +153,24 @@ $roles_data = [
                 'label' => 'Manajemen Validator'
             ],
             [
-                'href' => '../ASESOR/Table_asesor.php',
-                'icon' => 'fas fa-user-tie',
-                'label' => 'Manajemen Asesor'
+                'href' => '#',
+                'icon' => 'fas fa-book',
+                'label' => 'Manajemen Profile User',
+                'has_dropdown' => true,                                                  
+                'submenu' => [
+                        [
+                            'href' => '../ASESOR/Table_asesor.php',
+                            'icon' => 'fas fa-user-tie',
+                            'label' => 'Manajemen Asesor'
+                        ],
+                        [
+                            'href' => '../ASESI/Table_asesi.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Manajemen Asesi'
+                        ],
+                ]
             ],
-            [
-                'href' => '../ASESI/Table_asesi.php',
-                'icon' => 'fas fa-user-graduate',
-                'label' => 'Manajemen Asesi'
-            ],
+
             [
                 'href' => '#',
                 'icon' => 'fas fa-book',
@@ -166,6 +188,11 @@ $roles_data = [
                         'label' => 'Data Skema'
                     ]
                 ]
+            ],
+            [
+                'href' => '../Jadwal/jadwal.php',
+                'icon' => 'fas fa-users',
+                'label' => 'Jadwal Asesmen'
             ],
             [
                 'href' => '#',
@@ -253,6 +280,11 @@ $roles_data = [
                 'label' => 'Catatan Rekap',
                 'has_dropdown' => true,
                 'submenu' => [
+                        [
+                            'href' => '../list/rekap_fr.php',
+                            'icon' => 'fas fa-user-graduate',
+                            'label' => 'Rekap FR APL 1'
+                        ],
                         [
                             'href' => '../list/rekap_frapl2.php',
                             'icon' => 'fas fa-user-graduate',
@@ -415,8 +447,10 @@ $allowed_pages = [
     '../PENAGATURAN/hapus_val.php',
     '../PENAGATURAN/ubah_val.php',
     '../ADM/hapus_ba.php',
-    '../',
-    '../',
+    '../Jadwal/jadwal.php',
+    '../Jadwal/tambah_jdwl.php',
+    '../Jadwal/ubah.php',
+    '../Jadwal/hapus.php',
     '../',
 
 ];
@@ -649,8 +683,5 @@ if (isset($_GET['page']) && in_array($_GET['page'], $allowed_pages)) {
 
         initSidebar();
     </script>
-    <?php if (in_array($role, ['Admin_utm', 'Admin_lsp', 'Asesor'], true)): ?>
-        <?php include '../bot/widget.php'; ?>
-    <?php endif; ?>
 </body>
 </html>

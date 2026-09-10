@@ -17,7 +17,7 @@ if (isset($_GET['all']) && $_GET['all'] == '1') {
     if (!isset($_GET['confirm']) || $_GET['confirm'] != '1') {
         echo '<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>Konfirmasi Hapus Semua Asesor</title></head><body>';
         echo '<h2>Konfirmasi: Hapus Semua Data Asesor</h2>';
-        echo '<p>Semua data pada tabel <strong>tb_asesor</strong> akan dihapus dan referensi pada tabel <strong>users</strong> dan <strong>tb_skema</strong> akan di-set NULL. Tindakan ini tidak dapat dibatalkan.</p>';
+        echo '<p>Semua data pada tabel <strong>tb_asesor</strong> akan dihapus beserta relasi yang bergantung pada asesor tersebut. Tindakan ini tidak dapat dibatalkan.</p>';
         echo '<p><a href="?all=1&confirm=1">Ya, hapus semua</a> &nbsp; <a href="../ASESOR/Table_asesor.php">Kembali</a></p>';
         echo '</body></html>';
         exit;
@@ -31,12 +31,6 @@ if ($id <= 0) {
 
 mysqli_begin_transaction($koneksi);
 try {
-    $stmt = mysqli_prepare($koneksi, "UPDATE tb_skema SET id_asesor = NULL WHERE id_asesor = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-
-
     $stmt = mysqli_prepare($koneksi, "DELETE FROM tb_asesor WHERE id_asesor = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     if (!mysqli_stmt_execute($stmt)) {

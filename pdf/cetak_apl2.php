@@ -3,6 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) session_start();
 include "../koneksi.php";
+require_once __DIR__ . '/../FR_APL/fr_apl_helpers.php';
 if (!isset($_SESSION['username']) || !in_array($_SESSION['role'] ?? '', ['Asesi','Asesor','Admin_lsp','Admin_utm'])) {
     echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
 }
@@ -15,14 +16,17 @@ $id_asesi = isset($_GET['id_asesi'])
 $apl1 = null;
 if ($id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
+        "SELECT a.id_apl1, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema,
                 s.standar_kompetensi_kerja,
                 as2.nama_asesor, as2.no_reg, as2.id_asesor
          FROM tb_apl1 a
-         JOIN tb_skema s ON s.id_skema = a.id_skema
-         LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+         LEFT JOIN tb_asesor as2 ON as2.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
          WHERE a.id_asesi = '$id_asesi'
-         ORDER BY a.id_apl1 ASC LIMIT 1"));
+         ORDER BY a.id_apl1 DESC LIMIT 1"));
 }
 
 $asesi_data = null;
@@ -81,15 +85,7 @@ if ($id_skema) {
 }
 $jawaban_exist = [];
 if ($apl2_exist) {
-    $id_apl2_q = intval($apl2_exist['id_apl2']);
-    $rj = mysqli_query($koneksi,
-        "SELECT id_elemen, nilai FROM detail_apl2
-         WHERE id_apl2='$id_apl2_q' AND nilai != ''
-           AND id_detail_apl2 IN (
-               SELECT MAX(id_detail_apl2) FROM detail_apl2
-               WHERE id_apl2='$id_apl2_q' AND nilai != ''
-               GROUP BY id_elemen)");
-    while ($j = mysqli_fetch_assoc($rj)) $jawaban_exist[$j['id_elemen']] = $j['nilai'];
+    $jawaban_exist = fr_apl2_load_nilai($koneksi, $apl2_exist['id_apl2']);
 }
 $rekomendasi  = $apl2_exist['rekomendasi'] ?? '';
 $nama_asesor  = $apl1['nama_asesor'] ?? '';
@@ -287,7 +283,7 @@ body { font-family: Calibri, Arial, sans-serif; font-size:10pt; background:#bbb;
     </thead>
     <tbody>
     <?php foreach ($u['elemen'] as $el):
-        $nilai  = $jawaban_exist[$el['id_elemen']] ?? '';
+        $nilai  = $jawaban_exist[intval($el['id_elemen'])] ?? '';
         $cb_K   = ($nilai === 'K')  ? '☑' : '☐';
         $cb_BK  = ($nilai === 'BK') ? '☑' : '☐';
     ?>

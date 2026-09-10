@@ -30,12 +30,14 @@ if (isset($_GET['id'])) {
                 el.nama_elemen,
                 el.id_unit,
                 uk.id_skema,
-                s.id_asesor
+                GROUP_CONCAT(DISTINCT dp.id_asesor) AS id_asesor_list
             FROM tb_kuk k
             LEFT JOIN tb_elemen el ON k.id_elemen = el.id_elemen
             LEFT JOIN tb_unit_kompetensi uk ON el.id_unit = uk.id_unit
             LEFT JOIN tb_skema s ON uk.id_skema = s.id_skema
-            WHERE k.id_kuk = ?";
+            LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+            WHERE k.id_kuk = ?
+            GROUP BY k.id_kuk";
 
     $stmt = mysqli_prepare($koneksi, $sql);
 
@@ -49,8 +51,9 @@ if (isset($_GET['id'])) {
 
             if ($_SESSION['role'] === 'Asesor') {
                 $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
+                $asesor_ids = array_filter(explode(',', (string) ($kuk_data['id_asesor_list'] ?? '')));
 
-                if ($kuk_data['id_asesor'] != $id_asesor_login) {
+                if (!in_array((string) $id_asesor_login, $asesor_ids, true)) {
                     $message = "Anda tidak memiliki akses untuk mengubah Kuk ini.";
                     $message_type = 'error';
                     $kuk_data = [];

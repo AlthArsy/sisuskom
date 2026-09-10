@@ -52,19 +52,21 @@ if ($role === 'Admin_utm') {
     } else {
         $query = "
             SELECT
-                tb_skema.id_skema,
-                tb_skema.nomor_skema,
-                tb_skema.judul_skema,
-                tb_skema.standar_kompetensi_kerja,
-                COUNT(tb_unit_kompetensi.id_unit) as jumlah_unit
-            FROM tb_skema
-            LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
-           WHERE tb_skema.id_periode = $id_periode_session
+                s.id_skema,
+                s.nomor_skema,
+                s.judul_skema,
+                s.standar_kompetensi_kerja,
+                COUNT(DISTINCT u.id_unit) as jumlah_unit
+            FROM tb_skema s
+            LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema AND dp.id_periode = $id_periode_session
+            LEFT JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+            LEFT JOIN tb_unit_kompetensi u ON s.id_skema = u.id_skema
+            WHERE s.id_periode = $id_periode_session
         ";
         if (!empty($search)) {
-            $query .= " AND tb_skema.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
+            $query .= " AND s.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
         }
-        $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
+        $query .= " GROUP BY s.id_skema ORDER BY s.id_skema DESC";
         $result = mysqli_query($koneksi, $query);
     }
 
@@ -90,22 +92,23 @@ if ($role === 'Admin_utm') {
     } else {
         $query = "
             SELECT 
-                tb_skema.id_skema,
-                tb_skema.nomor_skema,
-                tb_skema.judul_skema,
-                tb_skema.standar_kompetensi_kerja,
+                s.id_skema,
+                s.nomor_skema,
+                s.judul_skema,
+                s.standar_kompetensi_kerja,
                 EXISTS(
-                    SELECT 1 FROM tb_skema_asesor 
-                    WHERE tb_skema_asesor.id_skema = tb_skema.id_skema 
-                    AND tb_skema_asesor.id_asesor = $id_asesor_login
+                    SELECT 1 FROM tb_det_periode dp2
+                    WHERE dp2.id_skema = s.id_skema
+                      AND dp2.id_asesor = $id_asesor_login
+                      AND dp2.id_periode = $id_periode_session
                 ) as sudah_dipilih
-            FROM tb_skema
-            WHERE tb_skema.id_periode = $id_periode_session
+            FROM tb_skema s
+            WHERE s.id_periode = $id_periode_session
         ";
         if (!empty($search)) {
-            $query .= " AND tb_skema.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
+            $query .= " AND s.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
         }
-        $query .= " ORDER BY tb_skema.id_skema DESC";
+        $query .= " GROUP BY s.id_skema ORDER BY s.id_skema DESC";
         $result = mysqli_query($koneksi, $query);
     }
 }

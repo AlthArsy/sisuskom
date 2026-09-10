@@ -22,9 +22,12 @@ $nomor_skema_db = '';
 
 if ($id_asesi) {
     $q = mysqli_query($koneksi,
-        "SELECT a.id_apl1, a.id_skema, s.judul_skema, s.nomor_skema
+        "SELECT a.id_apl1, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema
          FROM tb_apl1 a
-         JOIN tb_skema s ON a.id_skema = s.id_skema
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
          WHERE a.id_asesi = '$id_asesi'
          ORDER BY a.id_apl1 DESC LIMIT 1");
     if ($q && mysqli_num_rows($q) > 0) {
@@ -49,9 +52,11 @@ $noreg_asesor_db = '';
 if ($id_skema_db) {
     $qas = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT ar.id_asesor, ar.nama_asesor, ar.no_reg
-         FROM tb_skema sk
-         JOIN tb_asesor ar ON sk.id_asesor = ar.id_asesor
-         WHERE sk.id_skema='$id_skema_db' LIMIT 1"));
+         FROM tb_apl1 a
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         JOIN tb_asesor ar ON ar.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
+         WHERE a.id_apl1='$id_apl1_db' LIMIT 1"));
     if ($qas) {
         $id_asesor_db    = intval($qas['id_asesor']);
         $nama_asesor_db  = $qas['nama_asesor'] ?? '';
@@ -62,9 +67,12 @@ if ($id_skema_db) {
 $tuk_db = '';
 if ($id_asesi && $id_apl1_db) {
     $qa = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT tuk FROM tb_ak01
-         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
-         ORDER BY id_ak01 DESC LIMIT 1"));
+        "SELECT COALESCE(CONVERT(j.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT(ak.tuk_pelaksanaan USING utf8mb4) COLLATE utf8mb4_unicode_ci) AS tuk
+         FROM tb_ak01 ak
+         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+         WHERE ak.id_asesi='$id_asesi' AND ak.id_apl1='$id_apl1_db'
+         ORDER BY ak.id_ak01 DESC LIMIT 1"));
     $tuk_db = $qa['tuk'] ?? '';
 }
 

@@ -31,7 +31,9 @@ $sql = "SELECT a.id_apl2, a.id_apl1, a.id_asesi, a.id_asesor,
         FROM tb_apl2 a
         LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
         LEFT JOIN tb_apl1 ap1 ON ap1.id_apl1 = a.id_apl1
-        LEFT JOIN tb_skema s ON s.id_skema = ap1.id_skema
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = ap1.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap1.id_det_periode
+        LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
         $where
         ORDER BY a.id_apl2 DESC";
 
@@ -45,7 +47,9 @@ $total = count($rows);
 $cnt_base = "SELECT COUNT(*) c FROM tb_apl2 a
              LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
              LEFT JOIN tb_apl1 ap1 ON ap1.id_apl1 = a.id_apl1
-             LEFT JOIN tb_skema s ON s.id_skema = ap1.id_skema
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = ap1.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap1.id_det_periode
+             LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
              WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'a.id_asesor')
     // . rekap_sql_batas_2bulan('ap1.tanggal_pemohon')

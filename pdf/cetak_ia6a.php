@@ -14,12 +14,15 @@ $id_asesi = isset($_GET['id_asesi']) ? intval($_GET['id_asesi']) : 0;
 if (!$id_asesi) die("ID Asesi tidak valid.");
 
 $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
+    "SELECT a.id_apl1, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+            s.judul_skema, s.nomor_skema,
             s.standar_kompetensi_kerja,
             as2.nama_asesor, as2.no_reg, as2.id_asesor
      FROM tb_apl1 a
-     JOIN tb_skema s ON s.id_skema = a.id_skema
-     LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+     LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+     LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+     LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+     LEFT JOIN tb_asesor as2 ON as2.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
      WHERE a.id_asesi = '$id_asesi'
      ORDER BY a.id_apl1 ASC LIMIT 1"));
 
@@ -38,9 +41,11 @@ $asesi_data = mysqli_fetch_assoc(mysqli_query($koneksi,
 $nama_asesi = $asesi_data['nama_asesi'] ?? '';
 
 $ak01 = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT tuk, hari_tanggal, waktu FROM tb_ak01
-     WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1'
-     ORDER BY id_ak01 DESC LIMIT 1"));
+    "SELECT COALESCE(CONVERT(j.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT(a.tuk_pelaksanaan USING utf8mb4) COLLATE utf8mb4_unicode_ci) AS tuk, a.hari_tanggal, a.waktu FROM tb_ak01 a
+     LEFT JOIN tb_apl1 apl ON apl.id_apl1 = a.id_apl1
+     LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+     WHERE a.id_asesi='$id_asesi' AND a.id_apl1='$id_apl1'
+     ORDER BY a.id_ak01 DESC LIMIT 1"));
 $tuk     = $ak01['tuk'] ?? '-';
 $tanggal = $ak01['hari_tanggal'] ?? '';
 $waktu   = $ak01['waktu'] ?? '';
@@ -53,7 +58,7 @@ $tuk_html = implode('/', array_map(
 
 $ia06a = mysqli_fetch_assoc(mysqli_query($koneksi,
     "SELECT id_ia06a, id_validator FROM tb_ia06a
-     WHERE id_skema='$id_skema' AND id_asesor = (SELECT id_asesor FROM tb_skema WHERE id_skema='$id_skema')"));
+     WHERE id_skema='$id_skema' AND id_asesor = '" . intval($apl1['id_asesor'] ?? 0) . "'"));
 $id_ia06a    = $ia06a['id_ia06a'] ?? 0;
 $id_validator = $ia06a['id_validator'] ?? 0;
 

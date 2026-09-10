@@ -27,7 +27,9 @@ $sql = "SELECT
             (SELECT MAX(d.tanggal) FROM detail_ak5 d WHERE d.id_ak5 = ak5.id_ak5) AS tanggal
         FROM tb_ak05 ak5
         INNER JOIN tb_apl1 ap ON ap.id_apl1 = ak5.id_apl1
-        INNER JOIN tb_skema sk ON sk.id_skema = ap.id_skema
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = ap.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap.id_det_periode
+        INNER JOIN tb_skema sk ON sk.id_skema = COALESCE(j.id_skema, dp.id_skema)
         LEFT JOIN tb_asesor ar ON ar.id_asesor = ak5.id_asesor
         WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'ak5.id_asesor')
@@ -35,7 +37,7 @@ $sql = "SELECT
 
 $batas = date('Y-m-d', strtotime('-2 months'));
 $sql .= " GROUP BY sk.id_skema, ak5.id_ak5
-          HAVING (tanggal IS NULL OR tanggal = '' OR tanggal >= '{$batas}')";
+          HAVING (tanggal IS NULL OR tanggal >= '{$batas}')";
 
 $result = mysqli_query($koneksi, $sql);
 $rows   = [];

@@ -431,9 +431,10 @@ if ($print_mode && $id_skema) {
             s.judul_skema,
             s.nomor_skema
         FROM tb_skema s
-        INNER JOIN tb_ia06a ia ON ia.id_skema = s.id_skema AND ia.id_asesor = s.id_asesor
+        INNER JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+        INNER JOIN tb_ia06a ia ON ia.id_skema = s.id_skema AND ia.id_asesor = dp.id_asesor
         INNER JOIN tb_soal so ON so.id_ia06a = ia.id_ia06a
-        WHERE s.id_asesor = '$id_asesor'
+        WHERE dp.id_asesor = '$id_asesor'
         ORDER BY s.nomor_skema
     ";
     $res = mysqli_query($koneksi, $query);

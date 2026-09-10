@@ -31,7 +31,8 @@ if ($id_unit > 0) {
         FROM tb_elemen
         LEFT JOIN tb_unit_kompetensi ON tb_elemen.id_unit = tb_unit_kompetensi.id_unit
         LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-        LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+        LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+        LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
         WHERE tb_elemen.id_elemen = ?
     ";
     $stmt_skema = mysqli_prepare($koneksi, $query_skema);

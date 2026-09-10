@@ -31,6 +31,19 @@ function rekap_qs($filter, $cari, $extra = [])
 //     return " AND ({$kolom_tanggal} IS NULL OR {$kolom_tanggal} = '' OR {$kolom_tanggal} >= '{$batas}')";
 // }
 
+function rekap_sql_hari_tanggal($jadwal_alias, $fallback)
+{
+    $j = $jadwal_alias;
+    return "COALESCE(NULLIF(TRIM(CONCAT_WS(', ', NULLIF({$j}.hari, ''), {$j}.tanggal)), ''), {$fallback})";
+}
+
+function rekap_sql_tuk($jadwal_alias, $ak_alias, $ak_col = 'tuk_pelaksanaan')
+{
+    $j = $jadwal_alias;
+    $a = $ak_alias;
+    return "COALESCE(CONVERT({$j}.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT({$a}.{$ak_col} USING utf8mb4) COLLATE utf8mb4_unicode_ci)";
+}
+
 function rekap_sql_cari($koneksi, $cari, array $kolom)
 {
     if ($cari === '') {

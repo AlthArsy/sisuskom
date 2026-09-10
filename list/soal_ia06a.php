@@ -76,11 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 $list_ia06a = [];
+$where_ia = ($role === 'Asesor' && $id_asesor > 0)
+    ? "WHERE ia.id_asesor = '$id_asesor'"
+    : '';
 $res_ia = mysqli_query($koneksi,
     "SELECT ia.id_ia06a, s.judul_skema, s.nomor_skema
      FROM tb_ia06a ia
      LEFT JOIN tb_skema s ON s.id_skema = ia.id_skema
-     WHERE ia.id_asesor = '$id_asesor'
+     $where_ia
      ORDER BY ia.id_ia06a DESC");
 while ($r = mysqli_fetch_assoc($res_ia)) $list_ia06a[] = $r;
 
@@ -110,12 +113,21 @@ $res_val = mysqli_query($koneksi, "SELECT id_validator, username, noreg FROM tb_
 while ($r = mysqli_fetch_assoc($res_val)) $list_validator[] = $r;
 
 $list_skema = [];
-$res_sk = mysqli_query($koneksi,
-    "SELECT id_skema, nomor_skema, judul_skema
-     FROM tb_skema
-     WHERE id_asesor = '$id_asesor'
-     ORDER BY id_skema");
-while ($r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
+if ($role === 'Asesor' && $id_asesor > 0) {
+    $res_sk = mysqli_query($koneksi,
+        "SELECT DISTINCT s.id_skema, s.nomor_skema, s.judul_skema
+         FROM tb_skema s
+         LEFT JOIN tb_jadwal j ON j.id_skema = s.id_skema
+         LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+         WHERE j.id_asesor = '$id_asesor' OR dp.id_asesor = '$id_asesor'
+         ORDER BY s.judul_skema");
+} else {
+    $res_sk = mysqli_query($koneksi,
+        "SELECT id_skema, nomor_skema, judul_skema
+         FROM tb_skema
+         ORDER BY judul_skema");
+}
+while ($res_sk && $r = mysqli_fetch_assoc($res_sk)) $list_skema[] = $r;
 ?>
 <style>
     body { font-family: Arial, sans-serif; font-size: 14px; }

@@ -19,14 +19,17 @@ if (!$id_asesi) {
 }
 
 $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-    "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
-            s.standar_kompetensi_kerja,
-            as2.nama_asesor, as2.no_reg, as2.id_asesor
+    "SELECT a.id_apl1, a.id_jadwal, dp.id_skema,
+            s.judul_skema, s.nomor_skema, s.standar_kompetensi_kerja,
+            as2.nama_asesor, as2.no_reg, as2.id_asesor,
+            j.hari, j.tanggal, j.waktu, j.tuk
      FROM tb_apl1 a
-     JOIN tb_skema s ON s.id_skema = a.id_skema
-     LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+     LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+     LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+     LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+     LEFT JOIN tb_asesor as2 ON as2.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
      WHERE a.id_asesi = '$id_asesi'
-     ORDER BY a.id_apl1 ASC LIMIT 1"));
+     ORDER BY a.id_apl1 DESC LIMIT 1"));
 
 if (!$apl1) {
     die("Data APL-01 tidak ditemukan untuk asesi ini.");
@@ -76,14 +79,25 @@ foreach ($saved_bukti as $b) {
     }
 }
 
-$qr_asesi  = "Nama: {$nama_asesi}\nNIK: {$asesi_data['nik']}\nTUK: {$ak01['tuk']}\nTanggal: {$ak01['hari_tanggal']}";
+$jadwal_tuk = trim($apl1['tuk'] ?? '');
+$jadwal_hari_tanggal = trim(($apl1['hari'] ?? '') . (($apl1['hari'] ?? '') && ($apl1['tanggal'] ?? '') ? ', ' : '') . ($apl1['tanggal'] ?? ''));
+$jadwal_waktu = trim($apl1['waktu'] ?? '');
+$tuk_pdf = $jadwal_tuk !== '' ? $jadwal_tuk : ($ak01['tuk'] ?? '');
+$hari_tanggal_pdf = $jadwal_hari_tanggal !== '' ? $jadwal_hari_tanggal : ($ak01['hari_tanggal'] ?? '');
+$waktu_pdf = $jadwal_waktu !== '' ? $jadwal_waktu : ($ak01['waktu'] ?? '');
+$tuk_pelaksanaan_pdf = $jadwal_tuk !== '' ? $jadwal_tuk : ($ak01['tuk_pelaksanaan'] ?? '');
+
+$qr_asesi  = "Nama: {$nama_asesi}\nNIK: {$asesi_data['nik']}\nTUK: {$tuk_pdf}\nTanggal: {$hari_tanggal_pdf}";
 $qr_asesor = "Asesor: {$apl1['nama_asesor']}\nNo.Reg: {$apl1['no_reg']}\nID Skema: {$apl1['nomor_skema']}";
 
 $tuk_opts = ['Sewaktu', 'Tempat Kerja', 'Mandiri'];
 $tuk_html = implode('/', array_map(
-    fn($t) => ($t ===  h($ak01['tuk']) ) ? "<u>$t</u>" : "<s style='color:#aaa;'>$t</s>",
+    fn($t) => ($t ===  h($tuk_pdf) ) ? "<u>$t</u>" : "<s style='color:#aaa;'>$t</s>",
     $tuk_opts
 )) . '*';
+if ($tuk_pdf !== '' && !in_array($tuk_pdf, $tuk_opts, true)) {
+    $tuk_html = h($tuk_pdf);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -257,9 +271,9 @@ body { font-family: Calibri, Arial, sans-serif; font-size:10pt; background:#bbb;
 
 <div style="font-weight:bold; margin:16px 0 6px;">Pelaksanaan asesmen disepakati pada</div>
 <table class="tbl-pelaksanaan">
-    <tr><td style="width:30%">Hari / Tanggal</td><td>:</td><td><?= h($ak01['hari_tanggal'] ?? '') ?></td></tr>
-    <tr><td>Waktu</td><td>:</td><td><?= h($ak01['waktu'] ?? '') ?></td></tr>
-    <tr><td>TUK pelaksanaan (nama / alamat)</td><td>:</td><td><?= h($ak01['tuk_pelaksanaan'] ?? '') ?></td></tr>
+    <tr><td style="width:30%">Hari / Tanggal</td><td>:</td><td><?= h($hari_tanggal_pdf) ?></td></tr>
+    <tr><td>Waktu</td><td>:</td><td><?= h($waktu_pdf) ?></td></tr>
+    <tr><td>TUK pelaksanaan (nama / alamat)</td><td>:</td><td><?= h($tuk_pelaksanaan_pdf) ?></td></tr>
 </table>
 
 <div class="pernyataan">

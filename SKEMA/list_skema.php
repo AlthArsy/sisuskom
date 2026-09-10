@@ -54,24 +54,26 @@ if ($role === 'Admin_utm') {
     } else {
         $query = "
             SELECT
-                tb_skema.id_skema,
-                tb_skema.nomor_skema,
-                tb_skema.judul_skema,
-                tb_skema.standar_kompetensi_kerja,
-                COUNT(tb_unit_kompetensi.id_unit) as jumlah_unit
-            FROM tb_skema
-            LEFT JOIN tb_unit_kompetensi ON tb_skema.id_skema = tb_unit_kompetensi.id_skema
-            WHERE tb_skema.id_periode = $id_periode_session
+                s.id_skema,
+                s.nomor_skema,
+                s.judul_skema,
+                s.standar_kompetensi_kerja,
+                GROUP_CONCAT(DISTINCT a.nama_asesor ORDER BY a.nama_asesor SEPARATOR ', ') as nama_asesor,
+                COUNT(DISTINCT u.id_unit) as jumlah_unit
+            FROM tb_skema s
+            LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema AND dp.id_periode = $id_periode_session
+            LEFT JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+            LEFT JOIN tb_unit_kompetensi u ON s.id_skema = u.id_skema
+            WHERE s.id_periode = $id_periode_session
         ";
         if (!empty($search)) {
-            $query .= " AND tb_skema.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
+            $query .= " AND s.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
         }
-        $query .= " GROUP BY tb_skema.id_skema ORDER BY tb_skema.id_skema DESC";
+        $query .= " GROUP BY s.id_skema ORDER BY s.id_skema DESC";
         $result = mysqli_query($koneksi, $query);
     }
 
 } elseif ($role === 'Asesor') {
-    // Pastikan session id_asesor ada
     if (!isset($_SESSION['id_asesor'])) {
         $username = $_SESSION['username'];
         $get_asesor = "SELECT id_asesor FROM tb_asesor WHERE nama_asesor = ?";
@@ -97,18 +99,16 @@ if ($role === 'Admin_utm') {
                 s.nomor_skema,
                 s.judul_skema,
                 s.standar_kompetensi_kerja,
-                COALESCE(a.nama_asesor, '-') as nama_asesor,
-                COUNT(DISTINCT u.id_unit) as jumlah_unit
+                (SELECT COUNT(*) FROM tb_unit_kompetensi u WHERE u.id_skema = s.id_skema) as jumlah_unit,
+                (SELECT 1 FROM tb_det_periode dp 
+                 WHERE dp.id_skema = s.id_skema 
+                  AND dp.id_asesor = $id_asesor_login 
+                  AND dp.id_periode = $id_periode_session LIMIT 1) as is_picked
             FROM tb_skema s
-            JOIN tb_skema_asesor sa ON s.id_skema = sa.id_skema AND sa.id_asesor = $id_asesor_login
-            LEFT JOIN tb_asesor a ON sa.id_asesor = a.id_asesor
-            LEFT JOIN tb_unit_kompetensi u ON s.id_skema = u.id_skema
             WHERE s.id_periode = $id_periode_session
+            GROUP BY s.id_skema
+            ORDER BY s.id_skema DESC
         ";
-        if (!empty($search)) {
-            $query .= " AND s.nomor_skema LIKE '%" . mysqli_real_escape_string($koneksi, $search) . "%'";
-        }
-        $query .= " GROUP BY s.id_skema ORDER BY s.id_skema DESC";
         $result = mysqli_query($koneksi, $query);
     }
 }
@@ -172,8 +172,8 @@ if ($role === 'Admin_utm') {
                 <th>Nomor Skema</th>
                 <th>Judul Skema</th>
                 <th>Standar Kompetensi Kerja</th>
-                <th>Asesor</th>
-                <th style="width: 50px;">Aksi</th>
+                <th>Status</th>
+                <th style="width: 100px;">Aksi</th>
             </tr>
         </thead>
         <tbody>
@@ -187,20 +187,32 @@ if ($role === 'Admin_utm') {
                     <td data-label='Nomor Skema'><?= htmlspecialchars($row['nomor_skema']) ?></td>
                     <td data-label='Judul Skema'><?= htmlspecialchars($row['judul_skema']) ?></td>
                     <td data-label='Standar Kompetensi Kerja'><?= htmlspecialchars($row['standar_kompetensi_kerja']) ?></td>
-                    <td data-label='Asesor'><?= htmlspecialchars($row['nama_asesor'] ?? '-') ?></td>
+                    <td data-label='Status'>
+                        <?php if ($role === 'Asesor'): ?>
+                            <?= $row['is_picked'] ? '<span style="color:green; font-weight:bold;">Terpilih</span>' : '<span style="color:gray;">Belum Dipilih</span>' ?>
+                        <?php else: ?>
+                            <?= htmlspecialchars($row['nama_asesor'] ?? '-') ?>
+                        <?php endif; ?>
+                    </td>
                     <td data-label='Aksi' class='aksi'>
                         <?php if ($role !== 'Asesor'): ?>
-                            <a href='UTAMA.php?page=../SKEMA/Ubah_Skema.php&id=<?= $row['id_skema'] ?>' class='btn-ubah'>Ubah</a>
-                            <a href='../SKEMA/Hapus_Skema.php?id=<?= $row['id_skema'] ?>' class='btn-hapus' onclick="return confirm('Yakin ingin menghapus skema ini?');">Hapus</a>
+                            <a href='../BERANDA/UTAMA.php?page=../SKEMA/Ubah_Skema.php&id=<?= $row['id_skema'] ?>' class='btn-ubah'>Ubah</a>
+                            <a href='../BERANDA/UTAMA.php?page=../SKEMA/Hapus_Skema.php?id=<?= $row['id_skema'] ?>' class='btn-hapus' onclick="return confirm('Yakin ingin menghapus skema ini?');">Hapus</a>
+                        <?php elseif (!$row['is_picked']): ?>
+                            <a href="../BERANDA/UTAMA.php?page=../SKEMA/pilih_skema.php&id_skema=<?= $row['id_skema'] ?>"   class="btn-ubah" style="background:#28a745; border:none; color:white; padding:5px 10px; border-radius:4px;">Pilih Skema</a>
                         <?php endif; ?>
                         
-                        <?php if ($jumlah_unit == 0): ?>
-                            <a href='UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' class='btn-unit-empty'>Tambah Unit</a>
-                        <?php else: ?>
-                            <a href='UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' class='btn-lihat-unit'>Lihat Unit</a>
-                            <?php if ($role !== 'Asesor'): ?>
+                        <?php if ($role === 'Admin_lsp'): ?>
+                            <?php if ($jumlah_unit == 0): ?>
+                                <a href='UTAMA.php?page=../UNIT/From_unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' class='btn-unit-empty'>Tambah Unit</a>
+                            <?php else: ?>
+                                <a href='UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' class='btn-lihat-unit'>Lihat Unit</a>
                                 <a href='UTAMA.php?page=../DASAR/bukti_dasar.php&id_skema=<?= $row['id_skema'] ?>' class='btn-bukti'>Bukti Dasar</a>
                                 <a href='UTAMA.php?page=../ADM/bukti_adm.php&id_skema=<?= $row['id_skema'] ?>' class='btn-bukti'>Bukti Adm</a>
+                            <?php endif; ?>
+                        <?php elseif ($role === 'Asesor'): ?>
+                            <?php if ($jumlah_unit > 0): ?>
+                                <a href='UTAMA.php?page=../UNIT/unit_kompetensi.php&id_skema=<?= $row['id_skema'] ?>' class='btn-lihat-unit'>Lihat Unit</a>
                             <?php endif; ?>
                         <?php endif; ?>
                     </td>
@@ -212,7 +224,7 @@ if ($role === 'Admin_utm') {
                         <?php if (!empty($search)): ?>
                             Tidak ada data skema dengan nomor "<?= htmlspecialchars($search) ?>".
                         <?php elseif ($role === 'Asesor'): ?>
-                            Anda belum memiliki skema sertifikasi pada periode ini.
+                            Tidak ada skema yang tersedia pada periode ini.
                         <?php elseif ($role === 'Admin_lsp' && $id_periode_session <= 0): ?>
                             Periode tidak aktif. Silakan login ulang dengan memilih periode.
                         <?php else: ?>
@@ -226,6 +238,7 @@ if ($role === 'Admin_utm') {
 </div>
 
 <script>
+
 setTimeout(function() {
     const messages = document.querySelectorAll('.message');
     messages.forEach(message => {

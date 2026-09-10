@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 $e = fn($s) => mysqli_real_escape_string($koneksi, (string) $s);
 $h = fn($s) => htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
@@ -39,10 +40,13 @@ function ak05_asesi_skema($koneksi, $id_skema)
     $list     = [];
     $seen     = [];
     $q = mysqli_query($koneksi,
-        "SELECT a.id_asesi, a.id_apl1, a.judul_skema, a.nomor_skema, s.nama_asesi
+        "SELECT a.id_asesi, a.id_apl1, sk.judul_skema, sk.nomor_skema, s.nama_asesi
          FROM tb_apl1 a
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema sk ON sk.id_skema = COALESCE(j.id_skema, dp.id_skema)
          INNER JOIN tb_asesi s ON s.id_asesi = a.id_asesi
-         WHERE a.id_skema = '$id_skema'
+         WHERE COALESCE(j.id_skema, dp.id_skema) = '$id_skema'
          ORDER BY s.nama_asesi ASC, a.id_apl1 ASC");
     if (!$q) {
         return $list;
@@ -63,9 +67,10 @@ function ak05_skema_asesor($koneksi, $id_asesor)
     $id_asesor = intval($id_asesor);
     $rows      = [];
     $q = mysqli_query($koneksi,
-        "SELECT id_skema, judul_skema, nomor_skema
-         FROM tb_skema
-         WHERE id_asesor = '$id_asesor'
+        "SELECT DISTINCT s.id_skema, s.judul_skema, s.nomor_skema
+         FROM tb_det_periode dp
+         JOIN tb_skema s ON s.id_skema = dp.id_skema
+         WHERE dp.id_asesor = '$id_asesor'
          ORDER BY judul_skema ASC");
     while ($r = mysqli_fetch_assoc($q)) {
         $rows[] = $r;
@@ -90,11 +95,13 @@ $has_data       = false;
 
 if ($id_skema) {
     $skema_info = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT sk.id_skema, sk.judul_skema, sk.nomor_skema, sk.id_asesor,
+        "SELECT sk.id_skema, sk.judul_skema, sk.nomor_skema, dp.id_asesor,
                 ar.nama_asesor, ar.no_reg
-         FROM tb_skema sk
-         LEFT JOIN tb_asesor ar ON ar.id_asesor = sk.id_asesor
+         FROM tb_det_periode dp
+         JOIN tb_skema sk ON sk.id_skema = dp.id_skema
+         LEFT JOIN tb_asesor ar ON ar.id_asesor = dp.id_asesor
          WHERE sk.id_skema = '$id_skema'
+           " . ($id_asesor_session > 0 ? "AND dp.id_asesor = '$id_asesor_session'" : "") . "
          LIMIT 1"));
 
     if (!$skema_info) {
@@ -112,17 +119,24 @@ if ($id_skema) {
         $asesi_list = ak05_asesi_skema($koneksi, $id_skema);
 
         $rtuk = mysqli_fetch_assoc(mysqli_query($koneksi,
-            "SELECT ak.tuk FROM tb_ak01 ak
+            "SELECT j.tuk AS jadwal_tuk, ak.tuk_pelaksanaan
+             FROM tb_ak01 ak
              INNER JOIN tb_apl1 ap ON ap.id_apl1 = ak.id_apl1
-             WHERE ap.id_skema = '$id_skema' AND ak.tuk IS NOT NULL AND ak.tuk != ''
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = ap.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap.id_det_periode
+             WHERE COALESCE(j.id_skema, dp.id_skema) = '$id_skema'
              ORDER BY ak.id_ak01 DESC LIMIT 1"));
-        $tuk_db = $rtuk['tuk'] ?? '';
+        $tuk_db = trim((string) (($rtuk['jadwal_tuk'] ?? '') !== ''
+            ? $rtuk['jadwal_tuk']
+            : ($rtuk['tuk_pelaksanaan'] ?? '')));
 
         $ak05_saved = mysqli_fetch_assoc(mysqli_query($koneksi,
             "SELECT ak5.*
              FROM tb_ak05 ak5
              INNER JOIN tb_apl1 ap ON ap.id_apl1 = ak5.id_apl1
-             WHERE ap.id_skema = '$id_skema'
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = ap.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap.id_det_periode
+             WHERE COALESCE(j.id_skema, dp.id_skema) = '$id_skema'
                AND ak5.id_asesor = '$id_asesor_db'
              ORDER BY ak5.id_ak5 DESC
              LIMIT 1"));
@@ -160,8 +174,10 @@ if ($id_skema) {
                 "SELECT MAX(ak3.tgl_selesai) AS tgl
                  FROM tb_ak03 ak3
                  INNER JOIN tb_apl1 ap ON ap.id_apl1 = ak3.id_apl1
-                 WHERE ap.id_skema = '$id_skema'
-                   AND ak3.tgl_selesai IS NOT NULL AND ak3.tgl_selesai != ''"));
+                 LEFT JOIN tb_jadwal j ON j.id_jadwal = ap.id_jadwal
+                 LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap.id_det_periode
+                 WHERE COALESCE(j.id_skema, dp.id_skema) = '$id_skema'
+                   AND ak3.tgl_selesai IS NOT NULL"));
             $tanggal_db = $rtgl['tgl'] ?? date('Y-m-d');
         }
     }
@@ -183,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
         exit;
     }
 
-    $tanggal_post    = trim($_POST['tanggal'] ?? '');
+    $tanggal_post    = fr_apl_normalize_date($_POST['tanggal'] ?? '');
     $catatan_post    = trim($_POST['catatan'] ?? '');
     $aspek_post      = trim($_POST['aspek'] ?? '');
     $pencatatan_post = trim($_POST['pencatatan'] ?? '');
@@ -196,7 +212,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
     $old = mysqli_query($koneksi,
         "SELECT ak5.id_ak5 FROM tb_ak05 ak5
          INNER JOIN tb_apl1 ap ON ap.id_apl1 = ak5.id_apl1
-         WHERE ap.id_skema = '$id_skema' AND ak5.id_asesor = '$id_asesor_db'");
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = ap.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = ap.id_det_periode
+         WHERE COALESCE(j.id_skema, dp.id_skema) = '$id_skema' AND ak5.id_asesor = '$id_asesor_db'");
     while ($o = mysqli_fetch_assoc($old)) {
         mysqli_query($koneksi, "DELETE FROM tb_ak05 WHERE id_ak5 = '" . intval($o['id_ak5']) . "'");
     }

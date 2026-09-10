@@ -24,10 +24,13 @@ if ($id_asesi) {
     $ak01 = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT a.*, s.judul_skema, s.nomor_skema, s.standar_kompetensi_kerja,
                 asr.nama_asesor, asr.no_reg, asr.id_asesor,
-                apl.id_skema
+                COALESCE(CONVERT(j.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT(a.tuk_pelaksanaan USING utf8mb4) COLLATE utf8mb4_unicode_ci) AS tuk,
+                COALESCE(j.id_skema, dp.id_skema) AS id_skema
          FROM tb_ak01 a
          LEFT JOIN tb_apl1  apl ON a.id_apl1   = apl.id_apl1
-         LEFT JOIN tb_skema s   ON apl.id_skema = s.id_skema
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
          LEFT JOIN tb_asesor asr ON a.id_asesor = asr.id_asesor
          WHERE a.id_asesi = '$id_asesi'
          ORDER BY a.id_ak01 DESC LIMIT 1"));

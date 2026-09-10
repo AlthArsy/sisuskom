@@ -6,6 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 if (!isset($_SESSION['username']) || !isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Asesi','Admin_lsp','Admin_utm','Asesor'])) {
     echo "<script>alert('Akses ditolak!'); window.location.href='../LOGIN/login.php';</script>";
@@ -35,20 +36,6 @@ $id_periode = isset($_SESSION['id_periode']) ? intval($_SESSION['id_periode']) :
 // $cek_row = mysqli_fetch_assoc($cek);
 // echo 'Total baris tb_det_periode: ' . $cek_row['total'] . "\n";
 // echo '</pre>';
-
-$det_periode_options = [];
-if ($id_periode > 0) {
-    $res_dp = mysqli_query($koneksi,
-        "SELECT dp.id_det_periode, dp.id_skema, s.judul_skema, s.nomor_skema, a.nama_asesor
-         FROM tb_det_periode dp
-         JOIN tb_skema s ON s.id_skema = dp.id_skema
-         JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
-         WHERE dp.id_periode = '$id_periode'
-         ORDER BY s.judul_skema ASC");
-    while ($row = mysqli_fetch_assoc($res_dp)) {
-        $det_periode_options[] = $row;
-    }
-}
 
 $asesi = null;
 if ($id_asesi) {
@@ -145,13 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
         $id_asesi = $post_id_asesi;
     }
 
-    $id_skema = intval($_POST['id_skema'] ?? 0);// ganti juga
+    $id_jadwal = intval($_POST['id_jadwal'] ?? 0);
+    $id_det_periode = 0;
+    $id_skema = 0;
     $judul_skema = trim($_POST['judul_skema'] ?? '');
     $nomor_skema = trim($_POST['nomor_skema'] ?? '');
     $tujuan_asesmen = trim($_POST['tujuan_asesmen'] ?? '');
     $tujuan_lainnya = trim($_POST['tujuan_lainnya'] ?? '');
     $nama_pemohon = trim($_POST['nama_pemohon'] ?? '');
-    $tanggal_pemohon = trim($_POST['tanggal_pemohon'] ?? '');
+    $tanggal_pemohon = fr_apl_normalize_date($_POST['tanggal_pemohon'] ?? ($_POST['tanggal'] ?? ''));
     $catatan_admin = '';
     $rekomendasi = '';
     $kondisi_bd = $_POST['kondisi_bd'] ?? [];
@@ -166,8 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
     if ($id_asesi <= 0) {
         $errors[] = 'Data asesi tidak ditemukan. Silakan buka form dari menu Daftar Form.';
     }
-    if ($id_det_periode <= 0) {
-        $errors[] = 'Pilih skema dan asesor dari dropdown.';
+    if ($id_jadwal <= 0) {
+        $errors[] = 'Pilih jadwal asesmen dari daftar.';
     }
     if (!$tujuan_asesmen) {
         $errors[] = 'Tujuan asesmen wajib dipilih.';
@@ -175,18 +164,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
     if (!$nama_pemohon) {
         $errors[] = 'Nama pemohon wajib diisi.';
     }
-    if (!$tanggal_pemohon) {
-        $errors[] = 'Tanggal pemohon wajib diisi.';
+    if ($tanggal_pemohon === '') {
+        $errors[] = 'Tanggal pada bagian Pemohon/Kandidat wajib diisi.';
+    }
+
+    if (empty($errors)) {
+        $jadwal_sql = "
+            SELECT j.id_jadwal, j.id_periode, j.id_skema, j.id_asesor,
+                   dp.id_det_periode, s.judul_skema, s.nomor_skema
+            FROM tb_jadwal j
+            JOIN tb_det_periode dp
+              ON dp.id_periode = j.id_periode
+             AND dp.id_skema = j.id_skema
+             AND (
+                    dp.id_asesor = j.id_asesor
+                    OR j.id_asesor IS NULL
+                    OR j.id_asesor = 0
+                 )
+            JOIN tb_skema s ON s.id_skema = j.id_skema
+            WHERE j.id_jadwal = '$id_jadwal'
+        ";
+
+        if ($id_periode > 0) {
+            $jadwal_sql .= " AND j.id_periode = '$id_periode'";
+        }
+
+        if ($is_asesor) {
+            $id_asesor_session = intval($_SESSION['id_asesor'] ?? 0);
+            $jadwal_sql .= " AND (j.id_asesor = '$id_asesor_session' OR (j.id_asesor IS NULL OR j.id_asesor = 0) AND dp.id_asesor = '$id_asesor_session')";
+        }
+
+        $jadwal_sql .= " LIMIT 1";
+        $jadwal_row = mysqli_fetch_assoc(mysqli_query($koneksi, $jadwal_sql));
+
+        if (!$jadwal_row) {
+            $errors[] = 'Jadwal tidak valid atau belum memiliki relasi asesor-skema-periode.';
+        } else {
+            $id_det_periode = intval($jadwal_row['id_det_periode']);
+            $id_skema = intval($jadwal_row['id_skema']);
+            $judul_skema = $jadwal_row['judul_skema'];
+            $nomor_skema = $jadwal_row['nomor_skema'];
+        }
     }
 
     if (empty($errors)) {
         $a = fn($v) => mysqli_real_escape_string($koneksi, $v);
 
         $sql = "INSERT INTO tb_apl1
-            (id_det_periode, id_asesi, tujuan_asesmen, tujuan_lainnya,
+            (id_jadwal, id_det_periode, id_asesi, tujuan_asesmen, tujuan_lainnya,
              nama_pemohon, tanggal_pemohon, catatan_admin, rekomendasi)
             VALUES (
-                '$id_det_periode', '$id_asesi',
+                '$id_jadwal', '$id_det_periode', '$id_asesi',
                 '{$a($tujuan_asesmen)}', '{$a($tujuan_lainnya)}',
                 '{$a($nama_pemohon)}', '{$a($tanggal_pemohon)}',
                 " . ($catatan_admin ? "'{$a($catatan_admin)}'" : "NULL") . ",
@@ -268,15 +296,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
         <p style="text-align:center; color:#c00; padding:20px;">Data tidak ditemukan.</p>
     <?php else:
     $dp_view = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT dp.id_skema, s.judul_skema, s.nomor_skema, a.nama_asesor
+        "SELECT dp.id_skema, s.judul_skema, s.nomor_skema, a.nama_asesor,
+                j.hari, j.tanggal, j.waktu, j.tuk, p.tahun_ajaran
          FROM tb_det_periode dp
          JOIN tb_skema s ON s.id_skema = dp.id_skema
          JOIN tb_asesor a ON a.id_asesor = dp.id_asesor
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = '" . intval($data_apl1['id_jadwal'] ?? 0) . "'
+         LEFT JOIN tb_periode p ON p.id_periode = COALESCE(j.id_periode, dp.id_periode)
          WHERE dp.id_det_periode = '{$data_apl1['id_det_periode']}' LIMIT 1"));
     $id_skema_view     = intval($dp_view['id_skema'] ?? 0);
     $judul_skema_view  = $dp_view['judul_skema'] ?? '-';
     $nomor_skema_view  = $dp_view['nomor_skema'] ?? '-';
-    $nama_asesor_view  = $dp_view['nama_asesor'] ?? '-'; ?> 
+    $nama_asesor_view  = $dp_view['nama_asesor'] ?? '-';
+    $jadwal_view = trim(($dp_view['hari'] ?? '') . ', ' . ($dp_view['tanggal'] ?? '') . ' ' . ($dp_view['waktu'] ?? ''));
+    $jadwal_view = $jadwal_view !== ',' ? $jadwal_view : '-'; ?> 
 
     <div class="section-title" style="margin:18px 0 10px 0;">
         Bagian 2 : Data Sertifikasi<br>
@@ -293,6 +326,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
                 <div style="flex:1; min-width:140px;">
                     <label class="small-text">Nomor</label>
                     <input type="text" class="form-control" value="<?= h($nomor_skema_view) ?>" readonly style="background:#f5f5f5;">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                <div style="flex:2; min-width:180px;">
+                    <label class="small-text">Jadwal</label>
+                    <input type="text" class="form-control" value="<?= h($jadwal_view) ?>" readonly style="background:#f5f5f5;">
+                </div>
+                <div style="flex:1; min-width:140px;">
+                    <label class="small-text">TUK</label>
+                    <input type="text" class="form-control" value="<?= h($dp_view['tuk'] ?? '-') ?>" readonly style="background:#f5f5f5;">
+                </div>
+                <div style="flex:1; min-width:140px;">
+                    <label class="small-text">Asesor</label>
+                    <input type="text" class="form-control" value="<?= h($nama_asesor_view) ?>" readonly style="background:#f5f5f5;">
                 </div>
             </div>
         </div>
@@ -486,7 +533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
             </div>
             <div style="margin-bottom:12px;">
                 <label class="small-text">Tanggal</label>
-                <input type="text" class="form-control" value="<?= h($data_apl1['tanggal_pemohon']) ?>" readonly style="background:#f5f5f5;">
+                <input type="text" class="form-control" value="<?= h($data_apl1['tanggal_pemohon'] ?? '') ?>" readonly style="background:#f5f5f5;">
             </div>
         </div>
     </div>
@@ -523,8 +570,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
 <?php else: ?>
 <div class="form-box">
 <form method="post" autocomplete="off" id="mainForm">
-    <input type="hidden" name="id_asesi"       value="<?php echo $id_asesi; ?>">
+    <input type="hidden" name="id_asesi" id="id_asesi" value="<?php echo $id_asesi; ?>">
     <input type="hidden" name="id_det_periode" id="id_det_periode_hidden">
+    <input type="hidden" name="id_jadwal" id="id_jadwal_hidden">
     <input type="hidden" id="id_skema_hidden">
     <input type="hidden" id="judul_skema_hidden">
     <input type="hidden" id="nomor_skema_hidden">
@@ -543,23 +591,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
 
         <div style="border:1px solid #ddd; border-radius:5px; padding:12px 14px; background:#fafbff;">
             <div class="label" style="margin-bottom:8px;">
-                Skema Sertifikasi <span style="font-size:12px; color:#555;">(KKNI/Okupasi/Klaster)</span>
+                Jadwal dan Skema Sertifikasi <span style="font-size:12px; color:#555;">(pilih jadwal asesmen yang tersedia)</span>
         </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
 
                 <div style="flex:2; min-width:180px;">
-                    <label class="small-text">Judul <span class="required">*</span></label>
+                    <label class="small-text">Jadwal / Judul Skema <span class="required">*</span></label>
                     <div class="skema-wrap">
                         <input type="text"
                                id="judul_skema"
                                class="form-control"
-                               placeholder="Ketik judul skema..."
+                               placeholder="Ketik judul skema, nomor, tanggal, atau TUK..."
                                autocomplete="off"
                                oninput="searchSkemaDP(this.value)"
                                required>
                         <div class="skema-dropdown" id="skema-dropdown"></div>
                     </div>
-                    <div class="skema-selected-badge" id="skema-badge">Skema dipilih</div>
+                    <div class="skema-selected-badge" id="skema-badge">Jadwal dipilih</div>
                 </div>
 
                 <div style="flex:1; min-width:140px;">
@@ -732,3 +780,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['aksi_rekomendasi']))
 <?php endif; ?>
 </body>
 </html>
+  

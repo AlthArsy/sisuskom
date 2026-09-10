@@ -33,19 +33,25 @@ $mode_lihat = isset($_GET['view']) && (string) $_GET['view'] === '1';
 $apl1 = null;
 if ($id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
-                s.standar_kompetensi_kerja,
-                as2.nama_asesor, as2.no_reg, as2.id_asesor
+        "SELECT a.id_apl1, a.id_jadwal, dp.id_skema,
+                s.judul_skema, s.nomor_skema, s.standar_kompetensi_kerja,
+                as2.nama_asesor, as2.no_reg, as2.id_asesor,
+                j.hari, j.tanggal, j.waktu, j.tuk
          FROM tb_apl1 a
-         JOIN tb_skema s ON s.id_skema = a.id_skema
-         LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+         LEFT JOIN tb_asesor as2 ON as2.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
          WHERE a.id_asesi = '$id_asesi'
-         ORDER BY a.id_apl1 ASC LIMIT 1"));
+         ORDER BY a.id_apl1 DESC LIMIT 1"));
 }
 
 $id_apl1 = intval($apl1['id_apl1'] ?? 0);
 $id_skema = intval($apl1['id_skema'] ?? 0);
 $id_asesor_apl = intval($apl1['id_asesor'] ?? 0);
+$jadwal_tuk = trim($apl1['tuk'] ?? '');
+$jadwal_hari_tanggal = trim(($apl1['hari'] ?? '') . (($apl1['hari'] ?? '') && ($apl1['tanggal'] ?? '') ? ', ' : '') . ($apl1['tanggal'] ?? ''));
+$jadwal_waktu = trim($apl1['waktu'] ?? '');
 
 $nama_asesi_db = '';
 if ($id_asesi) {
@@ -105,10 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
         exit;
     }
 
-    $tuk = trim($_POST['tuk'] ?? '');
-    $hari_tanggal = trim($_POST['hari_tanggal'] ?? '');
-    $waktu = trim($_POST['waktu'] ?? '');
-    $tuk_pelaksanaan = trim($_POST['tuk_pelaksanaan'] ?? '');
+    $tuk = $jadwal_tuk;
+    $hari_tanggal = trim((string) ($apl1['tanggal'] ?? ''));
+    $waktu = $jadwal_waktu;
+    $tuk_pelaksanaan = $jadwal_tuk;
 
     $bukti_parts = [];
     if (!empty($_POST['bukti']) && is_array($_POST['bukti'])) {
@@ -119,14 +125,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
     }
     $bukti = implode(', ', $bukti_parts);
 
-    if ($id_skema && $id_asesor_apl && $bukti !== '') {
+    if ($id_skema && $id_asesor_apl && $bukti !== '' && $tuk !== '') {
         $e = fn($v) => mysqli_real_escape_string($koneksi, $v);
         
+        $hari_sql = $hari_tanggal !== '' ? "'" . $e($hari_tanggal) . "'" : 'NULL';
         $sql1 = "INSERT INTO tb_ak01 
-                (id_apl1, id_asesi, id_asesor, tuk, hari_tanggal, waktu, tuk_pelaksanaan) 
+                (id_apl1, id_asesi, id_asesor, hari_tanggal, waktu, tuk_pelaksanaan) 
                 VALUES 
-                ('$id_apl1', '$id_asesi', '$id_asesor_apl', '" . $e($tuk) . "', 
-                '$hari_tanggal', '$waktu', '" . $e($tuk_pelaksanaan) . "')";
+                ('$id_apl1', '$id_asesi', '$id_asesor_apl',
+                $hari_sql, '" . $e($waktu) . "', '" . $e($tuk_pelaksanaan) . "')";
 
         $res1 = mysqli_query($koneksi, $sql1);
         
@@ -203,7 +210,7 @@ if ($ak01_exist && !$mode_lihat) {
     <div class="grid-2" style="margin-bottom:14px; display:flex; gap:14px; flex-wrap:wrap;">
         <div style="flex:1; min-width:140px;">
             <label class="label">TUK</label>
-            <input type="text" class="form-control" value="<?= h($ak01_exist['tuk']) ?>"
+            <input type="text" class="form-control" value="<?= h($jadwal_tuk ?: ($ak01_exist['tuk_pelaksanaan'] ?? '')) ?>"
                    readonly style="background:#f5f5f5;">
         </div>
         <div style="flex:1; min-width:140px;">
@@ -251,7 +258,7 @@ if ($ak01_exist && !$mode_lihat) {
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
         <div style="flex:1; min-width:140px;">
             <label class="small-text">Hari / Tanggal</label>
-            <input type="text" class="form-control" value="<?= h($ak01_exist['hari_tanggal'] ?? '') ?>"
+            <input type="text" class="form-control" value="<?= h($jadwal_hari_tanggal ?: ($ak01_exist['hari_tanggal'] ?? '')) ?>"
                    readonly style="background:#f5f5f5;">
         </div>
         <div style="flex:1; min-width:140px;">
@@ -344,13 +351,8 @@ if ($ak01_exist && !$mode_lihat) {
 
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px;">
         <div style="flex:1; min-width:140px;">
-            <label class="label">TUK <span style="color:red;">*</span></label>
-            <select name="tuk" class="form-control" required>
-                <option value="">-- Pilih TUK --</option>
-                <option value="Sewaktu">Sewaktu</option>
-                <option value="Tempat Kerja">Tempat Kerja</option>
-                <option value="Mandiri">Mandiri</option>
-            </select>
+            <label class="label">TUK</label>
+            <input type="text" class="form-control" value="<?= h($jadwal_tuk ?: '-') ?>" readonly style="background:#f5f5f5;">
         </div>
         <div style="flex:1; min-width:140px;">
             <label class="label">Nama Asesor</label>
@@ -358,7 +360,7 @@ if ($ak01_exist && !$mode_lihat) {
                    value="<?= h($apl1['nama_asesor'] ?: '(belum diatur)') ?>"
                    readonly style="background:#f5f5f5;">
             <?php if (!$id_asesor_apl): ?>
-            <div style="font-size:12px;color:#c00;margin-top:6px;">Skema ini belum punya id asesor di data skema.</div>
+            <div style="font-size:12px;color:#c00;margin-top:6px;">Jadwal APL1 ini belum memiliki asesor.</div>
             <?php endif; ?>
         </div>
     </div>
@@ -394,16 +396,16 @@ if ($ak01_exist && !$mode_lihat) {
     <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:6px;">
         <div style="flex:1; min-width:140px;">
             <label class="small-text">Hari / Tanggal</label>
-            <input type="date" name="hari_tanggal" class="form-control">
+            <input type="text" class="form-control" value="<?= h($jadwal_hari_tanggal ?: '-') ?>" readonly style="background:#f5f5f5;">
         </div>
         <div style="flex:1; min-width:140px;">
             <label class="small-text">Waktu</label>
-            <input type="text" name="waktu" class="form-control">
+            <input type="text" class="form-control" value="<?= h($jadwal_waktu ?: '-') ?>" readonly style="background:#f5f5f5;">
         </div>
     </div>
     <div style="margin-bottom:14px;">
         <label class="small-text">TUK pelaksanaan (nama / alamat)</label>
-        <input type="text" name="tuk_pelaksanaan" class="form-control" placeholder="Nama / Alamat TUK">
+        <input type="text" class="form-control" value="<?= h($jadwal_tuk ?: '-') ?>" readonly style="background:#f5f5f5;">
     </div>
 
     <div style="font-weight:bold; font-size:14px; border-left: 4px solid #4A7AFF; padding-left: 8px; margin: 16px 0 8px;">Asesor</div>
@@ -421,12 +423,12 @@ if ($ak01_exist && !$mode_lihat) {
 
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
         <a href="../BERANDA/UTAMA.php?page=../list/list_form.php" class="btn-back">← Kembali</a>
-        <button type="submit" class="btn-submit"<?= !$id_asesor_apl ? ' disabled' : '' ?>>SIMPAN</button>
+        <button type="submit" class="btn-submit"<?= (!$id_asesor_apl || !$jadwal_tuk) ? ' disabled' : '' ?>>SIMPAN</button>
         
     </div>
     
-    <?php if (!$id_asesor_apl): ?>
-    <p style="font-size:12px;color:#c00;margin-top:8px;">Tombol simpan dinonaktifkan sampai skema memiliki asesor.</p>
+    <?php if (!$id_asesor_apl || !$jadwal_tuk): ?>
+    <p style="font-size:12px;color:#c00;margin-top:8px;">Tombol simpan dinonaktifkan sampai APL1 memiliki jadwal dan asesor yang lengkap.</p>
     <?php endif; ?>
 </form>
 

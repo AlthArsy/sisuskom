@@ -19,22 +19,27 @@ $base = '../BERANDA/UTAMA.php';
 $sql = "SELECT 
             ak.id_ak01,
             ak.id_asesi,
-            ak.tuk,
             ak.hari_tanggal,
             ak.waktu,
             ak.tuk_pelaksanaan,
             a.nama_asesi,
-            apl.judul_skema,
-            apl.nomor_skema,
+            s.judul_skema,
+            s.nomor_skema,
+            " . rekap_sql_tuk('j', 'ak') . " AS jadwal_tuk,
+            " . rekap_sql_hari_tanggal('j', 'ak.hari_tanggal') . " AS jadwal_hari_tanggal,
+            COALESCE(j.waktu, ak.waktu) AS jadwal_waktu,
             asr.nama_asesor
         FROM tb_ak01 ak
         JOIN tb_asesi a ON a.id_asesi = ak.id_asesi
         JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+        LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
         LEFT JOIN tb_asesor asr ON asr.id_asesor = ak.id_asesor
         WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'ak.id_asesor')
     // . rekap_sql_batas_2bulan('ak.hari_tanggal')
-    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 'apl.judul_skema', 'apl.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 's.judul_skema', 's.nomor_skema']);
 
 $sql .= " ORDER BY ak.id_ak01 DESC";
 
@@ -48,10 +53,13 @@ $total = count($rows);
 $cnt_base = "SELECT COUNT(*) c FROM tb_ak01 ak
              JOIN tb_asesi a ON a.id_asesi = ak.id_asesi
              JOIN tb_apl1 apl ON apl.id_apl1 = ak.id_apl1
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+             LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
              WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'ak.id_asesor')
     // . rekap_sql_batas_2bulan('ak.hari_tanggal')
-    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 'apl.judul_skema', 'apl.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 's.judul_skema', 's.nomor_skema']);
 
 $total_all = rekap_count($koneksi, $cnt_base);
 ?>
@@ -103,10 +111,10 @@ $total_all = rekap_count($koneksi, $cnt_base);
                                 <?= htmlspecialchars($row['judul_skema']) ?>
                                 <div class="rekap-skema-sub">No. <?= htmlspecialchars($row['nomor_skema']) ?></div>
                             </td>
-                            <td data-label="TUK"><?= htmlspecialchars($row['tuk'] ?: '-') ?></td>
-                            <td data-label="Hari / Tanggal"><?= htmlspecialchars($row['hari_tanggal'] ?: '-') ?></td>
-                            <td data-label="Waktu"><?= htmlspecialchars($row['waktu'] ?: '-') ?></td>
-                            <td data-label="TUK Pelaksanaan"><?= htmlspecialchars($row['tuk_pelaksanaan'] ?: '-') ?></td>
+                            <td data-label="TUK"><?= htmlspecialchars($row['jadwal_tuk'] ?: '-') ?></td>
+                            <td data-label="Hari / Tanggal"><?= htmlspecialchars($row['jadwal_hari_tanggal'] ?: '-') ?></td>
+                            <td data-label="Waktu"><?= htmlspecialchars($row['jadwal_waktu'] ?: '-') ?></td>
+                            <td data-label="TUK Pelaksanaan"><?= htmlspecialchars(($row['tuk_pelaksanaan'] ?: $row['jadwal_tuk']) ?: '-') ?></td>
                             <td data-label="Asesor"><?= htmlspecialchars($row['nama_asesor'] ?: '(belum ditentukan)') ?></td>
                             <td data-label="Aksi" class="rekap-aksi" style="text-align:center;">
                                 <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_AK01.php&id_asesi=<?= $row['id_asesi'] ?>&view=1">Lihat Detail</a>

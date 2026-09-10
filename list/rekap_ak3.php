@@ -22,20 +22,23 @@ $sql = "SELECT
             ak03.tgl_selesai,
             ak03.catatan_lainnya,
             a.nama_asesi,
-            apl.judul_skema,
-            apl.nomor_skema,
-            ak01.tuk,
-            ak01.hari_tanggal,
+            s.judul_skema,
+            s.nomor_skema,
+            " . rekap_sql_tuk('j', 'ak01') . " AS tuk,
+            " . rekap_sql_hari_tanggal('j', 'ak01.hari_tanggal') . " AS hari_tanggal,
             asr.nama_asesor
         FROM tb_ak03 ak03
         JOIN tb_asesi a ON a.id_asesi = ak03.id_asesi
         JOIN tb_apl1 apl ON apl.id_apl1 = ak03.id_apl1
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+        LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
         LEFT JOIN tb_ak01 ak01 ON ak01.id_ak01 = ak03.id_ak01
         LEFT JOIN tb_asesor asr ON asr.id_asesor = ak01.id_asesor
         WHERE 1=1"
     . ($role === 'Asesor' && $id_asesor_session ? " AND ak01.id_asesor = '" . intval($id_asesor_session) . "'" : '')
     // . rekap_sql_batas_2bulan('COALESCE(ak03.tgl_selesai, ak01.hari_tanggal)')
-    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 'apl.judul_skema', 'apl.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 's.judul_skema', 's.nomor_skema']);
 
 $sql .= " ORDER BY ak03.id_ak03 DESC";
 
@@ -54,10 +57,13 @@ $cnt_base = "SELECT COUNT(*) c
              FROM tb_ak03 ak03
              JOIN tb_asesi a ON a.id_asesi = ak03.id_asesi
              JOIN tb_apl1 apl ON apl.id_apl1 = ak03.id_apl1
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
+             LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
              LEFT JOIN tb_ak01 ak01 ON ak01.id_ak01 = ak03.id_ak01
              WHERE 1=1 $f_asesor"
     // . rekap_sql_batas_2bulan('COALESCE(ak03.tgl_selesai, ak01.hari_tanggal)')
-    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 'apl.judul_skema', 'apl.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['a.nama_asesi', 's.judul_skema', 's.nomor_skema']);
 
 $total_all = rekap_count($koneksi, $cnt_base);
 ?>

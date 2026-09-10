@@ -16,9 +16,12 @@ $id_asesi = isset($_GET['id_asesi'])
 $apl1 = null;
 if ($id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.id_apl1, a.id_skema, s.judul_skema, s.nomor_skema
+        "SELECT a.id_apl1, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema
          FROM tb_apl1 a
-         JOIN tb_skema s ON a.id_skema = s.id_skema
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
          WHERE a.id_asesi = '$id_asesi'
          ORDER BY a.id_apl1 DESC LIMIT 1"));
 }
@@ -37,9 +40,11 @@ $nama_asesi = $asesi['nama_asesi'] ?? '';
 $ak01 = null;
 if ($id_asesi && $id_apl1_db) {
     $ak01 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT tuk, hari_tanggal FROM tb_ak01
-         WHERE id_asesi='$id_asesi' AND id_apl1='$id_apl1_db'
-         ORDER BY id_ak01 DESC LIMIT 1"));
+        "SELECT COALESCE(CONVERT(j.tuk USING utf8mb4) COLLATE utf8mb4_unicode_ci, CONVERT(a.tuk_pelaksanaan USING utf8mb4) COLLATE utf8mb4_unicode_ci) AS tuk, a.hari_tanggal FROM tb_ak01 a
+         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = a.id_apl1
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+         WHERE a.id_asesi='$id_asesi' AND a.id_apl1='$id_apl1_db'
+         ORDER BY a.id_ak01 DESC LIMIT 1"));
 }
 $tuk        = $ak01['tuk']          ?? '';
 $tgl_mulai  = $ak01['hari_tanggal'] ?? '';
@@ -48,9 +53,11 @@ $asesor = null;
 if ($id_skema_db) {
     $asesor = mysqli_fetch_assoc(mysqli_query($koneksi,
         "SELECT ar.nama_asesor, ar.no_reg
-         FROM tb_skema sk
-         JOIN tb_asesor ar ON sk.id_asesor = ar.id_asesor
-         WHERE sk.id_skema = '$id_skema_db' LIMIT 1"));
+         FROM tb_apl1 a
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         JOIN tb_asesor ar ON ar.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
+         WHERE a.id_apl1 = '$id_apl1_db' LIMIT 1"));
 }
 $nama_asesor = $asesor['nama_asesor'] ?? '';
 $no_reg      = $asesor['no_reg']      ?? '';

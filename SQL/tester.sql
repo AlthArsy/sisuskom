@@ -1,11 +1,24 @@
-
+-- phpMyAdmin SQL Dump
+-- version 5.2.3deb1
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Waktu pembuatan: 29 Agu 2026 pada 05.21
+-- Versi server: 8.4.10-0ubuntu0.26.04.1
+-- Versi PHP: 8.5.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
 --
--- Database: `Tester`
+-- Basis data: `tester`
 --
 
 -- --------------------------------------------------------
@@ -15,10 +28,10 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `detail_ak02` (
-  `id_detail_ak02` int(11) NOT NULL,
-  `id_ak02` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
-  `id_unit` int(11) NOT NULL,
+  `id_detail_ak02` int NOT NULL,
+  `id_ak02` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_unit` int NOT NULL,
   `obs_demonstrasi` varchar(200) DEFAULT NULL,
   `portofolio` varchar(200) DEFAULT NULL,
   `pyt_pihak_ketiga` varchar(200) DEFAULT NULL,
@@ -27,7 +40,7 @@ CREATE TABLE `detail_ak02` (
   `pyt_pertulis` varchar(200) DEFAULT NULL,
   `proyek_kerja` varchar(200) DEFAULT NULL,
   `lainnya` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -36,10 +49,10 @@ CREATE TABLE `detail_ak02` (
 --
 
 CREATE TABLE `detail_ak1` (
-  `id_detail_ak1` int(11) NOT NULL,
-  `id_ak01` int(11) NOT NULL,
+  `id_detail_ak1` int NOT NULL,
+  `id_ak01` int NOT NULL,
   `bukti` varchar(1000) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -48,16 +61,16 @@ CREATE TABLE `detail_ak1` (
 --
 
 CREATE TABLE `detail_ak5` (
-  `id_detail_ak5` int(11) NOT NULL,
-  `id_ak5` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
+  `id_detail_ak5` int NOT NULL,
+  `id_ak5` int NOT NULL,
+  `id_asesi` int NOT NULL,
   `rekomend` enum('K','BK') NOT NULL,
-  `keterangan` text DEFAULT NULL,
+  `keterangan` text,
   `tanggal` varchar(50) DEFAULT NULL,
   `aspek` varchar(255) DEFAULT NULL,
   `pencatatan` varchar(255) DEFAULT NULL,
   `saran` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -66,14 +79,14 @@ CREATE TABLE `detail_ak5` (
 --
 
 CREATE TABLE `detail_apl2` (
-  `id_detail_apl2` int(11) NOT NULL,
-  `id_apl2` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
-  `id_unit` int(11) NOT NULL,
-  `id_elemen` int(11) NOT NULL,
-  `id_kuk` int(11) NOT NULL,
+  `id_detail_apl2` int NOT NULL,
+  `id_apl2` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_unit` int NOT NULL,
+  `id_elemen` int NOT NULL,
+  `id_kuk` int NOT NULL,
   `nilai` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -82,15 +95,15 @@ CREATE TABLE `detail_apl2` (
 --
 
 CREATE TABLE `detail_ia01` (
-  `id_detail_ia1` int(11) NOT NULL,
-  `id_ia01` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
-  `id_unit` int(11) NOT NULL,
-  `id_elemen` int(11) NOT NULL,
-  `id_kuk` int(11) NOT NULL,
+  `id_detail_ia1` int NOT NULL,
+  `id_ia01` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_unit` int NOT NULL,
+  `id_elemen` int NOT NULL,
+  `id_kuk` int NOT NULL,
   `pencapaian` varchar(100) DEFAULT NULL,
   `Penilaian Lanjut` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -99,11 +112,11 @@ CREATE TABLE `detail_ia01` (
 --
 
 CREATE TABLE `hasil_ak03` (
-  `id_detail_ak03` int(11) NOT NULL,
-  `id_ak03` int(11) NOT NULL,
+  `id_detail_ak03` int NOT NULL,
+  `id_ak03` int NOT NULL,
   `hasil` varchar(100) NOT NULL,
   `komentar_asesi` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -112,17 +125,10 @@ CREATE TABLE `hasil_ak03` (
 --
 
 CREATE TABLE `tb_admin` (
-  `id_admin` int(11) NOT NULL,
+  `id_admin` int NOT NULL,
   `nik` varchar(16) NOT NULL,
   `nama_admin` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_admin`
---
-
-INSERT INTO `tb_admin` (`id_admin`, `nik`, `nama_admin`) VALUES
-(1, '1928984182218738', 'Toyota Silvina');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -131,14 +137,13 @@ INSERT INTO `tb_admin` (`id_admin`, `nik`, `nama_admin`) VALUES
 --
 
 CREATE TABLE `tb_ak01` (
-  `id_ak01` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `tuk` enum('Sewaktu','Tempat Kerja','Mandiri') NOT NULL,
+  `id_ak01` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `id_asesi` int NOT NULL,
   `hari_tanggal` date DEFAULT NULL,
-  `waktu` varchar(50) DEFAULT NULL,
-  `tuk_pelaksanaan` varchar(255) DEFAULT NULL
+  `waktu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tuk_pelaksanaan` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.AK.01 Persetujuan Asesmen dan Kerahasiaan';
 
 -- --------------------------------------------------------
@@ -148,14 +153,14 @@ CREATE TABLE `tb_ak01` (
 --
 
 CREATE TABLE `tb_ak02` (
-  `id_ak02` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_ak01` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `rekomendasi` enum('Kompeten','Belum Kompeten') DEFAULT NULL,
-  `tindak_lanjut` text DEFAULT NULL,
-  `komentar_asesor` text DEFAULT NULL
+  `id_ak02` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_ak01` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `rekomendasi` enum('Kompeten','Belum Kompeten') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tindak_lanjut` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `komentar_asesor` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.AK.02 Header Rekaman Asesmen Kompetensi';
 
 -- --------------------------------------------------------
@@ -165,13 +170,13 @@ CREATE TABLE `tb_ak02` (
 --
 
 CREATE TABLE `tb_ak03` (
-  `id_ak03` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_ak01` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
+  `id_ak03` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_ak01` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `id_asesor` int NOT NULL,
   `tgl_selesai` date DEFAULT NULL,
-  `catatan_lainnya` text DEFAULT NULL
+  `catatan_lainnya` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.AK.03 Header Umpan Balik dan Catatan Asesmen';
 
 -- --------------------------------------------------------
@@ -181,11 +186,11 @@ CREATE TABLE `tb_ak03` (
 --
 
 CREATE TABLE `tb_ak05` (
-  `id_ak5` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `catatan` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `id_ak5` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `catatan` text
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -194,16 +199,17 @@ CREATE TABLE `tb_ak05` (
 --
 
 CREATE TABLE `tb_apl1` (
-  `id_apl1` int(11) NOT NULL,
-  `id_det_periode` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_jadwal` int NOT NULL,
+  `id_det_periode` int NOT NULL,
+  `id_asesi` int NOT NULL,
   `tujuan_asesmen` varchar(100) NOT NULL,
-  `tujuan_lainnya` text DEFAULT NULL,
+  `tujuan_lainnya` text,
   `nama_pemohon` varchar(100) NOT NULL,
   `tanggal_pemohon` date NOT NULL,
-  `catatan_admin` text DEFAULT NULL,
+  `catatan_admin` text,
   `rekomendasi` enum('Diterima','Tidak Diterima') DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -212,12 +218,12 @@ CREATE TABLE `tb_apl1` (
 --
 
 CREATE TABLE `tb_apl2` (
-  `id_apl2` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `rekomendasi` varchar(255) DEFAULT NULL,
-  `tertanda` varchar(255) DEFAULT NULL
+  `id_apl2` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `rekomendasi` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tertanda` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Header FR APL-02 Asesmen Mandiri';
 
 -- --------------------------------------------------------
@@ -227,7 +233,7 @@ CREATE TABLE `tb_apl2` (
 --
 
 CREATE TABLE `tb_asesi` (
-  `id_asesi` int(11) NOT NULL,
+  `id_asesi` int NOT NULL,
   `nama_asesi` varchar(100) NOT NULL,
   `nik` varchar(16) NOT NULL,
   `jenis_kelamin` varchar(50) NOT NULL,
@@ -246,14 +252,7 @@ CREATE TABLE `tb_asesi` (
   `telp_institusi` varchar(15) DEFAULT NULL,
   `fax` varchar(15) DEFAULT NULL,
   `email_institusi` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_asesi`
---
-
-INSERT INTO `tb_asesi` (`id_asesi`, `nama_asesi`, `nik`, `jenis_kelamin`, `kebangsaan`, `alamat_rumah`, `kode_pos`, `phone_rumah`, `phone_kantor`, `hp`, `email`, `pendidikan`, `nama_institusi`, `jabatan`, `alamat_institusi`, `kode_pos_institusi`, `telp_institusi`, `fax`, `email_institusi`) VALUES
-(1, 'YANG BACA INI FIKS TRAKTIR', '1111111111111111', 'Perempuan', 'WNI', 'Java Center', '122132', '023984923743434', '023845297389729', '093284234234234', 'wtetweterrytiu@gmail.com', 'uiwqerutwuertweweritwerrtwueirt', 'qrutiutiurwrtiutwiuerrtuiweyri', 'iwtwrutuiqwtruiqt', 'qwutiuqwrirtuqiruiqtqruiqrqrqrwrqwrq', '123123', '023974873289478', '021612341626916', 'wtetweterryweqtiu@gmail.com');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -262,19 +261,12 @@ INSERT INTO `tb_asesi` (`id_asesi`, `nama_asesi`, `nik`, `jenis_kelamin`, `keban
 --
 
 CREATE TABLE `tb_asesor` (
-  `id_asesor` int(11) NOT NULL,
-  `no_reg` varchar(30) NOT NULL,
-  `nama_asesor` varchar(100) NOT NULL,
-  `jenis_kelamin` varchar(50) NOT NULL,
-  `alamat` varchar(255) NOT NULL
+  `id_asesor` int NOT NULL,
+  `no_reg` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `nama_asesor` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `jenis_kelamin` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `alamat` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `tb_asesor`
---
-
-INSERT INTO `tb_asesor` (`id_asesor`, `no_reg`, `nama_asesor`, `jenis_kelamin`, `alamat`) VALUES
-(1, '127388172983798172397198239873', 'Dr.Konanne', 'Laki-laki', 'Jalan Anime23');
 
 -- --------------------------------------------------------
 
@@ -283,18 +275,10 @@ INSERT INTO `tb_asesor` (`id_asesor`, `no_reg`, `nama_asesor`, `jenis_kelamin`, 
 --
 
 CREATE TABLE `tb_bukti_adm` (
-  `id_ba` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
+  `id_ba` int NOT NULL,
+  `id_skema` int NOT NULL,
   `bukti_adm` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_bukti_adm`
---
-
-INSERT INTO `tb_bukti_adm` (`id_ba`, `id_skema`, `bukti_adm`) VALUES
-(1, 1, 'YANG BACA INI FIKS TRAKTIR'),
-(2, 1, 'YANG BACA INI FIKS TRAKTIR1');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -303,18 +287,22 @@ INSERT INTO `tb_bukti_adm` (`id_ba`, `id_skema`, `bukti_adm`) VALUES
 --
 
 CREATE TABLE `tb_bukti_dasar` (
-  `id_bd` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
+  `id_bd` int NOT NULL,
+  `id_skema` int NOT NULL,
   `bukti_dasar` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data untuk tabel `tb_bukti_dasar`
+-- Struktur dari tabel `tb_detail_user`
 --
 
-INSERT INTO `tb_bukti_dasar` (`id_bd`, `id_skema`, `bukti_dasar`) VALUES
-(1, 1, 'BUKTI APA'),
-(2, 1, 'BUKTI APA1');
+CREATE TABLE `tb_detail_user` (
+  `id_detail_user` int NOT NULL,
+  `id_user` int NOT NULL,
+  `id_periode` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -323,11 +311,11 @@ INSERT INTO `tb_bukti_dasar` (`id_bd`, `id_skema`, `bukti_dasar`) VALUES
 --
 
 CREATE TABLE `tb_det_periode` (
-  `id_det_periode` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
-  `id_periode` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `id_det_periode` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_periode` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -336,19 +324,11 @@ CREATE TABLE `tb_det_periode` (
 --
 
 CREATE TABLE `tb_elemen` (
-  `id_elemen` int(11) NOT NULL,
-  `id_unit` int(11) NOT NULL,
+  `id_elemen` int NOT NULL,
+  `id_unit` int NOT NULL,
   `no_elemen` varchar(50) NOT NULL,
   `nama_elemen` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_elemen`
---
-
-INSERT INTO `tb_elemen` (`id_elemen`, `id_unit`, `no_elemen`, `nama_elemen`) VALUES
-(1, 1, '1', 'ESENCRTAL'),
-(2, 1, '2', 'YANG BACA INI FIKS TRAKTIR');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -357,15 +337,15 @@ INSERT INTO `tb_elemen` (`id_elemen`, `id_unit`, `no_elemen`, `nama_elemen`) VAL
 --
 
 CREATE TABLE `tb_ia01` (
-  `id_ia01` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_ak01` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
+  `id_ia01` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_ak01` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `id_asesor` int NOT NULL,
   `tanggal` date DEFAULT NULL,
-  `rekomendasi` enum('Kompeten','Belum Kompeten') DEFAULT NULL,
-  `umpan_balik` varchar(1000) DEFAULT NULL,
-  `belum_kompeten` text DEFAULT NULL
+  `rekomendasi` enum('Kompeten','Belum Kompeten') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `umpan_balik` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `belum_kompeten` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.IA.01 Ceklis Observasi Aktivitas Tempat Kerja - Header';
 
 -- --------------------------------------------------------
@@ -375,14 +355,14 @@ CREATE TABLE `tb_ia01` (
 --
 
 CREATE TABLE `tb_ia06` (
-  `id_ia06` int(11) NOT NULL,
-  `id_apl1` int(11) NOT NULL,
-  `id_ak01` int(11) NOT NULL,
-  `id_ia06a` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `aspek` enum('tercapai','belum_tercapai') DEFAULT NULL,
-  `umpan_balik` text DEFAULT NULL
+  `id_ia06` int NOT NULL,
+  `id_apl1` int NOT NULL,
+  `id_ak01` int NOT NULL,
+  `id_ia06a` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `aspek` enum('tercapai','belum_tercapai') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `umpan_balik` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.IA.06C - Header sesi jawaban asesi';
 
 -- --------------------------------------------------------
@@ -392,18 +372,11 @@ CREATE TABLE `tb_ia06` (
 --
 
 CREATE TABLE `tb_ia06a` (
-  `id_ia06a` int(11) NOT NULL,
-  `id_asesor` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
-  `id_validator` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_ia06a`
---
-
-INSERT INTO `tb_ia06a` (`id_ia06a`, `id_asesor`, `id_skema`, `id_validator`) VALUES
-(1, 1, 1, 1);
+  `id_ia06a` int NOT NULL,
+  `id_asesor` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_validator` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -412,12 +385,12 @@ INSERT INTO `tb_ia06a` (`id_ia06a`, `id_asesor`, `id_skema`, `id_validator`) VAL
 --
 
 CREATE TABLE `tb_ia06_jawaban` (
-  `id_jawaban` int(11) NOT NULL,
-  `id_asesi` int(11) NOT NULL,
-  `id_ia06` int(11) NOT NULL,
-  `id_soal` int(11) NOT NULL,
-  `jawaban_asesi` text NOT NULL,
-  `hasil` enum('Benar','Salah') DEFAULT NULL
+  `id_jawaban` int NOT NULL,
+  `id_asesi` int NOT NULL,
+  `id_ia06` int NOT NULL,
+  `id_soal` int NOT NULL,
+  `jawaban_asesi` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `hasil` enum('Benar','Salah') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='FR.IA.06C - Jawaban asesi per soal';
 
 -- --------------------------------------------------------
@@ -427,19 +400,11 @@ CREATE TABLE `tb_ia06_jawaban` (
 --
 
 CREATE TABLE `tb_isi_bukti_adm` (
-  `id_isi_ba` int(11) NOT NULL,
-  `id_ba` int(11) NOT NULL,
+  `id_isi_ba` int NOT NULL,
+  `id_ba` int NOT NULL,
   `kondisi` varchar(1000) NOT NULL,
-  `id_asesi` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_isi_bukti_adm`
---
-
-INSERT INTO `tb_isi_bukti_adm` (`id_isi_ba`, `id_ba`, `kondisi`, `id_asesi`) VALUES
-(1, 1, 'Tidak Memenuhi Syarat', 1),
-(2, 2, 'Memenuhi Syarat', 1);
+  `id_asesi` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -448,19 +413,28 @@ INSERT INTO `tb_isi_bukti_adm` (`id_isi_ba`, `id_ba`, `kondisi`, `id_asesi`) VAL
 --
 
 CREATE TABLE `tb_isi_bukti_dasar` (
-  `id_isi_bd` int(11) NOT NULL,
-  `id_bd` int(11) NOT NULL,
+  `id_isi_bd` int NOT NULL,
+  `id_bd` int NOT NULL,
   `kondisi` varchar(1000) NOT NULL,
-  `id_asesi` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+  `id_asesi` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data untuk tabel `tb_isi_bukti_dasar`
+-- Struktur dari tabel `tb_jadwal`
 --
 
-INSERT INTO `tb_isi_bukti_dasar` (`id_isi_bd`, `id_bd`, `kondisi`, `id_asesi`) VALUES
-(1, 1, 'Tidak Memenuhi Syarat', 1),
-(2, 2, 'Memenuhi Syarat', 1);
+CREATE TABLE `tb_jadwal` (
+  `id_jadwal` int NOT NULL,
+  `hari` enum('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Ahad') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tanggal` date NOT NULL,
+  `waktu` time NOT NULL,
+  `tuk` enum('Sewaktu','Tempat Kerja','Mandiri','') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `id_periode` int NOT NULL,
+  `id_skema` int NOT NULL,
+  `id_asesor` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -469,25 +443,11 @@ INSERT INTO `tb_isi_bukti_dasar` (`id_isi_bd`, `id_bd`, `kondisi`, `id_asesi`) V
 --
 
 CREATE TABLE `tb_kuk` (
-  `id_kuk` int(11) NOT NULL,
-  `id_elemen` int(11) NOT NULL,
+  `id_kuk` int NOT NULL,
+  `id_elemen` int NOT NULL,
   `no_kuk` text NOT NULL,
   `kuk` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_kuk`
---
-
-INSERT INTO `tb_kuk` (`id_kuk`, `id_elemen`, `no_kuk`, `kuk`) VALUES
-(1, 1, '1', 'GUBakuk'),
-(2, 1, '2', 'BULUKUK'),
-(3, 1, '3', 'GUGYEA'),
-(4, 1, '4', 'ES TEH'),
-(5, 2, '1', 'YANG BACA INI FIKS TRAKTIR'),
-(6, 2, '2', 'YANG BACA INI FIKS TRAKTIR'),
-(7, 2, '3', 'YANG BACA INI FIKS TRAKTIR'),
-(8, 2, '4', 'YANG BACA INI FIKS TRAKTIR');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -496,19 +456,9 @@ INSERT INTO `tb_kuk` (`id_kuk`, `id_elemen`, `no_kuk`, `kuk`) VALUES
 --
 
 CREATE TABLE `tb_periode` (
-  `id_periode` int(11) NOT NULL,
+  `id_periode` int NOT NULL,
   `tahun_ajaran` varchar(40) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_periode`
---
-
-INSERT INTO `tb_periode` (`id_periode`, `tahun_ajaran`) VALUES
-(1, '2025 / 2026 (genap)'),
-(2, '2024 / 2025 (dansal)'),
-(3, '2023 / 2024 (Genap)'),
-(4, '2026 / 2027 (Gasal)');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -517,19 +467,12 @@ INSERT INTO `tb_periode` (`id_periode`, `tahun_ajaran`) VALUES
 --
 
 CREATE TABLE `tb_skema` (
-  `id_skema` int(11) NOT NULL,
-  `nomor_skema` varchar(100) NOT NULL,
-  `judul_skema` varchar(100) NOT NULL,
-  `standar_kompetensi_kerja` varchar(100) NOT NULL,
-  `id_asesor` int(11) NOT NULL
+  `id_skema` int NOT NULL,
+  `nomor_skema` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `judul_skema` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `standar_kompetensi_kerja` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `id_periode` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `tb_skema`
---
-
-INSERT INTO `tb_skema` (`id_skema`, `nomor_skema`, `judul_skema`, `standar_kompetensi_kerja`, `id_asesor`) VALUES
-(1, '1', 'Standar Digital', 'OKLUPUASI X HunterXHunter', 1);
 
 -- --------------------------------------------------------
 
@@ -538,18 +481,11 @@ INSERT INTO `tb_skema` (`id_skema`, `nomor_skema`, `judul_skema`, `standar_kompe
 --
 
 CREATE TABLE `tb_soal` (
-  `id_soal` int(11) NOT NULL,
-  `id_ia06a` int(11) NOT NULL,
+  `id_soal` int NOT NULL,
+  `id_ia06a` int NOT NULL,
   `soal` varchar(500) DEFAULT NULL,
-  `kunci_jawaban` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_soal`
---
-
-INSERT INTO `tb_soal` (`id_soal`, `id_ia06a`, `soal`, `kunci_jawaban`) VALUES
-(1, 1, 'YANG BACA INI FIKS TRAKTIR', 'YANG BACA INI FIKS TRAKTIR');
+  `kunci_jawaban` text
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -558,18 +494,11 @@ INSERT INTO `tb_soal` (`id_soal`, `id_ia06a`, `soal`, `kunci_jawaban`) VALUES
 --
 
 CREATE TABLE `tb_unit_kompetensi` (
-  `id_unit` int(11) NOT NULL,
-  `id_skema` int(11) NOT NULL,
+  `id_unit` int NOT NULL,
+  `id_skema` int NOT NULL,
   `kode_unit` varchar(100) NOT NULL,
   `judul_unit` text NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_unit_kompetensi`
---
-
-INSERT INTO `tb_unit_kompetensi` (`id_unit`, `id_skema`, `kode_unit`, `judul_unit`) VALUES
-(1, 1, '1', 'UNIKAL');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -578,17 +507,10 @@ INSERT INTO `tb_unit_kompetensi` (`id_unit`, `id_skema`, `kode_unit`, `judul_uni
 --
 
 CREATE TABLE `tb_validator` (
-  `id_validator` int(11) NOT NULL,
+  `id_validator` int NOT NULL,
   `username` varchar(100) NOT NULL,
   `noreg` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
---
--- Dumping data untuk tabel `tb_validator`
---
-
-INSERT INTO `tb_validator` (`id_validator`, `username`, `noreg`) VALUES
-(1, 'Baginda', '019230128038720973977293710723');
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -597,25 +519,15 @@ INSERT INTO `tb_validator` (`id_validator`, `username`, `noreg`) VALUES
 --
 
 CREATE TABLE `users` (
-  `id_user` int(11) NOT NULL,
-  `username` varchar(32) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` enum('Admin_lsp','Asesor','Asesi') NOT NULL,
-  `id_periode` int(11) DEFAULT NULL,
-  `id_admin` int(11) DEFAULT NULL,
-  `id_asesor` int(11) DEFAULT NULL,
-  `id_asesi` int(11) DEFAULT NULL
+  `id_user` int NOT NULL,
+  `username` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` enum('Admin_lsp','Asesor','Asesi') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `id_periode` int DEFAULT NULL,
+  `id_admin` int DEFAULT NULL,
+  `id_asesor` int DEFAULT NULL,
+  `id_asesi` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `users`
---
-
-INSERT INTO `users` (`id_user`, `username`, `password`, `role`, `id_periode`, `id_admin`, `id_asesor`, `id_asesi`) VALUES
-(1, 'Althaf', 'c4ca4238a0b923820dcc509a6f75849b', 'Asesi', NULL, NULL, NULL, 1),
-(3, 'Skyline lsp', '0ce9e2a07ebe3678ed75c8bbb1f63d04', 'Admin_lsp', NULL, 1, NULL, NULL),
-(4, 'Sifa', '700933e83f12b73e3f23a8d6fde3fa2c', 'Asesor', NULL, NULL, NULL, NULL),
-(7, 'Bunga', 'bcb48dddff8c14b5f452ee573b4db770', 'Asesi', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -624,11 +536,11 @@ INSERT INTO `users` (`id_user`, `username`, `password`, `role`, `id_periode`, `i
 --
 
 CREATE TABLE `users_admin` (
-  `id_user_admin` int(11) NOT NULL,
+  `id_user_admin` int NOT NULL,
   `username` varchar(32) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('Admin_utm') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data untuk tabel `users_admin`
@@ -638,7 +550,7 @@ INSERT INTO `users_admin` (`id_user_admin`, `username`, `password`, `role`) VALU
 (1, 'Admin Mudikal', '751cb3f4aa17c36186f4856c8982bf27', 'Admin_utm');
 
 --
--- Indexes for dumped tables
+-- Indeks untuk tabel yang dibuang
 --
 
 --
@@ -743,7 +655,8 @@ ALTER TABLE `tb_ak05`
 ALTER TABLE `tb_apl1`
   ADD PRIMARY KEY (`id_apl1`),
   ADD KEY `fk_apl1_asesi` (`id_asesi`),
-  ADD KEY `id_apl1_dp` (`id_det_periode`);
+  ADD KEY `id_apl1_dp` (`id_det_periode`),
+  ADD KEY `fk_apl1_jadwal` (`id_jadwal`);
 
 --
 -- Indeks untuk tabel `tb_apl2`
@@ -781,6 +694,14 @@ ALTER TABLE `tb_bukti_adm`
 ALTER TABLE `tb_bukti_dasar`
   ADD PRIMARY KEY (`id_bd`),
   ADD KEY `fk_bukti_dasar_skema` (`id_skema`);
+
+--
+-- Indeks untuk tabel `tb_detail_user`
+--
+ALTER TABLE `tb_detail_user`
+  ADD PRIMARY KEY (`id_detail_user`),
+  ADD KEY `fk_du_user` (`id_user`),
+  ADD KEY `fk_du_periode` (`id_periode`);
 
 --
 -- Indeks untuk tabel `tb_det_periode`
@@ -854,6 +775,15 @@ ALTER TABLE `tb_isi_bukti_dasar`
   ADD KEY `fk_dasar_asesi` (`id_asesi`);
 
 --
+-- Indeks untuk tabel `tb_jadwal`
+--
+ALTER TABLE `tb_jadwal`
+  ADD PRIMARY KEY (`id_jadwal`),
+  ADD KEY `fk_jadwal_periode` (`id_periode`),
+  ADD KEY `fk_jadwal_skema` (`id_skema`),
+  ADD KEY `fk_jadwal_asesor` (`id_asesor`);
+
+--
 -- Indeks untuk tabel `tb_kuk`
 --
 ALTER TABLE `tb_kuk`
@@ -871,7 +801,7 @@ ALTER TABLE `tb_periode`
 --
 ALTER TABLE `tb_skema`
   ADD PRIMARY KEY (`id_skema`),
-  ADD KEY `fk_skema_asesor` (`id_asesor`);
+  ADD KEY `fk_periode` (`id_periode`);
 
 --
 -- Indeks untuk tabel `tb_soal`
@@ -918,193 +848,199 @@ ALTER TABLE `users_admin`
 -- AUTO_INCREMENT untuk tabel `detail_ak02`
 --
 ALTER TABLE `detail_ak02`
-  MODIFY `id_detail_ak02` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_detail_ak02` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT untuk tabel `detail_ak1`
 --
 ALTER TABLE `detail_ak1`
-  MODIFY `id_detail_ak1` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_detail_ak1` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `detail_ak5`
 --
 ALTER TABLE `detail_ak5`
-  MODIFY `id_detail_ak5` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_detail_ak5` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `detail_apl2`
 --
 ALTER TABLE `detail_apl2`
-  MODIFY `id_detail_apl2` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_detail_apl2` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT untuk tabel `detail_ia01`
 --
 ALTER TABLE `detail_ia01`
-  MODIFY `id_detail_ia1` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_detail_ia1` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT untuk tabel `hasil_ak03`
 --
 ALTER TABLE `hasil_ak03`
-  MODIFY `id_detail_ak03` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_detail_ak03` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_admin`
 --
 ALTER TABLE `tb_admin`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_admin` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ak01`
 --
 ALTER TABLE `tb_ak01`
-  MODIFY `id_ak01` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_ak01` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ak02`
 --
 ALTER TABLE `tb_ak02`
-  MODIFY `id_ak02` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_ak02` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ak03`
 --
 ALTER TABLE `tb_ak03`
-  MODIFY `id_ak03` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_ak03` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ak05`
 --
 ALTER TABLE `tb_ak05`
-  MODIFY `id_ak5` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_ak5` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_apl1`
 --
 ALTER TABLE `tb_apl1`
-  MODIFY `id_apl1` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_apl1` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_apl2`
 --
 ALTER TABLE `tb_apl2`
-  MODIFY `id_apl2` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_apl2` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_asesi`
 --
 ALTER TABLE `tb_asesi`
-  MODIFY `id_asesi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_asesi` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_asesor`
 --
 ALTER TABLE `tb_asesor`
-  MODIFY `id_asesor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_asesor` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_bukti_adm`
 --
 ALTER TABLE `tb_bukti_adm`
-  MODIFY `id_ba` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_ba` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_bukti_dasar`
 --
 ALTER TABLE `tb_bukti_dasar`
-  MODIFY `id_bd` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_bd` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_det_periode`
 --
 ALTER TABLE `tb_det_periode`
-  MODIFY `id_det_periode` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_det_periode` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_elemen`
 --
 ALTER TABLE `tb_elemen`
-  MODIFY `id_elemen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_elemen` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ia01`
 --
 ALTER TABLE `tb_ia01`
-  MODIFY `id_ia01` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_ia01` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ia06`
 --
 ALTER TABLE `tb_ia06`
-  MODIFY `id_ia06` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_ia06` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ia06a`
 --
 ALTER TABLE `tb_ia06a`
-  MODIFY `id_ia06a` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_ia06a` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_ia06_jawaban`
 --
 ALTER TABLE `tb_ia06_jawaban`
-  MODIFY `id_jawaban` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_jawaban` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_isi_bukti_adm`
 --
 ALTER TABLE `tb_isi_bukti_adm`
-  MODIFY `id_isi_ba` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_isi_ba` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_isi_bukti_dasar`
 --
 ALTER TABLE `tb_isi_bukti_dasar`
-  MODIFY `id_isi_bd` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_isi_bd` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT untuk tabel `tb_jadwal`
+--
+ALTER TABLE `tb_jadwal`
+  MODIFY `id_jadwal` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_kuk`
 --
 ALTER TABLE `tb_kuk`
-  MODIFY `id_kuk` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_kuk` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_periode`
 --
 ALTER TABLE `tb_periode`
-  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_periode` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_skema`
 --
 ALTER TABLE `tb_skema`
-  MODIFY `id_skema` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_skema` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_soal`
 --
 ALTER TABLE `tb_soal`
-  MODIFY `id_soal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_soal` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_unit_kompetensi`
 --
 ALTER TABLE `tb_unit_kompetensi`
-  MODIFY `id_unit` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_unit` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `tb_validator`
 --
 ALTER TABLE `tb_validator`
-  MODIFY `id_validator` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_validator` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_user` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -1195,7 +1131,8 @@ ALTER TABLE `tb_ak05`
 --
 ALTER TABLE `tb_apl1`
   ADD CONSTRAINT `fk_apl1_asesi` FOREIGN KEY (`id_asesi`) REFERENCES `tb_asesi` (`id_asesi`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_apl1_dp` FOREIGN KEY (`id_det_periode`) REFERENCES `tb_det_periode` (`id_det_periode`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_apl1_dp` FOREIGN KEY (`id_det_periode`) REFERENCES `tb_det_periode` (`id_det_periode`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_apl1_jadwal` FOREIGN KEY (`id_jadwal`) REFERENCES `tb_jadwal` (`id_jadwal`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `tb_apl2`
@@ -1216,6 +1153,13 @@ ALTER TABLE `tb_bukti_adm`
 --
 ALTER TABLE `tb_bukti_dasar`
   ADD CONSTRAINT `fk_bukti_dasar_skema` FOREIGN KEY (`id_skema`) REFERENCES `tb_skema` (`id_skema`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `tb_detail_user`
+--
+ALTER TABLE `tb_detail_user`
+  ADD CONSTRAINT `fk_du_periode` FOREIGN KEY (`id_periode`) REFERENCES `tb_periode` (`id_periode`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_du_user` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `tb_det_periode`
@@ -1281,6 +1225,14 @@ ALTER TABLE `tb_isi_bukti_dasar`
   ADD CONSTRAINT `fk_isi_bukti_dasar` FOREIGN KEY (`id_bd`) REFERENCES `tb_bukti_dasar` (`id_bd`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Ketidakleluasaan untuk tabel `tb_jadwal`
+--
+ALTER TABLE `tb_jadwal`
+  ADD CONSTRAINT `fk_jadwal_asesor` FOREIGN KEY (`id_asesor`) REFERENCES `tb_asesor` (`id_asesor`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_jadwal_periode` FOREIGN KEY (`id_periode`) REFERENCES `tb_periode` (`id_periode`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_jadwal_skema` FOREIGN KEY (`id_skema`) REFERENCES `tb_skema` (`id_skema`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Ketidakleluasaan untuk tabel `tb_kuk`
 --
 ALTER TABLE `tb_kuk`
@@ -1290,7 +1242,7 @@ ALTER TABLE `tb_kuk`
 -- Ketidakleluasaan untuk tabel `tb_skema`
 --
 ALTER TABLE `tb_skema`
-  ADD CONSTRAINT `fk_skema_asesor` FOREIGN KEY (`id_asesor`) REFERENCES `tb_asesor` (`id_asesor`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_periode` FOREIGN KEY (`id_periode`) REFERENCES `tb_periode` (`id_periode`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `tb_soal`

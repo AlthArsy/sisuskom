@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin_utm', 'Admin_lsp','Asesor'])) {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin_lsp') {
     header("Location: ../LOGIN/login.php");
     exit();
 }
@@ -37,8 +37,11 @@ if (isset($_GET['id'])) {
 
     $sql = "SELECT s.*, a.nama_asesor
             FROM tb_skema s
-            LEFT JOIN tb_asesor a ON s.id_asesor = a.id_asesor
-            WHERE s.id_skema = ?";
+            LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema AND dp.id_periode = s.id_periode
+            LEFT JOIN tb_asesor a ON dp.id_asesor = a.id_asesor
+            WHERE s.id_skema = ?
+            ORDER BY dp.id_det_periode DESC
+            LIMIT 1";
     $stmt = mysqli_prepare($koneksi, $sql);
 
     if ($stmt) {
@@ -51,16 +54,11 @@ if (isset($_GET['id'])) {
 
             if ($role === 'Admin_lsp') {
 
-                if ($skema_data['id_periode'] != $id_periode_session) {
+                if (intval($skema_data['id_periode'] ?? 0) !== $id_periode_session) {
                     $message = "Anda hanya dapat mengubah skema pada periode aktif saat ini ($periode_nama).";
                     $message_type = 'error';
                     $skema_data = [];
                 }
-            } elseif ($role === 'Asesor') {
-
-                $message = "Anda tidak memiliki akses untuk mengubah skema.";
-                $message_type = 'error';
-                $skema_data = [];
             }
       
         } else {
@@ -92,9 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         $errors[] = "Standar kompetensi harus diisi";
     }
 
-    $check_sql = "SELECT id_skema FROM tb_skema WHERE nomor_skema = ? AND id_skema != ?";
+    $check_sql = "SELECT id_skema FROM tb_skema WHERE nomor_skema = ? AND id_skema != ? AND id_periode = ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
-    mysqli_stmt_bind_param($check_stmt, "si", $nomor_skema, $id);
+    mysqli_stmt_bind_param($check_stmt, "sii", $nomor_skema, $id, $id_periode_session);
     mysqli_stmt_execute($check_stmt);
     mysqli_stmt_store_result($check_stmt);
     if (mysqli_stmt_num_rows($check_stmt) > 0) {
@@ -159,8 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
                     <input type="text" class="form-control" value="<?php 
         
                         $periode_skema = '-';
-                        if (!empty($skema_data['id_period'])) {
-                            $q = mysqli_query($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE id_periode = " . intval($skema_data['id_period']));
+                        if (!empty($skema_data['id_periode'])) {
+                            $q = mysqli_query($koneksi, "SELECT tahun_ajaran FROM tb_periode WHERE id_periode = " . intval($skema_data['id_periode']));
                             if ($q && $r = mysqli_fetch_assoc($q)) $periode_skema = htmlspecialchars($r['tahun_ajaran']);
                         }
                         echo $periode_skema;

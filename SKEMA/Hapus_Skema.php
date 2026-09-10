@@ -40,7 +40,13 @@ if ($role === 'Admin_lsp') {
         exit();
     }
 
-    $cek_periode = mysqli_query($koneksi, "SELECT id_skema FROM tb_skema WHERE id_skema = $id AND id_periode = $id_periode_session LIMIT 1");
+    $cek_periode = mysqli_query($koneksi, "
+        SELECT s.id_skema
+        FROM tb_skema s
+        WHERE s.id_skema = $id
+          AND s.id_periode = $id_periode_session
+        LIMIT 1
+    ");
     if (!$cek_periode || mysqli_num_rows($cek_periode) == 0) {
         $_SESSION['pesan'] = "Anda hanya dapat menghapus skema pada periode aktif saat ini!";
         $_SESSION['tipe'] = "error";
@@ -53,7 +59,7 @@ mysqli_begin_transaction($koneksi);
 
 try {
 
-    $hapus_relasi = "DELETE FROM tb_skema_asesor WHERE id_skema = ?";
+    $hapus_relasi = "DELETE FROM tb_det_periode WHERE id_skema = ?";
     $stmt_relasi = mysqli_prepare($koneksi, $hapus_relasi);
     mysqli_stmt_bind_param($stmt_relasi, 'i', $id);
     mysqli_stmt_execute($stmt_relasi);

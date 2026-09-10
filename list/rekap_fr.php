@@ -6,7 +6,7 @@ include "../koneksi.php";
 require_once __DIR__ . '/rekap_helpers.php';
 
 $role = $_SESSION['role'] ?? '';
-if (!in_array($role, ['Admin_lsp', 'Admin_utm'])) {
+if (!in_array($role, ['Admin_lsp', 'Admin_utm', 'Asesor'])) {
     echo "<p style='color:red;padding:20px;'>Akses ditolak.</p>";
     exit;
 }
@@ -38,16 +38,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_rekomendasi'])
     exit;
 }
 
+$id_asesor_login = intval($_SESSION['id_asesor'] ?? 0);
+$asesor_filter = ($role === 'Asesor')
+    ? " AND dp.id_asesor = '$id_asesor_login'"
+    : "";
+
+$from_join = "FROM tb_apl1 a
+        LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+        LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)";
+
 $where = "WHERE 1=1"
     . rekap_sql_filter_status($filter, 'apl1')
     // . rekap_sql_batas_2bulan('a.tanggal_pemohon')
-    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 'a.judul_skema', 'a.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 's.judul_skema', 's.nomor_skema'])
+    . $asesor_filter;
 
-$sql = "SELECT a.id_apl1, a.id_asesi, a.judul_skema, a.nomor_skema,
+$sql = "SELECT a.id_apl1, a.id_asesi, s.judul_skema, s.nomor_skema,
                a.nama_pemohon, a.tanggal_pemohon, a.rekomendasi, a.catatan_admin,
-               asi.nama_asesi
-        FROM tb_apl1 a
-        LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
+               asi.nama_asesi, j.hari, j.tanggal, j.waktu, j.tuk
+        $from_join
         $where
         ORDER BY a.id_apl1 DESC";
 
@@ -58,11 +69,12 @@ while ($r = mysqli_fetch_assoc($result)) {
 }
 $total = count($rows);
 
-$cnt_base = "SELECT COUNT(*) c FROM tb_apl1 a
-             LEFT JOIN tb_asesi asi ON asi.id_asesi = a.id_asesi
+$cnt_base = "SELECT COUNT(*) c
+             $from_join
              WHERE 1=1"
     // . rekap_sql_batas_2bulan('a.tanggal_pemohon')
-    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 'a.judul_skema', 'a.nomor_skema']);
+    . rekap_sql_cari($koneksi, $cari, ['asi.nama_asesi', 'a.nama_pemohon', 's.judul_skema', 's.nomor_skema'])
+    . $asesor_filter;
 
 $total_all    = rekap_count($koneksi, $cnt_base);
 $total_belum  = rekap_count($koneksi, $cnt_base . " AND (a.rekomendasi IS NULL OR a.rekomendasi='')");
@@ -122,6 +134,7 @@ $qs = fn($f) => rekap_qs($f, $cari);
                     <th>No.</th>
                     <th>Nama Asesi</th>
                     <th>Skema</th>
+                    <th>Jadwal</th>
                     <th>Tanggal Submit</th>
                     <th>Status Rekomendasi</th>
                     <th>Komentar Admin</th>
@@ -134,7 +147,7 @@ $qs = fn($f) => rekap_qs($f, $cari);
                     $is_belum = (is_null($r['rekomendasi']) || $r['rekomendasi'] === '');
                     $is_admin_utm = ($role === 'Admin_utm');
                 ?>
-                <?php if (!$is_admin_utm && $is_belum): ?>
+                <?php if ($role === 'Admin_lsp' && $is_belum): ?>
                 <form method="post" class="aksi-form">
                     <input type="hidden" name="id_apl1" value="<?= $r['id_apl1'] ?>">
                     <input type="hidden" name="update_rekomendasi" value="1">
@@ -148,6 +161,10 @@ $qs = fn($f) => rekap_qs($f, $cari);
                         <?= htmlspecialchars($r['judul_skema']) ?>
                         <div class="rekap-skema-sub">No. <?= htmlspecialchars($r['nomor_skema']) ?></div>
                     </td>
+                    <td data-label="Jadwal">
+                        <?= htmlspecialchars(trim(($r['hari'] ?? '') . ', ' . ($r['tanggal'] ?? '') . ' ' . ($r['waktu'] ?? '')) ?: '-') ?>
+                        <div class="rekap-skema-sub">TUK: <?= htmlspecialchars($r['tuk'] ?? '-') ?></div>
+                    </td>
                     <td data-label="Tanggal Submit" style="text-align:center;"><?= htmlspecialchars($r['tanggal_pemohon']) ?></td>
                     <td data-label="Status Rekomendasi" style="text-align:center;">
                         <?php if ($is_belum): ?>
@@ -159,7 +176,7 @@ $qs = fn($f) => rekap_qs($f, $cari);
                         <?php endif; ?>
                     </td>
                     <td data-label="Komentar Admin" style="max-width:200px;">
-                        <?php if ($is_admin_utm || !$is_belum): ?>
+                        <?php if ($role !== 'Admin_lsp' || !$is_belum): ?>
                             <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
                         <?php else: ?>
                             <?= nl2br(htmlspecialchars($r['catatan_admin'] ?? '')) ?>
@@ -167,7 +184,7 @@ $qs = fn($f) => rekap_qs($f, $cari);
                         <?php endif; ?>
                     </td>
                     <td data-label="Aksi" class="rekap-aksi" style="text-align:left;">
-                        <?php if ($is_admin_utm): ?>
+                        <?php if ($is_admin_utm || $role === 'Asesor'): ?>
                             <a class="btn-lihat" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&id_asesi=<?= $r['id_asesi'] ?>">Lihat</a>
                             <a class="btn-cetak" href="<?= $base ?>?page=../FR_APL/FR_APL1.php&view=1&print=1&id_asesi=<?= $r['id_asesi'] ?>" target="_blank">Cetak</a>
                         <?php elseif ($is_belum): ?>
@@ -190,7 +207,7 @@ $qs = fn($f) => rekap_qs($f, $cari);
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php if (!$is_admin_utm && $is_belum): ?>
+                <?php if ($role === 'Admin_lsp' && $is_belum): ?>
                 </form>
                 <?php endif; ?>
                 <?php endforeach; ?>

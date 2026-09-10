@@ -23,7 +23,8 @@ if ($id_unit > 0) {
             tb_asesor.nama_asesor
         FROM tb_unit_kompetensi
         LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-        LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+        LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+        LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
         WHERE tb_unit_kompetensi.id_unit = ?
     ";
     $stmt_skema = mysqli_prepare($koneksi, $query_skema);
@@ -69,7 +70,8 @@ if ($id_unit > 0) {
         FROM tb_elemen
         LEFT JOIN tb_unit_kompetensi ON tb_elemen.id_unit = tb_unit_kompetensi.id_unit
         LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-        LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+        LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+        LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
         LEFT JOIN tb_kuk ON tb_elemen.id_elemen = tb_kuk.id_elemen
         GROUP BY tb_elemen.id_elemen
         ORDER BY tb_unit_kompetensi.id_unit ASC, tb_elemen.id_elemen ASC
@@ -110,9 +112,10 @@ if ($id_unit > 0) {
                 FROM tb_elemen
                 LEFT JOIN tb_unit_kompetensi ON tb_elemen.id_unit = tb_unit_kompetensi.id_unit
                 LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-                LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+                LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+                LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
                 LEFT JOIN tb_kuk ON tb_elemen.id_elemen = tb_kuk.id_elemen
-                WHERE tb_skema.id_asesor = ?
+                WHERE tb_det_periode.id_asesor = ?
                 GROUP BY tb_elemen.id_elemen
                 ORDER BY tb_unit_kompetensi.id_unit ASC, tb_elemen.id_elemen ASC
             ";
@@ -158,7 +161,6 @@ if (isset($result) && $result) {
                     'info' => [
                         'kode_unit' => $row['kode_unit'] ?? '',
                         'judul_unit' => $row['judul_unit'] ?? '',
-                        'nama_asesor' => $row['nama_asesor'] ?? ''
                     ],
                     'units' => []
                 ];
@@ -207,7 +209,6 @@ if (isset($result) && $result) {
             <h3>Informasi unit</h3>
             <p><strong>Kode Unit:</strong> <?= htmlspecialchars($skema_data['kode_unit']) ?></p>
             <p><strong>Judul Unit:</strong> <?= htmlspecialchars($skema_data['judul_unit']) ?></p>
-            <p><strong>Asesor:</strong> <?= htmlspecialchars($skema_data['nama_asesor'])?></p>
         </div>
 
         <table>

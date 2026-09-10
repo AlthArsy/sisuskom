@@ -18,13 +18,17 @@ $cari   = $p['cari'];
 $base   = '../BERANDA/UTAMA.php';
 
 $sql = "SELECT i.id_ia01, i.id_apl1, i.id_ak01, i.id_asesi, i.id_asesor,
-               i.rekomendasi, i.umpan_balik, i.tanggal, ak.hari_tanggal, ak.tuk,
+               i.rekomendasi, i.umpan_balik, i.tanggal,
+               " . rekap_sql_hari_tanggal('j', 'ak.hari_tanggal') . " AS hari_tanggal,
+               " . rekap_sql_tuk('j', 'ak') . " AS tuk,
                s.judul_skema, s.nomor_skema, s.id_skema,
                asi.nama_asesi, asr.nama_asesor
         FROM tb_ia01 i
         LEFT JOIN tb_apl1 apl ON apl.id_apl1 = i.id_apl1
+        LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+        LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
         LEFT JOIN tb_ak01 ak ON ak.id_ak01 = i.id_ak01
-        LEFT JOIN tb_skema s  ON s.id_skema  = apl.id_skema
+        LEFT JOIN tb_skema s  ON s.id_skema  = COALESCE(j.id_skema, dp.id_skema)
         LEFT JOIN tb_asesi asi ON asi.id_asesi = i.id_asesi
         LEFT JOIN tb_asesor asr ON asr.id_asesor = i.id_asesor
         WHERE 1=1"
@@ -44,8 +48,10 @@ $total = count($rows);
 
 $cnt_base = "SELECT COUNT(*) c FROM tb_ia01 i
              LEFT JOIN tb_apl1 apl ON apl.id_apl1 = i.id_apl1
+             LEFT JOIN tb_jadwal j ON j.id_jadwal = apl.id_jadwal
+             LEFT JOIN tb_det_periode dp ON dp.id_det_periode = apl.id_det_periode
              LEFT JOIN tb_ak01 ak ON ak.id_ak01 = i.id_ak01
-             LEFT JOIN tb_skema s ON s.id_skema = apl.id_skema
+             LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
              LEFT JOIN tb_asesi asi ON asi.id_asesi = i.id_asesi
              WHERE 1=1"
     . rekap_sql_asesor($role, $id_asesor_session, 'i.id_asesor')

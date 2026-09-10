@@ -20,7 +20,8 @@ if ($id_skema > 0) {
             tb_skema.standar_kompetensi_kerja,
             tb_asesor.nama_asesor
         FROM tb_skema
-        LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+        LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+        LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
         WHERE tb_skema.id_skema = ?
     ";
     $stmt_skema = mysqli_prepare($koneksi, $query_skema);
@@ -62,7 +63,8 @@ if ($id_skema > 0) {
             COUNT(tb_elemen.id_elemen) as jumlah_elemen
         FROM tb_unit_kompetensi
         LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-        LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+        LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+        LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
         LEFT JOIN tb_elemen ON tb_unit_kompetensi.id_unit = tb_elemen.id_unit
         GROUP BY tb_unit_kompetensi.id_unit
         ORDER BY tb_skema.id_skema ASC, tb_unit_kompetensi.id_unit ASC
@@ -103,9 +105,10 @@ if ($id_skema > 0) {
                     COUNT(tb_elemen.id_elemen) as jumlah_elemen
                 FROM tb_unit_kompetensi
                 LEFT JOIN tb_skema ON tb_unit_kompetensi.id_skema = tb_skema.id_skema
-                LEFT JOIN tb_asesor ON tb_skema.id_asesor = tb_asesor.id_asesor
+                LEFT JOIN tb_det_periode ON tb_det_periode.id_skema = tb_skema.id_skema
+                LEFT JOIN tb_asesor ON tb_det_periode.id_asesor = tb_asesor.id_asesor
                 LEFT JOIN tb_elemen ON tb_unit_kompetensi.id_unit = tb_elemen.id_unit
-                WHERE tb_skema.id_asesor = ?
+                WHERE tb_det_periode.id_asesor = ?
                 GROUP BY tb_unit_kompetensi.id_unit
                 ORDER BY tb_skema.id_skema ASC, tb_unit_kompetensi.id_unit ASC
             ";
@@ -152,7 +155,6 @@ if (isset($result) && $result) {
                         'nomor_skema' => $row['nomor_skema'],
                         'judul_skema' => $row['judul_skema'],
                         'standar_kompetensi_kerja' => $row['standar_kompetensi_kerja'],
-                        'nama_asesor' => $row['nama_asesor']
                     ],
                     'units' => []
                 ];
@@ -169,7 +171,7 @@ if (isset($result) && $result) {
     <div class="header-container">
         <h2 class="jd">
             <?php if ($id_skema > 0 && isset($skema_data)): ?>
-               Unit Kompetensi - <?= htmlspecialchars($skema_data['nomor_skema']) ?> <!-- <= htmlspecialchars($skema_group['info']['nama_asesor']) ?>  -->
+               Unit Kompetensi - <?= htmlspecialchars($skema_data['nomor_skema']) ?>
             <?php else: ?>
                 Daftar Unit Kompetensi
             <?php endif; ?>
@@ -201,7 +203,6 @@ if (isset($result) && $result) {
             <p><strong>Nomor Skema:</strong> <?= htmlspecialchars($skema_data['nomor_skema']) ?></p>
             <p><strong>Judul Skema:</strong> <?= htmlspecialchars($skema_data['judul_skema']) ?></p>
             <p><strong>Standar Kompetensi:</strong> <?= htmlspecialchars($skema_data['standar_kompetensi_kerja']) ?></p>
-            <p><strong>Asesor:</strong> <?= htmlspecialchars($skema_data['nama_asesor'])?></p>
         </div>
 
         <table>

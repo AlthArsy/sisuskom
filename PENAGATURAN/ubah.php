@@ -80,7 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update'])) {
         $errors[] = "Tahun Ajaran harus dipilih";
     }
 
-    // Cek jika username sudah digunakan(kecuali yang lagi ngubah)
     $check_sql = "SELECT id_user FROM users WHERE username = ? AND id_user != ?";
     $check_stmt = mysqli_prepare($koneksi, $check_sql);
     mysqli_stmt_bind_param($check_stmt, "si", $username, $id);

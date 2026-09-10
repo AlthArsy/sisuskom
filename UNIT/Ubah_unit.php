@@ -28,10 +28,12 @@ if (isset($_GET['id'])) {
                 uk.*,
                 s.nomor_skema,
                 s.judul_skema,
-                s.id_asesor
+                GROUP_CONCAT(DISTINCT dp.id_asesor) AS id_asesor_list
             FROM tb_unit_kompetensi uk
             LEFT JOIN tb_skema s ON uk.id_skema = s.id_skema
-            WHERE uk.id_unit = ?";
+            LEFT JOIN tb_det_periode dp ON dp.id_skema = s.id_skema
+            WHERE uk.id_unit = ?
+            GROUP BY uk.id_unit";
 
     $stmt = mysqli_prepare($koneksi, $sql);
 
@@ -45,8 +47,9 @@ if (isset($_GET['id'])) {
 
             if ($_SESSION['role'] === 'Asesor') {
                 $id_asesor_login = $_SESSION['id_asesor'] ?? 0;
+                $asesor_ids = array_filter(explode(',', (string) ($unit_data['id_asesor_list'] ?? '')));
 
-                if ($unit_data['id_asesor'] != $id_asesor_login) {
+                if (!in_array((string) $id_asesor_login, $asesor_ids, true)) {
                     $message = "Anda tidak memiliki akses untuk mengubah unit ini.";
                     $message_type = 'error';
                     $unit_data = [];

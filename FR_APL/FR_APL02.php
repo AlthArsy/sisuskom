@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 include "../koneksi.php";
+require_once __DIR__ . '/fr_apl_helpers.php';
 
 if (!isset($_SESSION['username']) || !in_array($_SESSION['role'] ?? '', ['Asesi','Asesor','Admin_lsp','Admin_utm'])) {
     echo "<script>window.location.href='../LOGIN/login.php';</script>"; exit;
@@ -26,14 +27,17 @@ $is_admin_role = in_array($role, ['Admin_lsp', 'Admin_utm']);
 $apl1 = null;
 if ($id_asesi) {
     $apl1 = mysqli_fetch_assoc(mysqli_query($koneksi,
-        "SELECT a.id_apl1, a.id_skema, a.judul_skema, a.nomor_skema,
+        "SELECT a.id_apl1, COALESCE(j.id_skema, dp.id_skema) AS id_skema,
+                s.judul_skema, s.nomor_skema,
                 s.standar_kompetensi_kerja,
                 as2.nama_asesor, as2.no_reg, as2.id_asesor
          FROM tb_apl1 a
-         JOIN tb_skema s ON s.id_skema = a.id_skema
-         LEFT JOIN tb_asesor as2 ON as2.id_asesor = s.id_asesor
+         LEFT JOIN tb_jadwal j ON j.id_jadwal = a.id_jadwal
+         LEFT JOIN tb_det_periode dp ON dp.id_det_periode = a.id_det_periode
+         LEFT JOIN tb_skema s ON s.id_skema = COALESCE(j.id_skema, dp.id_skema)
+         LEFT JOIN tb_asesor as2 ON as2.id_asesor = COALESCE(j.id_asesor, dp.id_asesor)
          WHERE a.id_asesi = '$id_asesi'
-         ORDER BY a.id_apl1 ASC LIMIT 1"));
+         ORDER BY a.id_apl1 DESC LIMIT 1"));
 }
 
 $nama_asesi_db = '';
@@ -85,21 +89,7 @@ if ($id_skema) {
 }
 $jawaban_exist = [];
 if ($apl2_exist) {
-    $id_apl2_q = intval($apl2_exist['id_apl2']);
-    $rj = mysqli_query($koneksi,
-        "SELECT id_elemen, nilai
-         FROM detail_apl2
-         WHERE id_apl2='$id_apl2_q'
-           AND nilai != ''
-           AND id_detail_apl2 IN (
-               SELECT MAX(id_detail_apl2)
-               FROM detail_apl2
-               WHERE id_apl2='$id_apl2_q' AND nilai != ''
-               GROUP BY id_elemen
-           )");
-    while ($j = mysqli_fetch_assoc($rj)) {
-        $jawaban_exist[$j['id_elemen']] = $j['nilai'];
-    }
+    $jawaban_exist = fr_apl2_load_nilai($koneksi, $apl2_exist['id_apl2']);
 }
 
 $apl2_selesai_asesi = $apl2_exist && trim((string) ($apl2_exist['tertanda'] ?? '')) !== '';
@@ -132,18 +122,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                 exit;
             }
             $id_apl2_upd = mysqli_insert_id($koneksi);
-            foreach ($units as $u) {
-                foreach ($u['elemen'] as $el) {
-                    $id_el_i = intval($el['id_elemen']);
-                    foreach ($el['kuk'] as $k) {
-                        $id_kuk_i = intval($k['id_kuk']);
-                        mysqli_query($koneksi,
-                            "INSERT INTO detail_apl2 (id_apl2,id_skema,id_unit,id_elemen,id_kuk,nilai)
-                             VALUES ('$id_apl2_upd','$id_skema','{$u['id_unit']}','$id_el_i','$id_kuk_i','')");
-                    }
-                }
-            }
         }
+
+        fr_apl2_sync_kuk($koneksi, $id_apl2_upd, $id_skema, $units);
 
         foreach ($jawaban as $id_elemen => $nilai) {
             $id_el_i   = intval($id_elemen);
@@ -151,27 +132,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
             if ($id_el_i <= 0 || !in_array($nilai_esc, ['K', 'BK'], true)) {
                 continue;
             }
-            $cek = mysqli_num_rows(mysqli_query($koneksi,
-                "SELECT id_detail_apl2 FROM detail_apl2
-                 WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i' LIMIT 1"));
-            if ($cek > 0) {
-                mysqli_query($koneksi,
-                    "UPDATE detail_apl2 SET nilai='$nilai_esc'
-                     WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i'");
-            } else {
-                $row_unit = mysqli_fetch_assoc(mysqli_query($koneksi,
-                    "SELECT u.id_unit, u.id_skema, MIN(k.id_kuk) AS id_kuk
-                     FROM tb_elemen e
-                     JOIN tb_unit_kompetensi u ON u.id_unit = e.id_unit
-                     JOIN tb_kuk k ON k.id_elemen = e.id_elemen
-                     WHERE e.id_elemen='$id_el_i'
-                     GROUP BY u.id_unit, u.id_skema LIMIT 1"));
-                if ($row_unit) {
+
+            $kuk_list = [];
+            foreach ($units as $u) {
+                foreach ($u['elemen'] as $el) {
+                    if (intval($el['id_elemen']) === $id_el_i) {
+                        foreach ($el['kuk'] as $k) {
+                            $kuk_list[] = ['id_unit' => intval($u['id_unit']), 'id_kuk' => intval($k['id_kuk'])];
+                        }
+                        break 2;
+                    }
+                }
+            }
+
+            foreach ($kuk_list as $ku) {
+                $cek = mysqli_num_rows(mysqli_query($koneksi,
+                    "SELECT id_detail_apl2 FROM detail_apl2
+                     WHERE id_apl2='$id_apl2_upd' AND id_kuk='{$ku['id_kuk']}' LIMIT 1"));
+                if ($cek > 0) {
+                    mysqli_query($koneksi,
+                        "UPDATE detail_apl2 SET nilai='$nilai_esc'
+                         WHERE id_apl2='$id_apl2_upd' AND id_kuk='{$ku['id_kuk']}'");
+                } else {
                     mysqli_query($koneksi,
                         "INSERT INTO detail_apl2 (id_apl2, id_skema, id_unit, id_elemen, id_kuk, nilai)
-                         VALUES ('$id_apl2_upd','" . intval($row_unit['id_skema']) . "','"
-                         . intval($row_unit['id_unit']) . "','$id_el_i','"
-                         . intval($row_unit['id_kuk']) . "','$nilai_esc')");
+                         VALUES ('$id_apl2_upd','$id_skema','{$ku['id_unit']}','$id_el_i','{$ku['id_kuk']}','$nilai_esc')");
                 }
             }
         }
@@ -194,32 +179,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
             "UPDATE tb_apl2 SET rekomendasi=" . ($rekomendasi ? "'{$e($rekomendasi)}'" : "NULL") .
             " WHERE id_apl2='$id_apl2_upd'");
 
+        fr_apl2_sync_kuk($koneksi, $id_apl2_upd, $id_skema, $units);
+
         foreach ($jawaban as $id_elemen => $nilai) {
             $id_el_i   = intval($id_elemen);
-            $nilai_esc = mysqli_real_escape_string($koneksi, $nilai);
-            $cek = mysqli_num_rows(mysqli_query($koneksi,
-                "SELECT id_detail_apl2 FROM detail_apl2
-                 WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i' LIMIT 1"));
-            if ($cek > 0) {
-                mysqli_query($koneksi,
-                    "UPDATE detail_apl2 SET nilai='$nilai_esc'
-                     WHERE id_apl2='$id_apl2_upd' AND id_elemen='$id_el_i'");
-            } else {
-                $row_unit = mysqli_fetch_assoc(mysqli_query($koneksi,
-                    "SELECT u.id_unit, u.id_skema, MIN(k.id_kuk) as id_kuk
-                     FROM tb_elemen e
-                     JOIN tb_unit_kompetensi u ON u.id_unit = e.id_unit
-                     JOIN tb_kuk k ON k.id_elemen = e.id_elemen
-                     WHERE e.id_elemen='$id_el_i'
-                     GROUP BY u.id_unit, u.id_skema
-                     LIMIT 1"));
-                if ($row_unit && $row_unit['id_skema']) {
-                    $id_unit_ins  = intval($row_unit['id_unit']);
-                    $id_skema_ins = intval($row_unit['id_skema']);
-                    $id_kuk_ins   = intval($row_unit['id_kuk']);
+            $nilai_esc = $e(trim((string) $nilai));
+            if ($id_el_i <= 0 || !in_array($nilai_esc, ['K', 'BK'], true)) {
+                continue;
+            }
+
+            $kuk_list = [];
+            foreach ($units as $u) {
+                foreach ($u['elemen'] as $el) {
+                    if (intval($el['id_elemen']) === $id_el_i) {
+                        foreach ($el['kuk'] as $k) {
+                            $kuk_list[] = ['id_unit' => intval($u['id_unit']), 'id_kuk' => intval($k['id_kuk'])];
+                        }
+                        break 2;
+                    }
+                }
+            }
+
+            foreach ($kuk_list as $ku) {
+                $cek = mysqli_num_rows(mysqli_query($koneksi,
+                    "SELECT id_detail_apl2 FROM detail_apl2
+                     WHERE id_apl2='$id_apl2_upd' AND id_kuk='{$ku['id_kuk']}' LIMIT 1"));
+                if ($cek > 0) {
+                    mysqli_query($koneksi,
+                        "UPDATE detail_apl2 SET nilai='$nilai_esc'
+                         WHERE id_apl2='$id_apl2_upd' AND id_kuk='{$ku['id_kuk']}'");
+                } else {
                     mysqli_query($koneksi,
                         "INSERT INTO detail_apl2 (id_apl2, id_skema, id_unit, id_elemen, id_kuk, nilai)
-                         VALUES ('$id_apl2_upd','$id_skema_ins','$id_unit_ins','$id_el_i','$id_kuk_ins','$nilai_esc')");
+                         VALUES ('$id_apl2_upd','$id_skema','{$ku['id_unit']}','$id_el_i','{$ku['id_kuk']}','$nilai_esc')");
                 }
             }
         }
@@ -315,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
             </tr></thead>
             <tbody>
             <?php foreach ($u['elemen'] as $el):
-                $nilai = $jawaban_exist[$el['id_elemen']] ?? '';
+                $nilai = $jawaban_exist[intval($el['id_elemen'])] ?? '';
             ?>
             <tr class="elemen-row">
                 <td colspan="4">
@@ -516,7 +508,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'simpan_
                         <?php endforeach; ?>
                     </ul>
                 </td>
-                <?php $nilai_asesi = $jawaban_exist[$el['id_elemen']] ?? ''; ?>
+                <?php $nilai_asesi = $jawaban_exist[intval($el['id_elemen'])] ?? ''; ?>
                 <td style="text-align:center;vertical-align:middle;">
                     <label style="cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
                         <input type="radio" name="jawaban[<?= $el['id_elemen'] ?>]" value="K"
